@@ -1,0 +1,6 @@
+interface:
+  display_name: "Solid UI System Patterns"
+  short_description: "Solid UI, layout, and wrapper rules"
+  default_prompt: "Use $solid-ui-system-patterns to refactor this Solid UI with the repo's ParkUI, Panda, layout, overflow, and component extraction conventions."
+policy:
+  allow_implicit_invocation: true

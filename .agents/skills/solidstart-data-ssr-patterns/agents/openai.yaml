@@ -1,0 +1,6 @@
+interface:
+  display_name: "SolidStart Data SSR Patterns"
+  short_description: "SolidStart async and hydration rules"
+  default_prompt: "Use $solidstart-data-ssr-patterns to update this SolidStart route or async UI with safe data loading, actions, SSR, and hydration behavior."
+policy:
+  allow_implicit_invocation: true

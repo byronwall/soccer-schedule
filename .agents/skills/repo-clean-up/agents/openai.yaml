@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Clean Up"
+  short_description: "Find dead code and stale repo context"
+  default_prompt: "Use $repo-clean-up to run a repository cleanse and report dead code, bad code, stale docs, and the sentinel baseline."

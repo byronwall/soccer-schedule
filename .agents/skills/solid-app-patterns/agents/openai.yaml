@@ -1,0 +1,6 @@
+interface:
+  display_name: "Solid App Patterns"
+  short_description: "Default Solid correctness checks"
+  default_prompt: "Use $solid-app-patterns to make this Solid component change with correct props, state, reactivity, context, and type hygiene."
+policy:
+  allow_implicit_invocation: true
