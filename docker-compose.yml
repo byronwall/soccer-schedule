@@ -4,24 +4,29 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runtime
+      args:
+        BASE_PATH: ${BASE_PATH:-/}
+        CI_SSG_PRERENDER: ${CI_SSG_PRERENDER:-false}
     image: solid-start-panda-park-ui-app
     restart: unless-stopped
     environment:
-      NODE_ENV: production
-      HOST: 0.0.0.0
-      PORT: 3000
+      NODE_ENV: ${NODE_ENV:-production}
+      HOST: ${HOST:-0.0.0.0}
+      PORT: ${PORT:-3000}
       BASE_PATH: ${BASE_PATH:-/}
-      APP_DATA_DIR: /app/data
+      APP_DATA_DIR: ${APP_DATA_DIR:-/app/data}
       SERVICE_URL_APP: ${SERVICE_URL_APP:-}
-      APP_BASE_URL: ${APP_BASE_URL:-}
-      PRODUCT_NAME: ${PRODUCT_NAME:-Starter}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      PRODUCT_NAME: ${PRODUCT_NAME:-Coach Companion}
+      COACH_CREDENTIALS_JSON: ${COACH_CREDENTIALS_JSON:-[{"id":"coach-one","displayName":"Coach One","password":"replace-with-a-long-random-password"},{"id":"coach-two","displayName":"Coach Two","password":"replace-with-another-long-random-password"}]}
+      COACH_CREDENTIAL_VERSION: ${COACH_CREDENTIAL_VERSION:-1}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
       OPENAI_HEAVY_MODEL: ${OPENAI_HEAVY_MODEL:-gpt-5.4}
       EMAIL_DELIVERY: ${EMAIL_DELIVERY:-console}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
-      EMAIL_FROM: ${EMAIL_FROM:-}
-      SUPER_USER_EMAIL: ${SUPER_USER_EMAIL:?Set SUPER_USER_EMAIL in .env before starting the app}
+      EMAIL_FROM: ${EMAIL_FROM:-Coach Companion <support@example.com>}
+      SUPER_USER_EMAIL: ${SUPER_USER_EMAIL:-owner@example.com}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       STRIPE_PRICE_CREDIT_PACK: ${STRIPE_PRICE_CREDIT_PACK:-}
@@ -29,7 +34,7 @@ services:
       CREDIT_PACK_AMOUNT_CENTS: ${CREDIT_PACK_AMOUNT_CENTS:-1000}
       CREDIT_PACK_CURRENCY: ${CREDIT_PACK_CURRENCY:-usd}
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${APP_PORT:-3000}:${PORT:-3000}"
     volumes:
       - starter-data:/app/data
 

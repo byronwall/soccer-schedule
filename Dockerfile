@@ -16,6 +16,10 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY app ./
+ARG BASE_PATH=/
+ARG CI_SSG_PRERENDER=false
+ENV BASE_PATH=$BASE_PATH
+ENV CI_SSG_PRERENDER=$CI_SSG_PRERENDER
 RUN pnpm prepare && pnpm build
 
 FROM node:22-bookworm-slim AS runtime
