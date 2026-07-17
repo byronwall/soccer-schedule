@@ -97,7 +97,7 @@ export function UserSettingsPage() {
   const valid = () =>
     draft.username.trim().length > 0
     && draft.displayName.trim().length > 0
-    && draft.password.length >= 12;
+    && draft.password.length > 0;
 
   return (
     <>
@@ -152,7 +152,7 @@ export function UserSettingsPage() {
         <Card.Root>
           <Card.Header>
             <Card.Title>Add a user</Card.Title>
-            <Card.Description>Use at least 12 characters for the password.</Card.Description>
+            <Card.Description>Choose any non-empty password.</Card.Description>
           </Card.Header>
           <Card.Body>
             <VStack alignItems="stretch" gap="4">
@@ -173,7 +173,7 @@ export function UserSettingsPage() {
                   onInput={(event) => setDraft("displayName", event.currentTarget.value)}
                 />
               </Field.Root>
-              <Field.Root required invalid={draft.password.length > 0 && draft.password.length < 12}>
+              <Field.Root required>
                 <Field.Label>Temporary password</Field.Label>
                 <Input
                   type="password"
@@ -182,7 +182,6 @@ export function UserSettingsPage() {
                   onInput={(event) => setDraft("password", event.currentTarget.value)}
                   onKeyDown={(event) => event.key === "Enter" && valid() && void createUser()}
                 />
-                <Field.ErrorText>Password must be at least 12 characters.</Field.ErrorText>
               </Field.Root>
               <Button loading={pending()} disabled={!valid()} onClick={() => void createUser()}>
                 <UserPlus size={16} /> Create user

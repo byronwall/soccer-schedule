@@ -12,13 +12,13 @@ const MASTER_USER_ID = "super-user";
 const PASSWORD_KEY_LENGTH = 64;
 const usernameSchema = z.string().trim().min(1).max(40).regex(/^[a-zA-Z0-9._-]+$/);
 const displayNameSchema = z.string().trim().min(1).max(60);
-const passwordSchema = z.string().min(12).max(200);
+const passwordSchema = z.string().min(1).max(200);
 
 const masterCredentials = () => {
   const password = process.env.MASTER_PASSWORD
     || (process.env.NODE_ENV === "development" ? "development-master-password" : undefined);
-  if (!password || password.length < 12) {
-    throw new Error("MASTER_PASSWORD must be configured with at least 12 characters.");
+  if (!password) {
+    throw new Error("MASTER_PASSWORD must be configured.");
   }
   return {
     id: MASTER_USER_ID,

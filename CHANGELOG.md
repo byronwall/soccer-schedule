@@ -6,6 +6,7 @@ This file records user-visible changes, important development workflow changes, 
 
 ### Changed
 
+- Passwords now require only a non-empty value instead of a 12-character minimum.
 - Authentication now uses one environment-configured master sign-in plus persisted user accounts managed by the super user. User passwords are individually salted and hashed with scrypt, and removing a user revokes their active sessions.
   - Problem: production's `COACH_CREDENTIALS_JSON` was truncated and invalid, so the login page could not load its credential list.
 - Development tooling now coordinates around one shared hot-reloading server and provides a direct verification launcher when pnpm bootstrap cannot start repository scripts.

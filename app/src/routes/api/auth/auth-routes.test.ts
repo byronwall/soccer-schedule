@@ -100,7 +100,7 @@ describe("coach auth API", () => {
         body: JSON.stringify({
           username: "assistant",
           displayName: "Assistant Coach",
-          password: "assistant-private-password",
+          password: "x",
         }),
       }),
     } as APIEvent);

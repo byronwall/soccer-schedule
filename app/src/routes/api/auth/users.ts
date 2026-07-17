@@ -6,7 +6,7 @@ import { createAuthUser, deleteAuthUser, listAuthUsers } from "~/lib/soccer/stor
 const createUserSchema = z.object({
   username: z.string().trim().min(1).max(40).regex(/^[a-zA-Z0-9._-]+$/),
   displayName: z.string().trim().min(1).max(60),
-  password: z.string().min(12).max(200),
+  password: z.string().min(1).max(200),
 });
 const deleteUserSchema = z.object({ userId: z.string().uuid() });
 
@@ -35,7 +35,7 @@ export async function POST(event: APIEvent) {
   const input = createUserSchema.safeParse(await event.request.json().catch(() => undefined));
   if (!input.success) {
     return Response.json({
-      error: "Enter a valid username, display name, and password of at least 12 characters.",
+      error: "Enter a valid username, display name, and password.",
     }, { status: 400 });
   }
   try {

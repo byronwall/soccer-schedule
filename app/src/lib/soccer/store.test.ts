@@ -70,12 +70,12 @@ describe("file-backed soccer store", () => {
     const user = await createAuthUser({
       username: "assistant-coach",
       displayName: "Assistant Coach",
-      password: "another-private-password",
+      password: "x",
     });
     expect(user).toMatchObject({ username: "assistant-coach", isSuperUser: false });
-    expect(JSON.stringify(await getSnapshot())).not.toContain("another-private-password");
+    expect(JSON.stringify(await getSnapshot())).not.toContain('"password":"x"');
     expect(await loginCoach("assistant-coach", "wrong-password")).toBeNull();
-    const result = await loginCoach("assistant-coach", "another-private-password");
+    const result = await loginCoach("assistant-coach", "x");
     expect(result?.coach).toMatchObject({ displayName: "Assistant Coach", isSuperUser: false });
     await expect(listAuthUsers()).resolves.toEqual(expect.arrayContaining([
       expect.objectContaining({ username: "admin", isSuperUser: true }),
