@@ -18,8 +18,10 @@ services:
       SERVICE_URL_APP: ${SERVICE_URL_APP:-}
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
       PRODUCT_NAME: ${PRODUCT_NAME:-Coach Companion}
-      COACH_CREDENTIALS_JSON: ${COACH_CREDENTIALS_JSON:-[{"id":"coach-one","displayName":"Coach One","password":"replace-with-a-long-random-password"},{"id":"coach-two","displayName":"Coach Two","password":"replace-with-another-long-random-password"}]}
-      COACH_CREDENTIAL_VERSION: ${COACH_CREDENTIAL_VERSION:-1}
+      MASTER_USERNAME: ${MASTER_USERNAME:-admin}
+      MASTER_DISPLAY_NAME: ${MASTER_DISPLAY_NAME:-Administrator}
+      MASTER_PASSWORD: ${MASTER_PASSWORD:-}
+      AUTH_CREDENTIAL_VERSION: ${AUTH_CREDENTIAL_VERSION:-1}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
       OPENAI_HEAVY_MODEL: ${OPENAI_HEAVY_MODEL:-gpt-5.4}

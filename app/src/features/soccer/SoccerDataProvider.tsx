@@ -4,7 +4,7 @@ import type { Availability, Game, LiveState, Player, PositionLabels, Schedule } 
 
 export type SoccerSnapshot = {
   teamDisplayName: string; seasonName: string; positionLabels: PositionLabels; players: Player[]; games: Game[]; availability: Availability[];
-  schedules: Schedule[]; liveGames: LiveState[]; coach: { id: string; displayName: string };
+  schedules: Schedule[]; liveGames: LiveState[]; coach: { id: string; displayName: string; isSuperUser: boolean };
 };
 type SoccerContextValue = {
   snapshot: () => SoccerSnapshot | undefined; loading: () => boolean; error: () => string | undefined;

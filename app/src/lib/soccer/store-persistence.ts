@@ -72,6 +72,7 @@ const createSeedStore = (): SoccerStore => {
       publishedAt: stamp,
     }],
     liveGames: [],
+    users: [],
     sessions: [],
   });
 };

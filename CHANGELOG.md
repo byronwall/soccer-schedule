@@ -6,6 +6,8 @@ This file records user-visible changes, important development workflow changes, 
 
 ### Changed
 
+- Authentication now uses one environment-configured master sign-in plus persisted user accounts managed by the super user. User passwords are individually salted and hashed with scrypt, and removing a user revokes their active sessions.
+  - Problem: production's `COACH_CREDENTIALS_JSON` was truncated and invalid, so the login page could not load its credential list.
 - Development tooling now coordinates around one shared hot-reloading server and provides a direct verification launcher when pnpm bootstrap cannot start repository scripts.
   - Problem: duplicate wrappers hot-reload the same checkout and can mutate the same development data.
 - Repository guidance now treats `app/data` as disposable local state and uses targeted manual browser checks instead of a committed end-to-end test suite.

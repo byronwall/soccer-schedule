@@ -4,11 +4,13 @@ import { scheduleActionHandlers } from "./store-schedule-actions";
 import { mutateStore, readStore } from "./store-persistence";
 
 export {
+  createAuthUser,
+  deleteAuthUser,
   getCoachForToken,
   hashToken,
+  listAuthUsers,
   loginCoach,
   logoutToken,
-  publicCoaches,
 } from "./store-auth";
 
 const actionHandlers = {
@@ -18,7 +20,7 @@ const actionHandlers = {
 
 export const getSnapshot = async () => {
   const store = await readStore();
-  return { ...store, sessions: undefined };
+  return { ...store, users: undefined, sessions: undefined };
 };
 
 export const applySoccerAction = (action: string, payload: Record<string, unknown>) =>

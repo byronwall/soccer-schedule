@@ -5,6 +5,7 @@ export const COACH_COOKIE = "coach_companion_session";
 export const DEVELOPMENT_COACH = {
   id: "development-coach",
   displayName: "Development Coach",
+  isSuperUser: true,
 } as const;
 
 export const cookieToken = (request: Request) => request.headers.get("cookie")?.split(";").map((item) => item.trim().split("=")).find(([name]) => name === COACH_COOKIE)?.[1];

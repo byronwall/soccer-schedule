@@ -32,7 +32,22 @@ export const liveStateSchema = z.object({
   runningSince: timestamp.optional(), overrides: z.array(z.object({ positionKey: z.enum(POSITIONS.map((item) => item.key)), replacementPlayerId: id })),
   updatedAt: timestamp,
 });
-export const sessionSchema = z.object({ tokenHash: z.string(), coachId: z.string(), coachDisplayName: z.string(), credentialVersion: z.string().default("1"), expiresAt: timestamp });
+export const authUserSchema = z.object({
+  id,
+  username: z.string().trim().min(1).max(40),
+  displayName: z.string().trim().min(1).max(60),
+  passwordSalt: z.string().min(1),
+  passwordHash: z.string().min(1),
+  createdAt: timestamp,
+});
+export const sessionSchema = z.object({
+  tokenHash: z.string(),
+  coachId: z.string(),
+  coachDisplayName: z.string(),
+  isSuperUser: z.boolean().default(false),
+  credentialVersion: z.string().default("1"),
+  expiresAt: timestamp,
+});
 export const positionLabelsSchema = z.object({
   goalkeeper: z.string().trim().min(1).max(40),
   leftDefense: z.string().trim().min(1).max(40),
@@ -45,7 +60,9 @@ export const positionLabelsSchema = z.object({
 export const soccerStoreSchema = z.object({
   schemaVersion: z.literal(2), teamDisplayName: z.string(), seasonName: z.string(), players: z.array(playerSchema), games: z.array(gameSchema),
   positionLabels: positionLabelsSchema.default(() => ({ ...DEFAULT_POSITION_LABELS })),
-  availability: z.array(availabilitySchema), schedules: z.array(scheduleSchema), liveGames: z.array(liveStateSchema), sessions: z.array(sessionSchema),
+  availability: z.array(availabilitySchema), schedules: z.array(scheduleSchema), liveGames: z.array(liveStateSchema),
+  users: z.array(authUserSchema).default([]),
+  sessions: z.array(sessionSchema),
 });
 export type Player = z.infer<typeof playerSchema>;
 export type Game = z.infer<typeof gameSchema>;
@@ -55,4 +72,5 @@ export type Assignment = z.infer<typeof assignmentSchema>;
 export type Schedule = z.infer<typeof scheduleSchema>;
 export type LiveState = z.infer<typeof liveStateSchema>;
 export type PositionLabels = z.infer<typeof positionLabelsSchema>;
+export type AuthUser = z.infer<typeof authUserSchema>;
 export type SoccerStore = z.infer<typeof soccerStoreSchema>;

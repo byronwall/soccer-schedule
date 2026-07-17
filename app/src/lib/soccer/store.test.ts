@@ -2,29 +2,34 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { applySoccerAction, getCoachForToken, getSnapshot, loginCoach, publicCoaches } from "./store";
+import { applySoccerAction, createAuthUser, getCoachForToken, getSnapshot, listAuthUsers, loginCoach } from "./store";
 
 let dataDir = "";
+const configuredNodeEnvironment = process.env.NODE_ENV;
 beforeAll(async () => {
   dataDir = await mkdtemp(path.join(tmpdir(), "coach-companion-test-"));
+  process.env.NODE_ENV = "production";
   process.env.APP_DATA_DIR = dataDir;
-  process.env.COACH_CREDENTIALS_JSON = JSON.stringify([
-    { id: "coach-byron", displayName: "Coach Byron", password: "demo-sideline-2026" },
-    { id: "coach-anne", displayName: "Coach Anne", password: "demo-sideline-2026" },
-  ]);
+  process.env.MASTER_USERNAME = "admin";
+  process.env.MASTER_DISPLAY_NAME = "Coach Byron";
+  process.env.MASTER_PASSWORD = "demo-sideline-2026";
 });
 afterAll(async () => {
   delete process.env.APP_DATA_DIR;
-  delete process.env.COACH_CREDENTIALS_JSON;
+  delete process.env.MASTER_USERNAME;
+  delete process.env.MASTER_DISPLAY_NAME;
+  delete process.env.MASTER_PASSWORD;
+  if (configuredNodeEnvironment === undefined) delete process.env.NODE_ENV;
+  else process.env.NODE_ENV = configuredNodeEnvironment;
   await rm(dataDir, { recursive: true, force: true });
 });
 
 describe("file-backed soccer store", () => {
-  it("requires exactly two environment-configured coaches", () => {
-    const configured = process.env.COACH_CREDENTIALS_JSON;
-    delete process.env.COACH_CREDENTIALS_JSON;
-    expect(() => publicCoaches()).toThrow(/must configure exactly two coaches/);
-    process.env.COACH_CREDENTIALS_JSON = configured;
+  it("requires a master password", async () => {
+    const configured = process.env.MASTER_PASSWORD;
+    delete process.env.MASTER_PASSWORD;
+    await expect(loginCoach("admin", "anything")).rejects.toThrow(/MASTER_PASSWORD/);
+    process.env.MASTER_PASSWORD = configured;
   });
 
   it("persists roster create, read, update, status, and delete operations", async () => {
@@ -53,12 +58,29 @@ describe("file-backed soccer store", () => {
     });
   });
 
-  it("authenticates a configured coach with an opaque persisted session", async () => {
-    expect(await loginCoach("coach-byron", "wrong-password")).toBeNull();
-    const result = await loginCoach("coach-byron", "demo-sideline-2026");
+  it("authenticates the master user with an opaque persisted super-user session", async () => {
+    expect(await loginCoach("admin", "wrong-password")).toBeNull();
+    const result = await loginCoach("admin", "demo-sideline-2026");
     expect(result?.token).toBeTruthy();
-    expect(result?.coach).toEqual({ id: "coach-byron", displayName: "Coach Byron" });
-    await expect(getCoachForToken(result?.token)).resolves.toMatchObject({ id: "coach-byron", displayName: "Coach Byron" });
+    expect(result?.coach).toEqual({ id: "super-user", displayName: "Coach Byron", isSuperUser: true });
+    await expect(getCoachForToken(result?.token)).resolves.toMatchObject({ id: "super-user", isSuperUser: true });
+  });
+
+  it("salts and hashes created user passwords before authenticating them", async () => {
+    const user = await createAuthUser({
+      username: "assistant-coach",
+      displayName: "Assistant Coach",
+      password: "another-private-password",
+    });
+    expect(user).toMatchObject({ username: "assistant-coach", isSuperUser: false });
+    expect(JSON.stringify(await getSnapshot())).not.toContain("another-private-password");
+    expect(await loginCoach("assistant-coach", "wrong-password")).toBeNull();
+    const result = await loginCoach("assistant-coach", "another-private-password");
+    expect(result?.coach).toMatchObject({ displayName: "Assistant Coach", isSuperUser: false });
+    await expect(listAuthUsers()).resolves.toEqual(expect.arrayContaining([
+      expect.objectContaining({ username: "admin", isSuperUser: true }),
+      expect.objectContaining({ username: "assistant-coach", isSuperUser: false }),
+    ]));
   });
 
   it("creates an editable draft without changing a published schedule", async () => {

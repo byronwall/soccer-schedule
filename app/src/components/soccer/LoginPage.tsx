@@ -1,12 +1,10 @@
 import { useNavigate, useSearchParams } from "@solidjs/router";
 import { ShieldCheck } from "lucide-solid";
-import { For, Show, createResource, createSignal, onMount } from "solid-js";
+import { Show, createSignal } from "solid-js";
 import { z } from "zod";
 import { Alert, Button, Card, Field, Input, Text } from "~/components/ui";
-import { Box, HStack, VStack } from "styled-system/jsx";
+import { Box, VStack } from "styled-system/jsx";
 
-const coachSchema = z.object({ id: z.string(), displayName: z.string() });
-const coachesResponseSchema = z.object({ coaches: z.array(coachSchema) });
 const loginResponseSchema = z.object({ error: z.string().optional() });
 
 const responseErrorMessage = (status: number) =>
@@ -29,30 +27,10 @@ async function parseResponse<T>(response: Response, schema: z.ZodType<T>) {
 export function LoginPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const [coachId, setCoachId] = createSignal("");
+  const [username, setUsername] = createSignal("");
   const [password, setPassword] = createSignal("");
   const [error, setError] = createSignal<string>();
-  const [coachLoadError, setCoachLoadError] = createSignal<string>();
   const [pending, setPending] = createSignal(false);
-  const [ready, setReady] = createSignal(false);
-
-  onMount(() => setReady(true));
-
-  const [coaches] = createResource(ready, async (enabled) => {
-    if (!enabled) return [];
-    try {
-      const response = await fetch("/api/auth/coaches");
-      const body = await parseResponse(response, coachesResponseSchema);
-      if (!response.ok) throw new Error("Coach sign-in is temporarily unavailable.");
-      setCoachId(body.coaches[0]?.id ?? "");
-      return body.coaches;
-    } catch (loadError) {
-      setCoachLoadError(
-        loadError instanceof Error ? loadError.message : "Could not load the coach list.",
-      );
-      return [];
-    }
-  });
 
   const login = async () => {
     setPending(true);
@@ -61,7 +39,7 @@ export function LoginPage() {
       const response = await fetch("/api/auth/coach-login", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ coachId: coachId(), password: password() }),
+        body: JSON.stringify({ username: username(), password: password() }),
       });
       const body = await parseResponse(response, loginResponseSchema);
       if (!response.ok) {
@@ -93,30 +71,25 @@ export function LoginPage() {
         </Card.Header>
         <Card.Body>
           <VStack alignItems="stretch" gap="5">
-            <Show when={coachLoadError()}>
-              {(message) => (
-                <Alert.Root status="error">
-                  <Alert.Indicator />
-                  <Alert.Content>
-                    <Alert.Title>Sign-in unavailable</Alert.Title>
-                    <Alert.Description>{message()}</Alert.Description>
-                  </Alert.Content>
-                </Alert.Root>
-              )}
+            <Show when={error()?.includes("temporarily unavailable")}>
+              <Alert.Root status="error">
+                <Alert.Indicator />
+                <Alert.Content>
+                  <Alert.Title>Sign-in unavailable</Alert.Title>
+                  <Alert.Description>{error()}</Alert.Description>
+                </Alert.Content>
+              </Alert.Root>
             </Show>
             <Field.Root required>
-              <Field.Label>Coach</Field.Label>
-              <HStack gap="2">
-                <For each={coaches.latest ?? []}>
-                  {(coach) => (
-                    <Button flex="1" variant={coachId() === coach.id ? "solid" : "outline"} onClick={() => setCoachId(coach.id)}>
-                      {coach.displayName}
-                    </Button>
-                  )}
-                </For>
-              </HStack>
+              <Field.Label>Username</Field.Label>
+              <Input
+                value={username()}
+                onInput={(event) => setUsername(event.currentTarget.value)}
+                autocomplete="username"
+                autofocus
+              />
             </Field.Root>
-            <Field.Root required invalid={!!error()}>
+            <Field.Root required invalid={!!error() && !error()?.includes("temporarily unavailable")}>
               <Field.Label>Password</Field.Label>
               <Input
                 type="password"
@@ -127,11 +100,11 @@ export function LoginPage() {
               />
               <Show when={error()}>{(message) => <Field.ErrorText>{message()}</Field.ErrorText>}</Show>
             </Field.Root>
-            <Button size="lg" loading={pending()} disabled={!coachId() || !password() || !!coachLoadError()} onClick={login}>
+            <Button size="lg" loading={pending()} disabled={!username().trim() || !password()} onClick={login}>
               Sign in
             </Button>
             <Box p="3" bg="bg.muted" borderRadius="l2">
-              <Text textStyle="sm" color="fg.muted">Use the private password provided by your club administrator.</Text>
+              <Text textStyle="sm" color="fg.muted">Use the username and private password provided by your administrator.</Text>
             </Box>
           </VStack>
         </Card.Body>
