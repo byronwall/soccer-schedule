@@ -1,5 +1,7 @@
 import { POSITIONS, SEGMENTS, SEGMENT_SECONDS, type PositionKey } from "./fixed-game";
 import type { Assignment, Player } from "./schemas";
+export { generateSchedule } from "./schedule-generator";
+import { generateSchedule } from "./schedule-generator";
 
 export type ScheduleQuality = {
   valid: boolean; hardViolations: string[]; minuteSpread: number;
@@ -148,35 +150,6 @@ export const scoreSchedule = (assignments: Assignment[], eligibleIds: string[]):
   ).size;
   const hardViolations = validateAssignments(assignments, eligibleIds);
   return { valid: hardViolations.length === 0, hardViolations, minuteSpread: (Math.max(...segmentCounts) - Math.min(...segmentCounts)) * 7, midfieldExceptions, goalkeeperExceptions, goalkeeperOveruse, substituteOveruse, totals };
-};
-
-export const generateSchedule = (players: Player[]): Assignment[] => {
-  if (players.length < POSITIONS.length) throw new Error("At least seven available players are required.");
-  const ordered = [...players].sort((a, b) => a.displayName.localeCompare(b.displayName));
-  const counts = new Map(ordered.map((player) => [player.id, 0]));
-  const result: Assignment[] = [];
-  for (let quarter = 1; quarter <= 4; quarter += 1) {
-    const keeper = [...ordered].sort((a, b) => (counts.get(a.id) ?? 0) - (counts.get(b.id) ?? 0) || a.id.localeCompare(b.id))[0];
-    for (const half of ["a", "b"] as const) {
-      const segmentKey = `q${quarter}${half}` as Assignment["segmentKey"];
-      const used = new Set<string>();
-      const firstHalfMids = new Set(result.filter((item) => item.segmentKey === `q${quarter}a` && item.positionKey.includes("Midfield")).map((item) => item.playerId));
-      for (const position of POSITIONS) {
-        let player = position.key === "goalkeeper" ? keeper : undefined;
-        if (!player) {
-          player = [...ordered].filter((candidate) => !used.has(candidate.id) && candidate.id !== keeper.id).sort((a, b) => {
-            const midfieldPenaltyA = half === "b" && position.group === "midfield" && firstHalfMids.has(a.id) ? 100 : 0;
-            const midfieldPenaltyB = half === "b" && position.group === "midfield" && firstHalfMids.has(b.id) ? 100 : 0;
-            return (counts.get(a.id) ?? 0) + midfieldPenaltyA - (counts.get(b.id) ?? 0) - midfieldPenaltyB || a.id.localeCompare(b.id);
-          })[0];
-        }
-        used.add(player.id);
-        counts.set(player.id, (counts.get(player.id) ?? 0) + 1);
-        result.push({ segmentKey, positionKey: position.key, playerId: player.id, source: "generated", locked: false });
-      }
-    }
-  }
-  return result;
 };
 
 const selectRepairPlayer = (options: {

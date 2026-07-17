@@ -31,6 +31,42 @@ describe("fixed soccer schedule", () => {
   it.each([7, 8, 10, 11, 14])("creates a valid deterministic schedule for %i players", (count) => { const roster = players(count); const first = generateSchedule(roster); expect(first).toEqual(generateSchedule(roster)); expect(scoreSchedule(first, roster.map((item) => item.id)).valid).toBe(true); expect(first).toHaveLength(56); });
   it("rejects fewer than seven players", () => expect(() => generateSchedule(players(6))).toThrow(/seven/));
   it("keeps the eleven-player minute spread to one segment", () => { const roster = players(11); expect(scoreSchedule(generateSchedule(roster), roster.map((item) => item.id)).minuteSpread).toBeLessThanOrEqual(7); });
+  it("uses the minimum four swaps needed to bring every substitute in", () => {
+    const roster = players(11);
+    const schedule = generateSchedule(roster);
+    for (let index = 1; index < SEGMENTS.length; index += 1) {
+      const previousField = new Set(schedule.filter((item) => item.segmentKey === SEGMENTS[index - 1].key).map((item) => item.playerId));
+      const nextField = new Set(schedule.filter((item) => item.segmentKey === SEGMENTS[index].key).map((item) => item.playerId));
+      const previousSubstitutes = roster.filter((player) => !previousField.has(player.id));
+      expect(previousSubstitutes.every((player) => nextField.has(player.id))).toBe(true);
+      expect([...previousField].filter((playerId) => nextField.has(playerId))).toHaveLength(3);
+    }
+  });
+  it("keeps retained players in position and rotates midfielders most often", () => {
+    const roster = players(11);
+    const schedule = generateSchedule(roster);
+    let midfieldersRotated = 0;
+    for (let index = 1; index < SEGMENTS.length; index += 1) {
+      const previous = schedule.filter((item) => item.segmentKey === SEGMENTS[index - 1].key);
+      const next = schedule.filter((item) => item.segmentKey === SEGMENTS[index].key);
+      const nextByPlayer = new Map(next.map((item) => [item.playerId, item.positionKey]));
+      const previousMidfielders = previous.filter((item) => item.positionKey.includes("Midfield"));
+      midfieldersRotated += previousMidfielders.filter((item) => !nextByPlayer.has(item.playerId)).length;
+      for (const assignment of previous) {
+        const nextPosition = nextByPlayer.get(assignment.playerId);
+        if (nextPosition) expect(nextPosition).toBe(assignment.positionKey);
+      }
+    }
+    expect(midfieldersRotated).toBeGreaterThanOrEqual(10);
+  });
+  it("keeps one goalkeeper for each full quarter", () => {
+    const schedule = generateSchedule(players(11));
+    for (let quarter = 1; quarter <= 4; quarter += 1) {
+      const first = schedule.find((item) => item.segmentKey === `q${quarter}a` && item.positionKey === "goalkeeper");
+      const second = schedule.find((item) => item.segmentKey === `q${quarter}b` && item.positionKey === "goalkeeper");
+      expect(first?.playerId).toBe(second?.playerId);
+    }
+  });
   it("repairs an unavailable assignment while preserving unaffected cells", () => { const roster = players(11); const original = generateSchedule(roster); const unavailable = original[0].playerId; const eligible = roster.filter((item) => item.id !== unavailable); const repaired = repairSchedule(original, eligible); expect(scoreSchedule(repaired, eligible.map((item) => item.id)).valid).toBe(true); expect(repaired.filter((item, index) => item.playerId === original[index].playerId).length).toBeGreaterThan(45); });
   it("swaps two field players within a segment", () => {
     const original = generateSchedule(players(8));
