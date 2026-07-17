@@ -1,3 +1,5 @@
+tmp
+
 app/.env
 app/data/
 app/.output/
@@ -7,3 +9,5 @@ node_modules/
 .pnpm-store/
 live-server-details.json
 live-server-details.json.tmp
+
+.vite

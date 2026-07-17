@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1450" role="img" aria-labelledby="title description">
+  <title id="title">Coach Companion soccer ball logo iteration contact sheet</title>
+  <desc id="description">Four soccer ball logo iterations, their review notes, and size tests for the final design.</desc>
+  <rect width="1200" height="820" fill="#f5f7f4"/>
+  <text x="64" y="70" fill="#203c25" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" font-weight="700">Coach Companion · logo iterations</text>
+  <text x="64" y="104" fill="#58705d" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17">Soccer-ball mark · reviewed for favicon legibility, nav balance, and silhouette</text>
+
+  <g font-family="ui-sans-serif, system-ui, sans-serif">
+    <g transform="translate(64 148)">
+      <rect width="250" height="380" rx="20" fill="#fff" stroke="#dbe5da"/>
+      <image href="soccer-logo-iterations/v1-heavy-seams.svg" x="45" y="34" width="160" height="160"/>
+      <text x="24" y="232" fill="#203c25" font-size="19" font-weight="700">01 · Heavy seams</text>
+      <text x="24" y="265" fill="#58705d" font-size="15"><tspan x="24" dy="0">Recognizable, but the thick</tspan><tspan x="24" dy="22">connectors crowd the ball and</tspan><tspan x="24" dy="22">merge at small sizes.</tspan></text>
+      <rect x="24" y="334" width="202" height="28" rx="14" fill="#f2f7f1"/>
+      <text x="125" y="353" text-anchor="middle" fill="#2a7e3b" font-size="13" font-weight="700">FIX: OPEN THE SEAMS</text>
+    </g>
+    <g transform="translate(338 148)">
+      <rect width="250" height="380" rx="20" fill="#fff" stroke="#dbe5da"/>
+      <image href="soccer-logo-iterations/v2-open-ball.svg" x="45" y="34" width="160" height="160"/>
+      <text x="24" y="232" fill="#203c25" font-size="19" font-weight="700">02 · Open ball</text>
+      <text x="24" y="265" fill="#58705d" font-size="15"><tspan x="24" dy="0">Cleaner interior, though the</tspan><tspan x="24" dy="22">white edge disappears on light</tspan><tspan x="24" dy="22">surfaces outside the badge.</tspan></text>
+      <rect x="24" y="334" width="202" height="28" rx="14" fill="#f2f7f1"/>
+      <text x="125" y="353" text-anchor="middle" fill="#2a7e3b" font-size="13" font-weight="700">FIX: DEFINE SILHOUETTE</text>
+    </g>
+    <g transform="translate(612 148)">
+      <rect width="250" height="380" rx="20" fill="#fff" stroke="#dbe5da"/>
+      <image href="soccer-logo-iterations/v3-balanced-panels.svg" x="45" y="34" width="160" height="160"/>
+      <text x="24" y="232" fill="#203c25" font-size="19" font-weight="700">03 · Defined edge</text>
+      <text x="24" y="265" fill="#58705d" font-size="15"><tspan x="24" dy="0">Strong silhouette, but the ring</tspan><tspan x="24" dy="22">makes the mark feel busier and</tspan><tspan x="24" dy="22">smaller inside the green tile.</tspan></text>
+      <rect x="24" y="334" width="202" height="28" rx="14" fill="#f2f7f1"/>
+      <text x="125" y="353" text-anchor="middle" fill="#2a7e3b" font-size="13" font-weight="700">FIX: REMOVE THE RING</text>
+    </g>
+    <g transform="translate(886 148)">
+      <rect width="250" height="380" rx="20" fill="#fff" stroke="#2a7e3b" stroke-width="3"/>
+      <image href="soccer-logo-iterations/v4-final.svg" x="45" y="34" width="160" height="160"/>
+      <text x="24" y="232" fill="#203c25" font-size="19" font-weight="700">04 · Candidate</text>
+      <text x="24" y="265" fill="#58705d" font-size="15"><tspan x="24" dy="0">The first render revealed a figure-</tspan><tspan x="24" dy="22">like shape: the lower connectors</tspan><tspan x="24" dy="22">dominate the panel geometry.</tspan></text>
+      <rect x="24" y="334" width="202" height="28" rx="14" fill="#f2f7f1"/>
+      <text x="125" y="353" text-anchor="middle" fill="#2a7e3b" font-size="13" font-weight="700">FIX: REBUILD PANELS</text>
+    </g>
+  </g>
+
+  <g transform="translate(64 554)" font-family="ui-sans-serif, system-ui, sans-serif">
+    <rect width="1072" height="180" rx="20" fill="#fff" stroke="#2a7e3b" stroke-width="3"/>
+    <image href="soccer-logo-iterations/v5-final.svg" x="28" y="26" width="128" height="128"/>
+    <text x="184" y="53" fill="#2a7e3b" font-size="14" font-weight="700" letter-spacing="1.5">05 · REJECTED IN USER REVIEW</text>
+    <text x="184" y="87" fill="#203c25" font-size="23" font-weight="700">Still too abstract, with a badge-like green background.</text>
+    <text x="184" y="119" fill="#58705d" font-size="16">Direction: remove the tile and rebuild the mark as a believable, dimensional soccer ball.</text>
+    <rect x="184" y="137" width="192" height="27" rx="14" fill="#f2f7f1"/>
+    <text x="280" y="155" text-anchor="middle" fill="#2a7e3b" font-size="13" font-weight="700">FIX: REAL BALL FORM</text>
+  </g>
+
+  <g transform="translate(64 770)" font-family="ui-sans-serif, system-ui, sans-serif">
+    <rect width="1072" height="180" rx="20" fill="#fff" stroke="#203c25" stroke-width="3"/>
+    <image href="soccer-logo-iterations/v6-real-ball.svg" x="28" y="26" width="128" height="128"/>
+    <text x="184" y="53" fill="#2a7e3b" font-size="14" font-weight="700" letter-spacing="1.5">06 · REBUILT FROM USER FEEDBACK</text>
+    <text x="184" y="87" fill="#203c25" font-size="23" font-weight="700">Circular silhouette, classic panels, transparent background.</text>
+    <text x="184" y="119" fill="#58705d" font-size="16">A dark outer seam and soft surface shading keep it legible on both light and dark UI.</text>
+    <rect x="184" y="137" width="192" height="27" rx="14" fill="#f2f7f1"/>
+    <text x="280" y="155" text-anchor="middle" fill="#2a7e3b" font-size="13" font-weight="700">FIX: LIGHTEN PANELS</text>
+  </g>
+
+  <g transform="translate(64 986)" font-family="ui-sans-serif, system-ui, sans-serif">
+    <rect width="1072" height="180" rx="20" fill="#fff" stroke="#203c25" stroke-width="3"/>
+    <image href="soccer-logo-iterations/v7-natural-panels.svg" x="28" y="26" width="128" height="128"/>
+    <text x="184" y="53" fill="#2a7e3b" font-size="14" font-weight="700" letter-spacing="1.5">07 · NATURAL PANEL BALANCE</text>
+    <text x="184" y="87" fill="#203c25" font-size="23" font-weight="700">Smaller patches let the white leather surface define the ball.</text>
+    <text x="184" y="119" fill="#58705d" font-size="16">Fine seams preserve the traditional construction while the transparent surround stays versatile.</text>
+    <rect x="184" y="137" width="192" height="27" rx="14" fill="#203c25"/>
+    <text x="280" y="155" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">NEW CANDIDATE</text>
+  </g>
+
+  <g transform="translate(64 1202)" font-family="ui-sans-serif, system-ui, sans-serif">
+    <rect width="1072" height="180" rx="20" fill="#203c25"/>
+    <text x="28" y="39" fill="#c2f0c2" font-size="14" font-weight="700" letter-spacing="1.5">FINAL SIZE &amp; CONTEXT CHECK</text>
+    <image href="soccer-logo-iterations/v7-natural-panels.svg" x="30" y="66" width="64" height="64"/>
+    <image href="soccer-logo-iterations/v7-natural-panels.svg" x="119" y="82" width="32" height="32"/>
+    <image href="soccer-logo-iterations/v7-natural-panels.svg" x="176" y="90" width="16" height="16"/>
+    <line x1="224" y1="55" x2="224" y2="145" stroke="#416047"/>
+    <image href="soccer-logo-iterations/v7-natural-panels.svg" x="258" y="75" width="44" height="44"/>
+    <text x="318" y="93" fill="#fff" font-size="18" font-weight="700">Northwoods United</text>
+    <text x="318" y="116" fill="#9eb2a2" font-size="13">Fall 2026</text>
+    <rect x="672" y="63" width="354" height="68" rx="14" fill="#fff"/>
+    <image href="soccer-logo-iterations/v7-natural-panels.svg" x="688" y="75" width="44" height="44"/>
+    <text x="748" y="94" fill="#203c25" font-size="18" font-weight="700">Northwoods United</text>
+    <text x="748" y="116" fill="#58705d" font-size="13">Fall 2026</text>
+  </g>
+</svg>

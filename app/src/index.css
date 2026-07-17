@@ -1,1 +1,7 @@
 @layer reset, base, tokens, recipes, utilities;
+
+@media print {
+  @page { size: landscape; margin: 0.35in; }
+  .no-print { display: none !important; }
+  body { background: white !important; }
+}

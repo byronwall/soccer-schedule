@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Coach Companion soccer ball logo">
+  <defs>
+    <radialGradient id="surface" cx="32%" cy="25%" r="72%">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="0.72" stop-color="#f8faf8"/>
+      <stop offset="1" stop-color="#dfe6df"/>
+    </radialGradient>
+    <clipPath id="ball"><circle cx="32" cy="32" r="27"/></clipPath>
+  </defs>
+  <circle cx="32" cy="32" r="27" fill="url(#surface)" stroke="#18231a" stroke-width="2.5"/>
+  <g clip-path="url(#ball)" fill="#18231a">
+    <path d="m32 20.5 9.6 7-3.7 11.3H26.1l-3.7-11.3Z"/>
+    <path d="m21.5 5.5 10.5-4 10.5 4 1.7 8-7.1 4.8-5.1-2.1-5.1 2.1-7.1-4.8Z"/>
+    <path d="m49.2 12.3 9.3 5.4 3.5 10.2-6.2 6.3-7.2-3.4-4.3-9.2Z"/>
+    <path d="m58.3 41.2-1.5 10.7-8.7 7.6-9.2-1.1-2.5-7.5 6.4-8.7 8.4-3.1Z"/>
+    <path d="m27.6 50.9-2.5 7.5-9.2 1.1-8.7-7.6-1.5-10.7 7.1-2.1 8.4 3.1Z"/>
+    <path d="m15.4 30.8-7.2 3.4L2 27.9l3.5-10.2 9.3-5.4 4.9 9.3Z"/>
+  </g>
+  <g fill="none" stroke="#18231a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 20.5v-4.3M41.6 27.5l7 3.3M37.9 38.8l4.9 3.4M26.1 38.8l-4.9 3.4M22.4 27.5l-7 3.3"/>
+  </g>
+  <path d="M16.5 18.5A22 22 0 0 1 29 10" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".72"/>
+</svg>

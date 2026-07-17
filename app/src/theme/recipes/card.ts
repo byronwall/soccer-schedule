@@ -23,6 +23,9 @@ export const card = defineSlotRecipe({
       flexDirection: "column",
       pb: "6",
       px: "6",
+      "&:first-child": {
+        pt: "6",
+      },
     },
     footer: {
       display: "flex",

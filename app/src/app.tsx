@@ -1,5 +1,5 @@
 import { Router } from "@solidjs/router";
-import { MetaProvider } from "@solidjs/meta";
+import { Link, Meta, MetaProvider, Title } from "@solidjs/meta";
 import { FileRoutes } from "@solidjs/start/router";
 import {
   ErrorBoundary,
@@ -50,6 +50,10 @@ export default function App() {
 
   return (
     <MetaProvider>
+      <Title>Coach Companion</Title>
+      <Meta name="theme-color" content="#3f7d3a" />
+      <Meta name="description" content="Private soccer lineup planning and game-day companion." />
+      <Link rel="manifest" href="/manifest.webmanifest" />
       <Router
         base={routerBase}
         root={(props) => (

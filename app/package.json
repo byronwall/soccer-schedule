@@ -1,5 +1,5 @@
 {
-  "name": "example-bare",
+  "name": "soccer-coach-companion",
   "type": "module",
   "packageManager": "pnpm@11.7.0",
   "scripts": {
@@ -9,7 +9,7 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "type-check": "tsc --noEmit",
-    "verify": "pnpm type-check && pnpm test && pnpm lint",
+    "verify": "tsc --noEmit && vitest run && eslint .",
     "build": "vinxi build",
     "start": "vinxi start",
     "panda": "NO_UPDATE_NOTIFIER=1 panda codegen"

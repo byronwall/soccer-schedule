@@ -1,13 +1,13 @@
 import type { APIEvent } from "@solidjs/start/server";
-import { clearSessionCookie, revokeCurrentSession } from "~/lib/account/session";
+import { clearCoachCookie, revokeCoach } from "~/lib/auth/coach-session";
 
 export async function POST(event: APIEvent) {
-  await revokeCurrentSession(event);
+  await revokeCoach(event);
   return Response.json(
     { ok: true },
     {
       headers: {
-        "set-cookie": clearSessionCookie(),
+        "set-cookie": clearCoachCookie(),
       },
     },
   );
