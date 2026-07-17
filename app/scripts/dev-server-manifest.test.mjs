@@ -16,7 +16,7 @@ describe("dev server manifest helpers", () => {
 
   it("advertises active server details", () => {
     const manifest = createRunningManifest({
-      app: "example-bare",
+      app: "soccer-coach-companion",
       status: "running",
       url: "http://localhost:3000",
       startedAt: new Date("2026-01-01T00:00:00.000Z"),
@@ -39,7 +39,7 @@ describe("dev server manifest helpers", () => {
 
   it("clears advertised connection details after shutdown", () => {
     const manifest = createInactiveManifest({
-      app: "example-bare",
+      app: "soccer-coach-companion",
       status: "likely-not-running",
       stoppedAt: new Date("2026-01-01T00:01:00.000Z"),
       updatedAt: "2026-01-01T00:01:00.000Z",

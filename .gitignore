@@ -8,6 +8,7 @@ app/styled-system/
 node_modules/
 .pnpm-store/
 live-server-details.json
-live-server-details.json.tmp
+live-server-details.json.*.tmp
+live-server.lock/
 
 .vite

@@ -7,7 +7,7 @@ services:
       args:
         BASE_PATH: ${BASE_PATH:-/}
         CI_SSG_PRERENDER: ${CI_SSG_PRERENDER:-false}
-    image: solid-start-panda-park-ui-app
+    image: soccer-coach-companion-app
     restart: unless-stopped
     environment:
       NODE_ENV: ${NODE_ENV:-production}
@@ -34,9 +34,9 @@ services:
       CREDIT_PACK_AMOUNT_CENTS: ${CREDIT_PACK_AMOUNT_CENTS:-1000}
       CREDIT_PACK_CURRENCY: ${CREDIT_PACK_CURRENCY:-usd}
     ports:
-      - "${APP_PORT:-3000}:${PORT:-3000}"
+      - "${APP_PORT:-}:${PORT:-3000}"
     volumes:
-      - starter-data:/app/data
+      - coach-companion-data:/app/data
 
 volumes:
-  starter-data:
+  coach-companion-data:

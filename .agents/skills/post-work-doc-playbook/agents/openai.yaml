@@ -1,4 +1,4 @@
 interface:
   display_name: "Post-Work Docs"
-  short_description: "Document completed implementation work in depth"
-  default_prompt: "Use $post-work-doc-playbook to create a detailed completion report covering major changes, issues, design decisions, verification, and process improvements."
+  short_description: "Create an explicitly requested work retrospective"
+  default_prompt: "Use $post-work-doc-playbook to create the detailed retrospective I requested, covering changes, decisions, issues, verification, and follow-ups."

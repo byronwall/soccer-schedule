@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { rename, writeFile } from "node:fs/promises";
 import { URL } from "node:url";
 
@@ -90,7 +91,7 @@ export const createInactiveManifest = ({
 });
 
 export const writeManifestAtomic = async (manifestPath, payload) => {
-  const temporaryPath = `${manifestPath}.tmp`;
+  const temporaryPath = `${manifestPath}.${process.pid}.${randomUUID()}.tmp`;
   await writeFile(temporaryPath, `${JSON.stringify(payload, null, 2)}\n`);
   await rename(temporaryPath, manifestPath);
 };

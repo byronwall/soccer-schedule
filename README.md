@@ -126,6 +126,26 @@ pnpm -C app start
 
 `verify` runs TypeScript, the Vitest suite, and ESLint. Panda-generated files live under `app/styled-system/` and should be regenerated with `pnpm -C app prepare`, not edited by hand.
 
+Only one development server should run for this checkout. A second `pnpm -C app dev` reports the existing server from `live-server-details.json` and exits; reuse that URL so every change goes through the same hot-reloading process and disposable `app/data` store.
+
+If pnpm cannot bootstrap the pinned package-manager release before `verify` starts, run the same repository-owned checks directly:
+
+```bash
+node app/scripts/verify.mjs
+```
+
+### Configuration lifecycle
+
+| Variable | Lifecycle | Secret? | Changing it requires |
+| --- | --- | --- | --- |
+| `BASE_PATH` | Build-time and runtime | No | Image rebuild when the built base path changes |
+| `CI_SSG_PRERENDER` | Build-time only | No | Image rebuild |
+| `APP_BASE_URL` / `SERVICE_URL_APP` | Runtime | No | Application restart |
+| `APP_DATA_DIR` | Runtime | No | Application restart and a matching persistent mount in deployment |
+| `COACH_CREDENTIALS_JSON` | Runtime | Yes | Application restart; current auth behavior is unchanged |
+| `COACH_CREDENTIAL_VERSION` | Runtime | No | Application restart; incrementing invalidates existing sessions |
+| `OPENAI_API_KEY`, Stripe, and email credentials | Runtime | Yes | Application restart when those inherited integrations are used |
+
 ## Deployment with Coolify
 
 The repository is ready to deploy from its root `Dockerfile`. A normal Coolify deployment should build the `runtime` image, route HTTPS traffic to container port `3000`, and keep `/app/data` on persistent storage. The relevant Coolify references are its [Dockerfile build-pack guide](https://coolify.io/docs/applications/build-packs/dockerfile), [environment-variable guide](https://coolify.io/docs/knowledge-base/environment-variables), and [persistent-storage guide](https://coolify.io/docs/knowledge-base/persistent-storage).
@@ -228,7 +248,7 @@ For a direct Docker deployment, create a root `.env` with the same production va
 docker compose up --build
 ```
 
-Compose maps the app to port 3000 by default and persists `/app/data` in its `starter-data` named volume. Change the host-side port with `APP_PORT`.
+Compose maps the app to port 3000 by default and persists `/app/data` in its `coach-companion-data` named volume. Change the host-side port with `APP_PORT`.
 
 ## Project background
 

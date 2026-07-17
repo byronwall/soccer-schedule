@@ -9,7 +9,7 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "type-check": "tsc --noEmit",
-    "verify": "tsc --noEmit && vitest run && eslint .",
+    "verify": "node scripts/verify.mjs",
     "build": "vinxi build",
     "start": "vinxi start",
     "panda": "NO_UPDATE_NOTIFIER=1 panda codegen"

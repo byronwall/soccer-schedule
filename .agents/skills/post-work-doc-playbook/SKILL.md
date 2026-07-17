@@ -1,15 +1,15 @@
 ---
 name: post-work-doc-playbook
-description: Create or update end-of-work documentation that captures major implementation changes, design decisions, issues encountered, tradeoffs, testing/verification, and process or agent improvements. Use when work is complete (feature, bugfix, refactor, migration, investigation), when the user asks for a summary/report/postmortem, or when repo documentation should reflect what changed and why.
+description: Create or update a detailed end-of-work report covering major implementation changes, design decisions, issues, verification, and process improvements. Use only when the user explicitly requests a work summary, completion report, retrospective, or postmortem; use the repository changelog workflow for ordinary completed work.
 ---
 
 # Post-Work Doc Playbook
 
 ## Goal
 
-Produce a complete implementation summary that preserves technical context for future maintainers and captures lessons that improve future agent runs.
+Produce a complete implementation summary when the user explicitly requests one. Do not create a full retrospective automatically after ordinary implementation work.
 
-Use this skill after implementation work is complete or when asked to create a retrospective-style report.
+For normal work, update the repository's `CHANGELOG.md` instead. Add a concise entry under `Unreleased` with the behavior changed, verification performed when notable, and an optional `Problem:` or `Follow-up:` sub-bullet. Do not create `CHANGELOG.md` inside the skill folder.
 
 ## Required Output
 
@@ -32,7 +32,9 @@ If a section has no findings, explicitly say "None" and add a short reason.
 
 ### 1) Collect evidence
 
+- Record `git status --short` before relying on diff output.
 - Gather changed files from git diff and summarize by behavior impact.
+- When changed targets are untracked, inspect those files directly and cite `git status --short`; never stage user-owned files merely to produce a diff.
 - Capture key execution checks (type-check, tests, lint, manual checks).
 - Capture user feedback and iteration points from the conversation.
 - Capture rejected alternatives and why they were rejected.
@@ -43,6 +45,7 @@ If a section has no findings, explicitly say "None" and add a short reason.
 - Otherwise create under `docs/` with a descriptive name such as:
   - `docs/<feature>-work-summary.md`
   - `docs/<feature>-implementation-retrospective.md`
+- If the user did not explicitly request a full report, stop and use the repository changelog workflow instead.
 
 ### 3) Draft the document using the reference outline
 
@@ -69,6 +72,7 @@ For each improvement, include:
 - Proposed change
 - Expected benefit
 - Suggested owner/place to encode it (AGENTS, new skill, script, checklist)
+- If the same recommendation already exists in `CHANGELOG.md`, update its evidence or status rather than adding a duplicate follow-up.
 
 ### 5) Run quality gate before finalizing
 

@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { hostname, platform, release } from "node:os";
-import { basename, dirname, resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import { clearInterval, clearTimeout, setInterval, setTimeout } from "node:timers";
 import { fileURLToPath } from "node:url";
 import { stripVTControlCharacters } from "node:util";
@@ -16,8 +16,10 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 const appRoot = resolve(scriptDir, "..");
 const repoRoot = resolve(appRoot, "..");
 const manifestPath = resolve(repoRoot, "live-server-details.json");
+const serverLockPath = resolve(repoRoot, "live-server.lock");
+const serverLockOwnerPath = resolve(serverLockPath, "owner.json");
 const packageJson = JSON.parse(await readFile(resolve(appRoot, "package.json"), "utf8"));
-const appName = packageJson.name === "example-bare" ? basename(repoRoot) : packageJson.name;
+const appName = packageJson.name;
 const startedAt = new Date();
 const recentOutput = [];
 const command = { executable: "vinxi", args: ["dev"], display: "vinxi dev" };
@@ -28,6 +30,15 @@ let status = "starting";
 let finalized = false;
 let forceKillTimer;
 let writing = Promise.resolve();
+
+const lockOwner = await acquireServerLock();
+if (!lockOwner.acquired) {
+  const location = lockOwner.url ? ` at ${lockOwner.url}` : "";
+  process.stdout.write(
+    `Coach Companion's shared dev server is already ${lockOwner.status}${location} (wrapper PID ${lockOwner.wrapperPid}). Reuse it instead of starting another server.\n`,
+  );
+  process.exit(0);
+}
 
 await writeCurrentManifest();
 
@@ -118,6 +129,76 @@ function writeCurrentManifest() {
   return writing;
 }
 
+async function acquireServerLock() {
+  const advertised = await readAdvertisedServer();
+  if (advertised?.alive) return { acquired: false, ...advertised };
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      await mkdir(serverLockPath);
+      await writeFile(
+        serverLockOwnerPath,
+        `${JSON.stringify({ wrapperPid: process.pid, startedAt: startedAt.toISOString() }, null, 2)}\n`,
+        "utf8",
+      );
+      return { acquired: true };
+    } catch (error) {
+      if (error.code !== "EEXIST") throw error;
+      const existing = await readExistingServerOwner();
+      if (existing?.alive) return { acquired: false, ...existing };
+      await rm(serverLockPath, { recursive: true, force: true });
+    }
+  }
+  throw new Error("Could not acquire the shared dev-server lock.");
+}
+
+async function readExistingServerOwner() {
+  let owner;
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    owner = await readFile(serverLockOwnerPath, "utf8")
+      .then(JSON.parse)
+      .catch(() => null);
+    if (owner?.wrapperPid) break;
+    await new Promise((resolveWait) => setTimeout(resolveWait, 25));
+  }
+  if (!owner?.wrapperPid) return null;
+
+  const manifest = await readManifest();
+  return {
+    alive: isProcessAlive(owner.wrapperPid),
+    wrapperPid: owner.wrapperPid,
+    status: manifest?.status ?? "starting",
+    url: manifest?.url ?? null,
+  };
+}
+
+async function readAdvertisedServer() {
+  const manifest = await readManifest();
+  const wrapperPid = manifest?.process?.wrapperPid;
+  if (!manifest?.serverLikelyRunning || !wrapperPid) return null;
+  return {
+    alive: isProcessAlive(wrapperPid),
+    wrapperPid,
+    status: manifest.status ?? "running",
+    url: manifest.url ?? null,
+  };
+}
+
+async function readManifest() {
+  return readFile(manifestPath, "utf8")
+    .then(JSON.parse)
+    .catch(() => null);
+}
+
+function isProcessAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error.code === "EPERM";
+  }
+}
+
 async function finalize(finalStatus, exitCode, exitSignal, processCode) {
   if (finalized) return;
   finalized = true;
@@ -140,5 +221,6 @@ async function finalize(finalStatus, exitCode, exitSignal, processCode) {
     ),
   );
   await writing;
+  await rm(serverLockPath, { recursive: true, force: true });
   process.exit(processCode);
 }

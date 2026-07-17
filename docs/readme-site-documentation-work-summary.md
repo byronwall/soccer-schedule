@@ -38,12 +38,19 @@ The README needed to serve two audiences: someone trying to understand why the p
 - Reason: current captures verify the pages described in the README and avoid mutating the user’s local data.
 - Tradeoff: dates and team names in the images are demonstration content rather than generic placeholders.
 
-### Capture the schedule at a wider viewport
+### Capture the schedule at its natural viewport
 
-- Decision: use a wider desktop capture for the eight-segment editor while keeping the other screenshots at their natural desktop viewport.
-- Alternative: crop the schedule or show only its first segments.
-- Reason: the whole rotation is the key artifact; a narrow crop hides the relationship among the eight time segments.
-- Tradeoff: the schedule screenshot is wider than the other images.
+- Decision: use the browser's natural 1280 px desktop viewport and let the schedule's horizontal overflow remain visible as part of the real page behavior.
+- Alternative: force a 1920 px viewport to show more time segments in one image.
+- Reason: the screenshot backend cropped the forced-wide canvas at device-pixel scale, offsetting the centered application shell from the captured viewport. The natural viewport keeps the page chrome and schedule aligned exactly as rendered.
+- Tradeoff: the README image shows the first portion of the eight-segment grid rather than every column at once.
+
+### Give the dashboard enough horizontal canvas
+
+- Decision: recapture the dashboard on a 1920 px-wide canvas while preserving the complete page height.
+- Alternative: keep the original 1280 px capture.
+- Reason: the original asset appeared zoomed in and cropped the right side of the header. The wider canvas presents the full navigation, page actions, summary cards, and season-minutes panel at a natural desktop scale.
+- Tradeoff: the corrected image includes more outer whitespace, but the application shell is centered and readable rather than clipped.
 
 ### Separate required variables from declared variables
 
@@ -68,12 +75,19 @@ The README needed to serve two audiences: someone trying to understand why the p
 - Resolution: converted every capture in place to true PNG with macOS `sips`, then confirmed the resulting file types.
 - Preventative action: run `file` against generated README images before linking them.
 
-### Default viewport clipped the schedule’s right side
+### Forced-wide capture offset the schedule page
 
-- Symptom: the initial schedule image showed only the left portion of the grid.
-- Root cause: the editor’s eight time columns are intentionally wider than the default browser viewport.
-- Resolution: recaptured only the schedule at 1920 px wide and restored the browser viewport afterward.
-- Preventative action: visually inspect data-dense editor captures instead of assuming full-page capture also expands horizontal content.
+- Symptom: user review showed the page shell beginning far inside the image while the right side was cropped, so the screenshot was visibly misaligned to its viewport.
+- Root cause: the forced 1920 px viewport interacted poorly with the screenshot backend's device-pixel scaling; the renderer centered the 1280 px application shell in a wider logical canvas, but the output cropped that canvas.
+- Resolution: recaptured at the browser's natural desktop size. Browser metrics confirmed `innerWidth: 1280`, document width `1280`, `scrollX: 0`, and a main-shell rectangle from `0` to `1280` before the asset was replaced.
+- Preventative action: capture README evidence at the natural browser viewport unless a forced size has been visually confirmed against the resulting image dimensions.
+
+### Dashboard capture appeared zoomed and cropped
+
+- Symptom: user review showed that the dashboard image was magnified enough to omit the right side of the page chrome.
+- Root cause: the capture backend's logical viewport and output-pixel scaling produced a narrower-looking composition than the intended desktop page.
+- Resolution: recaptured the full dashboard on a 1920 px-wide canvas, converted the returned JPEG bytes to a true PNG, and visually confirmed that the entire header and content shell are centered in-frame.
+- Preventative action: visually inspect the full image—not only its nominal pixel dimensions—and verify that both ends of the global navigation are visible before accepting dashboard captures.
 
 ### Coolify and `.env` use different quoting contexts
 
@@ -89,6 +103,8 @@ The README needed to serve two audiences: someone trying to understand why the p
 - Reviewed recent Codex threads covering the initial plan and implementation plus later game management, drag-and-drop, player details, position labels, and published-schedule revision behavior.
 - Loaded the existing server advertised by `live-server-details.json` and inspected all documented major pages through the browser.
 - Captured and visually reviewed the dashboard, schedule editor, live-game view, and player profile; DOM snapshots confirmed the content of all eight captured routes.
+- Recaptured the schedule editor after user review and confirmed its viewport/document alignment from browser layout metrics before visually inspecting the final PNG.
+- Recaptured the dashboard after user review and confirmed that its full navigation, page actions, summary cards, and season-minutes panel are visible at a natural desktop scale.
 - `file docs/images/readme/*.png`: confirmed the final image assets are PNG files.
 - Compared the deployment tables against `app/.env.example`, `docker-compose.yml`, `Dockerfile`, direct `process.env` reads, and `app/src/lib/app/base-url.ts`.
 - `docker compose config`: used to validate the current Compose variable interpolation and JSON credential default.
