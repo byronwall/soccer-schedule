@@ -1,5 +1,11 @@
-import { randomUUID } from "node:crypto";
-import { generateSchedule, repairSchedule, replaceAssignment, scoreSchedule } from "./scheduling";
+import { randomBytes, randomUUID } from "node:crypto";
+import {
+  generateSchedule,
+  regenerateSchedule,
+  repairSchedule,
+  replaceAssignment,
+  scoreSchedule,
+} from "./scheduling";
 import {
   assertEditableSchedule,
   assertRevision,
@@ -12,12 +18,38 @@ import {
 export const scheduleActionHandlers: Record<string, StoreActionHandler> = {
   generateSchedule: (store, payload, stamp) => {
     const gameId = String(payload.gameId);
+    const players = playersAvailableForGame(store, gameId);
+    const current = store.schedules
+      .filter(
+        (schedule) =>
+          schedule.gameId === gameId &&
+          (schedule.status === "draft" || schedule.status === "stale"),
+      )
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0];
+    if (current) {
+      const result = regenerateSchedule({
+        players,
+        currentAssignments: current.assignments,
+        priorAssignments: current.history,
+        seeds: Array.from({ length: 16 }, () => randomBytes(16).toString("hex")),
+      });
+      if (!result.changed) return { changed: false, reason: result.reason };
+      replaceWorkingSchedule(
+        store,
+        gameId,
+        result.assignments,
+        stamp,
+        [...current.history, current.assignments].slice(-24),
+      );
+      return { changed: true };
+    }
     replaceWorkingSchedule(
       store,
       gameId,
-      generateSchedule(playersAvailableForGame(store, gameId)),
+      generateSchedule(players, { seed: randomBytes(16).toString("hex") }),
       stamp,
     );
+    return { changed: true };
   },
   editPublishedSchedule: (store, payload, stamp) => {
     const published = requireSchedule(store, payload.scheduleId);

@@ -118,6 +118,33 @@ describe("file-backed soccer store", () => {
     await expect(applySoccerAction("toggleLock", { scheduleId: schedule?.id, segmentKey: "q1a", positionKey: "goalkeeper", expectedRevision: 999 })).rejects.toThrow(/Version conflict/);
   });
 
+  it("returns regeneration feedback when locks prevent a different schedule", async () => {
+    const before = await getSnapshot();
+    const draft = before.schedules.find((item) => item.status === "draft");
+    if (!draft) throw new Error("Expected a working draft.");
+    await mutateStore((store) => {
+      const storedDraft = store.schedules.find((item) => item.id === draft.id);
+      if (!storedDraft) throw new Error("Expected the persisted working draft.");
+      storedDraft.assignments = storedDraft.assignments.map((assignment) => ({
+        ...assignment,
+        locked: true,
+      }));
+    });
+
+    await expect(applySoccerAction("generateSchedule", {
+      gameId: draft.gameId,
+    })).resolves.toEqual({
+      changed: false,
+      reason: "Every assignment is locked, so the schedule has only one allowed arrangement.",
+    });
+    expect((await getSnapshot()).schedules.find(
+      (item) => item.id === draft.id,
+    )?.assignments).toEqual(draft.assignments.map((assignment) => ({
+      ...assignment,
+      locked: true,
+    })));
+  });
+
   it("preserves the published schedule and creates a stale working copy after availability changes", async () => {
     const before = await getSnapshot();
     const published = before.schedules.find((item) => item.status === "published");

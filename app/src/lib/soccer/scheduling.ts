@@ -10,6 +10,11 @@ export {
   crossQuarterPositionRepeatScore,
   detectCrossQuarterPositionRepeats,
 } from "./schedule-position-repeats";
+export {
+  assignmentSignature,
+  regenerateSchedule,
+  type RegenerateScheduleResult,
+} from "./schedule-regenerator";
 
 export type ScheduleQuality = {
   valid: boolean; hardViolations: string[]; minuteSpread: number;

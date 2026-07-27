@@ -6,6 +6,7 @@ This file records user-visible changes, important development workflow changes, 
 
 ### Changed
 
+- Regenerate now uses fresh cryptographic server-side seeds to produce new valid schedule variants, avoids the current and recently generated assignments when feasible, and preserves locked cells. When locks prevent a different rotation, the existing valid schedule remains unchanged and the editor explains why.
 - Schedule generation now strongly avoids assigning a player the same exact position in different quarters while preserving validity and playing-time fairness. Remaining cross-quarter role repeats appear as non-blocking quality warnings on every affected cell and identify the player, position, and quarters in the quality panel. Substitute overuse now starts at 4 substitute segments; 3 is considered normal.
 - Game availability now repairs missing active-player records and upserts individual or bulk “All in” changes, including for players added or reactivated after a game was created. Bulk updates affect only the active roster, and stale client writes refresh team data and show a normal in-app error instead of causing an uncaught client exception.
 - SolidStart server base paths now avoid a trailing slash and remain enforced in the resolved client configuration so generated query/action requests use the intended `/_server` endpoint.

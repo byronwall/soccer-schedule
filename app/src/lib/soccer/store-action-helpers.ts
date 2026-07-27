@@ -85,6 +85,7 @@ export const replaceWorkingSchedule = (
   gameId: string,
   assignments: ScheduleRecord["assignments"],
   stamp: string,
+  history: ScheduleRecord["history"] = [],
 ) => {
   store.schedules = store.schedules.filter(
     (item) => item.gameId !== gameId || item.status === "published",
@@ -95,7 +96,7 @@ export const replaceWorkingSchedule = (
     revision: 1,
     status: "draft",
     assignments,
-    history: [],
+    history,
     future: [],
     generatedAt: stamp,
     updatedAt: stamp,

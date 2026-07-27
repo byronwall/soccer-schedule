@@ -1,8 +1,8 @@
 import { A, useParams } from "@solidjs/router";
-import { For, Match, Show, Switch, createMemo, createSignal } from "solid-js";
+import { Match, Show, Switch, createMemo, createSignal } from "solid-js";
+import { createStore } from "solid-js/store";
 import {
   CheckCircle2,
-  Lock,
   PencilLine,
   Printer,
   Redo2,
@@ -12,19 +12,26 @@ import {
   Users,
   Wrench,
 } from "lucide-solid";
-import { Badge, Button, Card, SimpleDialog, Text } from "~/components/ui";
+import { Badge, Button, Card, Text } from "~/components/ui";
 import { useSoccerData } from "~/features/soccer/SoccerDataProvider";
 import { type PositionKey, type SegmentKey } from "~/lib/soccer/fixed-game";
 import { scoreSchedule, type ScheduleQuality } from "~/lib/soccer/scheduling";
-import type { Assignment, Player, Schedule } from "~/lib/soccer/schemas";
-import { Box, Flex, Grid, HStack, VStack } from "styled-system/jsx";
+import type { Schedule } from "~/lib/soccer/schemas";
+import { Box, Flex, HStack, VStack } from "styled-system/jsx";
+import { z } from "zod";
 import { PageHeader } from "./PageHeader";
 import { PlayerScheduleGrid } from "./PlayerScheduleGrid";
 import { PlannedMinutes, PositionGrid, type ScheduleSwap } from "./ScheduleGrids";
 import { ScheduleQualityPopover } from "./ScheduleQualityPopover";
+import { ScheduleRegenerationControls } from "./ScheduleRegenerationControls";
+import { ScheduleAssignmentDialog } from "./ScheduleAssignmentDialog";
 
 type Selection = { segmentKey: SegmentKey; positionKey: PositionKey };
 type ScheduleView = "position" | "player";
+const regenerateResultSchema = z.object({
+  changed: z.boolean(),
+  reason: z.string().optional(),
+});
 
 const schedulePriority = (schedule: Schedule) => {
   if (schedule.status === "draft" || schedule.status === "stale") return 0;
@@ -48,6 +55,11 @@ export function SchedulePage() {
   const [view, setView] = createSignal<ScheduleView>("position");
   const [selection, setSelection] = createSignal<Selection>();
   const [regenerateOpen, setRegenerateOpen] = createSignal(false);
+  const [regeneration, setRegeneration] = createStore<{
+    pending: boolean;
+    feedback?: string;
+    changed?: boolean;
+  }>({ pending: false });
 
   const game = () => data.snapshot()?.games.find((item) => item.id === params.gameId);
   const schedule = createMemo(() => selectCurrentSchedule(data.snapshot()?.schedules ?? [], params.gameId ?? ""));
@@ -113,9 +125,24 @@ export function SchedulePage() {
   };
 
   const regenerate = async () => {
-    await data.run("generateSchedule", { gameId: params.gameId });
-    setRegenerateOpen(false);
-    setSelection();
+    setRegeneration({ pending: true, feedback: undefined, changed: undefined });
+    try {
+      const result = regenerateResultSchema.parse(
+        await data.run("generateSchedule", { gameId: params.gameId }),
+      );
+      setRegeneration({
+        pending: false,
+        changed: result.changed,
+        feedback: result.changed
+          ? "Generated a new schedule variant. Locked assignments were preserved."
+          : result.reason ?? "The current schedule is already the only valid arrangement.",
+      });
+      setRegenerateOpen(false);
+      setSelection();
+    } catch (error) {
+      setRegeneration("pending", false);
+      throw error;
+    }
   };
 
   return (
@@ -190,6 +217,14 @@ export function SchedulePage() {
               }
             }}
           />
+          <ScheduleRegenerationControls
+            open={regenerateOpen()}
+            pending={regeneration.pending}
+            feedback={regeneration.feedback}
+            changed={regeneration.changed}
+            onOpenChange={setRegenerateOpen}
+            onRegenerate={() => void regenerate()}
+          />
 
           <Show when={schedule()} fallback={<EmptySchedule onGenerate={() => void data.run("generateSchedule", { gameId: params.gameId })} />}>
             {(currentSchedule) => (
@@ -215,7 +250,7 @@ export function SchedulePage() {
             )}
           </Show>
 
-          <AssignmentDialog
+          <ScheduleAssignmentDialog
             selection={selection()}
             schedule={schedule()}
             players={availablePlayers()}
@@ -225,24 +260,6 @@ export function SchedulePage() {
             onToggleLock={() => void toggleLock()}
           />
 
-          <SimpleDialog
-            open={regenerateOpen()}
-            onOpenChange={setRegenerateOpen}
-            title="Regenerate schedule?"
-            description="This replaces the current working draft with a fresh deterministic rotation. The published schedule remains available until you publish the new draft."
-            footer={
-              <HStack justifyContent="flex-end">
-                <Button variant="outline" onClick={() => setRegenerateOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => void regenerate()}>
-                  <RefreshCw size={16} /> Regenerate
-                </Button>
-              </HStack>
-            }
-          >
-            <Text color="fg.muted">Use repair when you want to preserve unaffected assignments.</Text>
-          </SimpleDialog>
         </>
       )}
     </Show>
@@ -359,51 +376,5 @@ function EmptySchedule(props: { onGenerate: () => void }) {
         </VStack>
       </Card.Body>
     </Card.Root>
-  );
-}
-
-type AssignmentDialogProps = {
-  selection?: Selection;
-  schedule?: Schedule;
-  players: Player[];
-  assignment: (segmentKey: SegmentKey, positionKey: PositionKey) => Assignment | undefined;
-  onClose: () => void;
-  onReplace: (playerId: string) => void;
-  onToggleLock: () => void;
-};
-
-function AssignmentDialog(props: AssignmentDialogProps) {
-  const selectedPlayerId = () => {
-    if (!props.selection) return undefined;
-    return props.assignment(props.selection.segmentKey, props.selection.positionKey)?.playerId;
-  };
-
-  return (
-    <SimpleDialog
-      open={!!props.selection && isEditable(props.schedule)}
-      onOpenChange={(open) => !open && props.onClose()}
-      title="Change assignment"
-      description="Selecting a player already on the field swaps the two assignments automatically."
-      footer={
-        <Show when={props.selection && isEditable(props.schedule)}>
-          <Button variant="outline" onClick={props.onToggleLock}>
-            <Lock size={16} /> Toggle lock
-          </Button>
-        </Show>
-      }
-    >
-      <Grid gridTemplateColumns="repeat(2, minmax(0, 1fr))" gap="2">
-        <For each={props.players}>
-          {(player) => (
-            <Show
-              when={selectedPlayerId() === player.id}
-              fallback={<Button variant="outline" onClick={() => props.onReplace(player.id)}>#{player.jerseyNumber ?? "—"} {player.displayName}</Button>}
-            >
-              <Button onClick={() => props.onReplace(player.id)}>#{player.jerseyNumber ?? "—"} {player.displayName}</Button>
-            </Show>
-          )}
-        </For>
-      </Grid>
-    </SimpleDialog>
   );
 }

@@ -8,14 +8,21 @@ import type { Assignment, Player } from "./schemas";
 
 const FIELD_POSITIONS = POSITIONS.filter((position) => position.key !== "goalkeeper");
 
-const stableRotationRank = (playerId: string, segmentIndex: number) => {
-  let hash = segmentIndex + 1;
-  for (const character of playerId) hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
-  return hash;
+const stableRotationRank = (playerId: string, segmentIndex: number, seed: string) => {
+  let hash = 2_166_136_261;
+  for (const character of `${seed}:${segmentIndex}:${playerId}`) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16_777_619);
+  }
+  hash ^= hash >>> 16;
+  hash = Math.imul(hash, 2_246_822_507);
+  hash ^= hash >>> 13;
+  return hash >>> 0;
 };
 
-const byRotationRank = (segmentIndex: number) => (left: Player, right: Player) =>
-  stableRotationRank(left.id, segmentIndex) - stableRotationRank(right.id, segmentIndex) ||
+const byRotationRank = (segmentIndex: number, seed: string) => (left: Player, right: Player) =>
+  stableRotationRank(left.id, segmentIndex, seed) -
+  stableRotationRank(right.id, segmentIndex, seed) ||
   left.id.localeCompare(right.id);
 
 const chooseGoalkeeper = (
@@ -23,10 +30,11 @@ const chooseGoalkeeper = (
   goalkeeperCounts: Map<string, number>,
   fieldCounts: Map<string, number>,
   segmentIndex: number,
+  seed: string,
 ) => [...candidates].sort((left, right) =>
   (goalkeeperCounts.get(left.id) ?? 0) - (goalkeeperCounts.get(right.id) ?? 0) ||
   (fieldCounts.get(left.id) ?? 0) - (fieldCounts.get(right.id) ?? 0) ||
-  byRotationRank(segmentIndex)(left, right),
+  byRotationRank(segmentIndex, seed)(left, right),
 )[0];
 
 const recordLineup = (
@@ -57,11 +65,12 @@ const createInitialLineup = (
   players: Player[],
   fieldCounts: Map<string, number>,
   goalkeeperCounts: Map<string, number>,
+  seed: string,
 ) => {
-  const goalkeeper = chooseGoalkeeper(players, goalkeeperCounts, fieldCounts, 0);
+  const goalkeeper = chooseGoalkeeper(players, goalkeeperCounts, fieldCounts, 0, seed);
   const remaining = players
     .filter((player) => player.id !== goalkeeper.id)
-    .sort(byRotationRank(0))
+    .sort(byRotationRank(0, seed))
     .slice(0, POSITIONS.length - 1);
   const lineup: Lineup = new Map([["goalkeeper", goalkeeper]]);
   POSITIONS.filter((position) => position.key !== "goalkeeper").forEach((position, index) => {
@@ -76,6 +85,7 @@ const rotateSevenPlayerGoalkeeper = (
   goalkeeperCounts: Map<string, number>,
   fieldCounts: Map<string, number>,
   segmentIndex: number,
+  seed: string,
 ) => {
   const previousGoalkeeper = previous.get("goalkeeper");
   if (!previousGoalkeeper) throw new Error("Previous lineup has no goalkeeper.");
@@ -84,6 +94,7 @@ const rotateSevenPlayerGoalkeeper = (
     goalkeeperCounts,
     fieldCounts,
     segmentIndex,
+    seed,
   );
   const goalkeeperPosition = POSITIONS.find(
     (position) => previous.get(position.key)?.id === goalkeeper.id,
@@ -114,6 +125,7 @@ const chooseOptionalOutgoing = (options: {
   quarterStart: boolean;
   assignments: Assignment[];
   incomingPlayers: Player[];
+  seed: string;
 }) => {
   const {
     players,
@@ -126,6 +138,7 @@ const chooseOptionalOutgoing = (options: {
     quarterStart,
     assignments,
     incomingPlayers,
+    seed,
   } = options;
   const candidates = POSITIONS.filter((position) => position.key !== "goalkeeper");
   const choices = combinations(candidates, count);
@@ -164,7 +177,8 @@ const chooseOptionalOutgoing = (options: {
       if (goalkeeperDifference !== 0) return goalkeeperDifference;
     }
     const rotationScore = (positions: typeof left) => positions.reduce(
-      (total, position) => total + stableRotationRank(previous.get(position.key)?.id ?? "", segmentIndex),
+      (total, position) =>
+        total + stableRotationRank(previous.get(position.key)?.id ?? "", segmentIndex, seed),
       0,
     );
     return rotationScore(left) - rotationScore(right);
@@ -181,8 +195,17 @@ const createNextLineup = (options: {
   goalkeeperCounts: Map<string, number>;
   segmentIndex: number;
   assignments: Assignment[];
+  seed: string;
 }) => {
-  const { players, previous, fieldCounts, goalkeeperCounts, segmentIndex, assignments } = options;
+  const {
+    players,
+    previous,
+    fieldCounts,
+    goalkeeperCounts,
+    segmentIndex,
+    assignments,
+    seed,
+  } = options;
   const segment = SEGMENTS[segmentIndex];
   const quarterStart = segment.half === "a";
   const previousFieldIds = new Set([...previous.values()].map((player) => player.id));
@@ -190,12 +213,19 @@ const createNextLineup = (options: {
 
   if (substitutes.length === 0) {
     return quarterStart
-      ? rotateSevenPlayerGoalkeeper(previous, players, goalkeeperCounts, fieldCounts, segmentIndex)
+      ? rotateSevenPlayerGoalkeeper(
+          previous,
+          players,
+          goalkeeperCounts,
+          fieldCounts,
+          segmentIndex,
+          seed,
+        )
       : new Map(previous);
   }
 
   const incomingGoalkeeper = quarterStart
-    ? chooseGoalkeeper(substitutes, goalkeeperCounts, fieldCounts, segmentIndex)
+    ? chooseGoalkeeper(substitutes, goalkeeperCounts, fieldCounts, segmentIndex, seed)
     : undefined;
   const protectedGoalkeeper = !quarterStart;
   const swapCount = Math.min(
@@ -207,7 +237,7 @@ const createNextLineup = (options: {
     .filter((player) => player.id !== incomingGoalkeeper?.id)
     .sort((left, right) =>
       (fieldCounts.get(left.id) ?? 0) - (fieldCounts.get(right.id) ?? 0) ||
-      byRotationRank(segmentIndex)(left, right),
+      byRotationRank(segmentIndex, seed)(left, right),
     );
   const optionalOutgoing = chooseOptionalOutgoing({
     players,
@@ -220,6 +250,7 @@ const createNextLineup = (options: {
     quarterStart,
     assignments,
     incomingPlayers,
+    seed,
   }).map((position) => position.key);
   const outgoingPositions = [...requiredOutgoing, ...optionalOutgoing];
   const lineup = new Map(previous);
@@ -231,17 +262,23 @@ const createNextLineup = (options: {
   return lineup;
 };
 
-export const generateSchedule = (players: Player[]): Assignment[] => {
+export type GenerateScheduleOptions = { seed?: string };
+
+export const generateSchedule = (
+  players: Player[],
+  options: GenerateScheduleOptions = {},
+): Assignment[] => {
   if (players.length < POSITIONS.length) {
     throw new Error("At least seven available players are required.");
   }
   const ordered = [...players].sort((left, right) =>
     left.displayName.localeCompare(right.displayName) || left.id.localeCompare(right.id),
   );
+  const seed = options.seed ?? "default";
   const fieldCounts = new Map(ordered.map((player) => [player.id, 0]));
   const goalkeeperCounts = new Map(ordered.map((player) => [player.id, 0]));
   const result: Assignment[] = [];
-  let lineup = createInitialLineup(ordered, fieldCounts, goalkeeperCounts);
+  let lineup = createInitialLineup(ordered, fieldCounts, goalkeeperCounts, seed);
 
   SEGMENTS.forEach((segment, segmentIndex) => {
     const previous = lineup;
@@ -253,6 +290,7 @@ export const generateSchedule = (players: Player[]): Assignment[] => {
         goalkeeperCounts,
         segmentIndex,
         assignments: result,
+        seed,
       });
     }
     const positionKeys = segment.half === "a"
