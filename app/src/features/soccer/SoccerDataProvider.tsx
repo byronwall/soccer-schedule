@@ -26,11 +26,23 @@ export function SoccerDataProvider(props: { children: JSX.Element }) {
   });
   const run = async (action: string, payload: Record<string, unknown> = {}) => {
     setActionError();
-    const response = await fetch("/api/soccer", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, payload }) });
-    const body = await response.json() as { error?: string; result?: unknown };
-    if (!response.ok) { setActionError(body.error ?? "Action failed."); throw new Error(body.error ?? "Action failed."); }
-    await refetch();
-    return body.result;
+    try {
+      const response = await fetch("/api/soccer", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, payload }) });
+      const body = await response.json() as { error?: string; result?: unknown };
+      if (!response.ok) {
+        const message = body.error ?? "Action failed.";
+        setActionError(message);
+        await refetch();
+        throw new Error(message);
+      }
+      await refetch();
+      return body.result;
+    } catch (error) {
+      if (!(error instanceof Error) || !actionError()) {
+        setActionError(error instanceof Error ? error.message : "Action failed.");
+      }
+      throw error;
+    }
   };
   const refresh = async () => { await refetch(); };
   return <SoccerContext.Provider value={{ snapshot: () => resource.latest, positions: () => resolvePositions(resource.latest?.positionLabels ?? DEFAULT_POSITION_LABELS), loading: () => resource.loading && !resource.latest, error: () => actionError() ?? (resource.error instanceof Error ? resource.error.message : undefined), run, refresh }}>{props.children}</SoccerContext.Provider>;

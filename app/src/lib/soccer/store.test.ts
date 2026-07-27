@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { applySoccerAction, createAuthUser, getCoachForToken, getSnapshot, listAuthUsers, loginCoach } from "./store";
+import { mutateStore } from "./store-persistence";
 
 let dataDir = "";
 const configuredNodeEnvironment = process.env.NODE_ENV;
@@ -133,6 +134,146 @@ describe("file-backed soccer store", () => {
     expect(after.schedules).toContainEqual(
       expect.objectContaining({ gameId: published?.gameId, status: "stale" }),
     );
+  });
+
+  it("upserts availability when a persisted active-player record is missing", async () => {
+    const before = await getSnapshot();
+    const game = before.games[0];
+    const player = before.players.find((item) => item.active);
+    if (!player) throw new Error("Expected an active player in the seeded store.");
+
+    await mutateStore((store) => {
+      store.availability = store.availability.filter(
+        (item) => item.gameId !== game.id || item.playerId !== player.id,
+      );
+    });
+
+    await applySoccerAction("setAvailability", {
+      gameId: game.id,
+      playerId: player.id,
+      status: "available",
+    });
+
+    const matching = (await getSnapshot()).availability.filter(
+      (item) => item.gameId === game.id && item.playerId === player.id,
+    );
+    expect(matching).toHaveLength(1);
+    expect(matching[0]?.status).toBe("available");
+  });
+
+  it("backfills existing games when a player is added after game creation", async () => {
+    const before = await getSnapshot();
+    const gameIds = before.games.map((game) => game.id);
+
+    await applySoccerAction("addPlayer", {
+      displayName: "Late Roster Addition",
+      jerseyNumber: "91",
+    });
+
+    const after = await getSnapshot();
+    const player = after.players.find(
+      (item) => item.displayName === "Late Roster Addition",
+    );
+    expect(player).toBeDefined();
+    expect(after.availability.filter(
+      (item) => item.playerId === player?.id && gameIds.includes(item.gameId),
+    )).toHaveLength(gameIds.length);
+    expect(after.availability.filter(
+      (item) => item.playerId === player?.id,
+    ).every((item) => item.status === "unknown")).toBe(true);
+  });
+
+  it("restores missing availability when a player is reactivated", async () => {
+    const snapshot = await getSnapshot();
+    const game = snapshot.games[0];
+    const player = snapshot.players.find(
+      (item) => item.displayName === "Late Roster Addition",
+    );
+    if (!player) throw new Error("Expected the late roster addition.");
+
+    await applySoccerAction("togglePlayer", { id: player.id });
+    await mutateStore((store) => {
+      store.availability = store.availability.filter(
+        (item) => item.gameId !== game.id || item.playerId !== player.id,
+      );
+    });
+    await applySoccerAction("togglePlayer", { id: player.id });
+
+    expect((await getSnapshot()).availability).toContainEqual(
+      expect.objectContaining({
+        gameId: game.id,
+        playerId: player.id,
+        status: "unknown",
+      }),
+    );
+  });
+
+  it("marks every active player in through bulk upserts without changing inactive players", async () => {
+    const game = (await getSnapshot()).games[0];
+    await applySoccerAction("addPlayer", {
+      displayName: "Bulk Active Player",
+      jerseyNumber: "92",
+    });
+    await applySoccerAction("addPlayer", {
+      displayName: "Bulk Inactive Player",
+      jerseyNumber: "93",
+    });
+    const added = await getSnapshot();
+    const activePlayer = added.players.find(
+      (item) => item.displayName === "Bulk Active Player",
+    );
+    const inactivePlayer = added.players.find(
+      (item) => item.displayName === "Bulk Inactive Player",
+    );
+    if (!activePlayer || !inactivePlayer) {
+      throw new Error("Expected both bulk availability test players.");
+    }
+    await applySoccerAction("togglePlayer", { id: inactivePlayer.id });
+    await mutateStore((store) => {
+      store.availability = store.availability.filter(
+        (item) =>
+          item.gameId !== game.id || item.playerId !== activePlayer.id,
+      );
+    });
+
+    await applySoccerAction("markAllAvailable", { gameId: game.id });
+
+    const after = await getSnapshot();
+    const activeIds = after.players
+      .filter((player) => player.active)
+      .map((player) => player.id);
+    expect(activeIds.every((playerId) =>
+      after.availability.some(
+        (item) =>
+          item.gameId === game.id &&
+          item.playerId === playerId &&
+          item.status === "available",
+      ),
+    )).toBe(true);
+    expect(after.availability.find(
+      (item) =>
+        item.gameId === game.id && item.playerId === inactivePlayer.id,
+    )?.status).toBe("unknown");
+  });
+
+  it("does not recreate availability for a player deleted by another client", async () => {
+    const snapshot = await getSnapshot();
+    const game = snapshot.games[0];
+    const player = snapshot.players.find(
+      (item) => item.displayName === "Bulk Active Player",
+    );
+    if (!player) throw new Error("Expected the bulk active test player.");
+
+    await applySoccerAction("deletePlayer", { id: player.id });
+
+    await expect(applySoccerAction("setAvailability", {
+      gameId: game.id,
+      playerId: player.id,
+      status: "available",
+    })).rejects.toThrow("Player not found.");
+    expect((await getSnapshot()).availability.some(
+      (item) => item.playerId === player.id,
+    )).toBe(false);
   });
 
   it("updates a game's lifecycle status", async () => {

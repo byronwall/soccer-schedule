@@ -13,8 +13,9 @@ export const gameSchema = z.object({
   venueAddress: z.string().trim().max(160).optional(), startsAt: timestamp, arrivalAt: timestamp.optional(),
   status: gameStatusSchema, createdAt: timestamp, updatedAt: timestamp,
 });
+export const availabilityStatusSchema = z.enum(["unknown", "available", "unavailable"]);
 export const availabilitySchema = z.object({
-  gameId: id, playerId: id, status: z.enum(["unknown", "available", "unavailable"]), updatedAt: timestamp,
+  gameId: id, playerId: id, status: availabilityStatusSchema, updatedAt: timestamp,
 });
 export const assignmentSchema = z.object({
   segmentKey: z.enum(SEGMENTS.map((item) => item.key)),

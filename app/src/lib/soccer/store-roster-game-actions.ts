@@ -1,6 +1,15 @@
 import { randomInt, randomUUID } from "node:crypto";
 import { isPlayerColor, pickPlayerColor } from "./player-colors";
-import { gameStatusSchema, positionLabelsSchema, type Game } from "./schemas";
+import {
+  availabilityStatusSchema,
+  gameStatusSchema,
+  positionLabelsSchema,
+  type Game,
+} from "./schemas";
+import {
+  ensureActivePlayerAvailability,
+  upsertAvailability,
+} from "./store-availability";
 import {
   markScheduleStale,
   requireGame,
@@ -50,6 +59,7 @@ export const rosterAndGameActionHandlers: Record<string, StoreActionHandler> = {
       createdAt: stamp,
       updatedAt: stamp,
     });
+    ensureActivePlayerAvailability(store, stamp);
   },
   updatePlayer: (store, payload, stamp) => {
     const player = requirePlayer(store, payload.id);
@@ -70,6 +80,7 @@ export const rosterAndGameActionHandlers: Record<string, StoreActionHandler> = {
     const player = requirePlayer(store, payload.id);
     player.active = !player.active;
     player.updatedAt = stamp;
+    if (player.active) ensureActivePlayerAvailability(store, stamp);
   },
   deletePlayer: (store, payload) => {
     const hasHistory = store.schedules.some((schedule) =>
@@ -118,20 +129,28 @@ export const rosterAndGameActionHandlers: Record<string, StoreActionHandler> = {
     store.liveGames = store.liveGames.filter((item) => item.gameId !== payload.id);
   },
   setAvailability: (store, payload, stamp) => {
-    const availability = store.availability.find(
-      (item) => item.gameId === payload.gameId && item.playerId === payload.playerId,
-    );
-    if (!availability) throw new Error("Availability not found.");
-    availability.status = payload.status as typeof availability.status;
-    availability.updatedAt = stamp;
-    markScheduleStale(store, String(payload.gameId), stamp);
+    const game = requireGame(store, payload.gameId);
+    const player = requirePlayer(store, payload.playerId);
+    if (!player.active) {
+      throw new Error("This player is no longer active. Team data has been refreshed.");
+    }
+    upsertAvailability(store, {
+      gameId: game.id,
+      playerId: player.id,
+      status: availabilityStatusSchema.parse(payload.status),
+    }, stamp);
+    markScheduleStale(store, game.id, stamp);
   },
   markAllAvailable: (store, payload, stamp) => {
-    for (const item of store.availability.filter(
-      (entry) => entry.gameId === payload.gameId && entry.status === "unknown",
-    )) {
-      item.status = "available";
-      item.updatedAt = stamp;
+    const game = requireGame(store, payload.gameId);
+    ensureActivePlayerAvailability(store, stamp);
+    for (const player of store.players.filter((item) => item.active)) {
+      upsertAvailability(store, {
+        gameId: game.id,
+        playerId: player.id,
+        status: "available",
+      }, stamp);
     }
+    markScheduleStale(store, game.id, stamp);
   },
 };

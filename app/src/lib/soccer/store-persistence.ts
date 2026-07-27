@@ -5,6 +5,7 @@ import { DEFAULT_POSITION_LABELS } from "./fixed-game";
 import { pickPlayerColor } from "./player-colors";
 import { generateSchedule } from "./scheduling";
 import { soccerStoreSchema, type Game, type Player, type SoccerStore } from "./schemas";
+import { ensureActivePlayerAvailability } from "./store-availability";
 
 const appRoot = () => path.basename(process.cwd()) === "app"
   ? process.cwd()
@@ -79,7 +80,11 @@ const createSeedStore = (): SoccerStore => {
 
 export const readStore = async () => {
   try {
-    return soccerStoreSchema.parse(JSON.parse(await readFile(storePath(), "utf8")));
+    const store = soccerStoreSchema.parse(
+      JSON.parse(await readFile(storePath(), "utf8")),
+    );
+    ensureActivePlayerAvailability(store, new Date().toISOString());
+    return store;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     const store = createSeedStore();
