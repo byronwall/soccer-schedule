@@ -146,6 +146,9 @@ export function SchedulePage() {
             view={view()}
             schedule={schedule()}
             quality={quality()}
+            playerName={(playerId) => player(playerId)?.displayName ?? "Unknown player"}
+            positionName={(positionKey) =>
+              data.positions().find((position) => position.key === positionKey)?.label ?? positionKey}
             onViewChange={setView}
             onGenerate={() => void data.run("generateSchedule", { gameId: params.gameId })}
             onEditAgain={() => {
@@ -250,6 +253,8 @@ type ScheduleToolbarProps = {
   view: ScheduleView;
   schedule?: Schedule;
   quality?: ScheduleQuality;
+  playerName: (playerId: string) => string;
+  positionName: (positionKey: PositionKey) => string;
   onViewChange: (view: ScheduleView) => void;
   onGenerate: () => void;
   onEditAgain: () => void;
@@ -320,7 +325,13 @@ function ScheduleToolbar(props: ScheduleToolbarProps) {
           <CheckCircle2 size={16} /> Publish schedule
         </Button>
       </Show>
-      <Show when={props.schedule}><ScheduleQualityPopover quality={props.quality} /></Show>
+      <Show when={props.schedule}>
+        <ScheduleQualityPopover
+          quality={props.quality}
+          playerName={props.playerName}
+          positionName={props.positionName}
+        />
+      </Show>
       <Show when={props.schedule}>{(current) => <ScheduleStatusBadge status={current().status} />}</Show>
     </Flex>
   );

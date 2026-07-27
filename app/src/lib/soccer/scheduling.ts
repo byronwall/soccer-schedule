@@ -2,11 +2,19 @@ import { POSITIONS, SEGMENTS, SEGMENT_SECONDS, type PositionKey } from "./fixed-
 import type { Assignment, Player } from "./schemas";
 export { generateSchedule } from "./schedule-generator";
 import { generateSchedule } from "./schedule-generator";
+import {
+  detectCrossQuarterPositionRepeats,
+  type CrossQuarterPositionRepeat,
+} from "./schedule-position-repeats";
+export {
+  crossQuarterPositionRepeatScore,
+  detectCrossQuarterPositionRepeats,
+} from "./schedule-position-repeats";
 
 export type ScheduleQuality = {
   valid: boolean; hardViolations: string[]; minuteSpread: number;
   midfieldExceptions: number; goalkeeperExceptions: number; goalkeeperOveruse: number;
-  substituteOveruse: number;
+  substituteOveruse: number; crossQuarterPositionRepeats: CrossQuarterPositionRepeat[];
   totals: Array<{ playerId: string; segments: number; minutes: number }>;
 };
 
@@ -14,7 +22,7 @@ export type ScheduleCellWarning = {
   segmentKey: Assignment["segmentKey"];
   positionKey: Assignment["positionKey"];
   playerId: Assignment["playerId"];
-  kind: "midfield-repeat" | "goalkeeper-change" | "goalkeeper-overuse";
+  kind: "midfield-repeat" | "goalkeeper-change" | "goalkeeper-overuse" | "cross-quarter-position-repeat";
   message: string;
 };
 
@@ -52,12 +60,12 @@ export const scheduleSubstituteWarnings = (
       if (fieldIds.has(playerId)) continue;
       const segmentCount = (substituteSegments.get(playerId) ?? 0) + 1;
       substituteSegments.set(playerId, segmentCount);
-      if (segmentCount > 2) {
+      if (segmentCount >= 4) {
         warnings.push({
           segmentKey: segment.key,
           playerId,
           kind: "substitute-overuse",
-          message: "Substitute time: this player is scheduled as a sub for more than 14 minutes.",
+          message: "Substitute time: this player is scheduled as a sub for 4 or more segments.",
         });
       }
     }
@@ -116,6 +124,19 @@ export const scheduleCellWarnings = (assignments: Assignment[]): ScheduleCellWar
       });
     }
   }
+  for (const repeat of detectCrossQuarterPositionRepeats(assignments)) {
+    const position = POSITIONS.find((item) => item.key === repeat.positionKey);
+    const quarters = repeat.quarterNumbers.map((quarter) => `Q${quarter}`).join(", ");
+    for (const segmentKey of repeat.segmentKeys) {
+      warnings.push({
+        segmentKey,
+        positionKey: repeat.positionKey,
+        playerId: repeat.playerId,
+        kind: "cross-quarter-position-repeat",
+        message: `Cross-quarter role repeat: ${position?.label ?? repeat.positionKey} in ${quarters}. Repeating within one quarter is okay.`,
+      });
+    }
+  }
   return warnings;
 };
 
@@ -149,7 +170,8 @@ export const scoreSchedule = (assignments: Assignment[], eligibleIds: string[]):
     scheduleSubstituteWarnings(assignments, eligibleIds).map((warning) => warning.playerId),
   ).size;
   const hardViolations = validateAssignments(assignments, eligibleIds);
-  return { valid: hardViolations.length === 0, hardViolations, minuteSpread: (Math.max(...segmentCounts) - Math.min(...segmentCounts)) * 7, midfieldExceptions, goalkeeperExceptions, goalkeeperOveruse, substituteOveruse, totals };
+  const crossQuarterPositionRepeats = detectCrossQuarterPositionRepeats(assignments);
+  return { valid: hardViolations.length === 0, hardViolations, minuteSpread: (Math.max(...segmentCounts) - Math.min(...segmentCounts)) * 7, midfieldExceptions, goalkeeperExceptions, goalkeeperOveruse, substituteOveruse, crossQuarterPositionRepeats, totals };
 };
 
 const selectRepairPlayer = (options: {

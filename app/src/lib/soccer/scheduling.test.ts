@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { POSITIONS, SEGMENTS, TOTAL_ASSIGNMENTS } from "./fixed-game";
-import { generateSchedule, orderSubstitutesForDisplay, repairSchedule, replaceAssignment, scheduleCellWarnings, scheduleSubstituteWarnings, scoreSchedule, substituteCountForRoster } from "./scheduling";
+import { detectCrossQuarterPositionRepeats, generateSchedule, orderSubstitutesForDisplay, repairSchedule, replaceAssignment, scheduleCellWarnings, scheduleSubstituteWarnings, scoreSchedule, substituteCountForRoster } from "./scheduling";
 import type { Player } from "./schemas";
 const players = (count: number): Player[] => Array.from({ length: count }, (_, index) => ({ id: `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`, displayName: `Player ${String(index + 1).padStart(2, "0")}`, color: "#2563EB", active: true, createdAt: "2026-07-16T00:00:00.000Z", updatedAt: "2026-07-16T00:00:00.000Z" }));
 describe("fixed soccer schedule", () => {
@@ -42,7 +42,7 @@ describe("fixed soccer schedule", () => {
       expect([...previousField].filter((playerId) => nextField.has(playerId))).toHaveLength(3);
     }
   });
-  it("keeps retained players in position and rotates midfielders most often", () => {
+  it("keeps retained players in position within a quarter and rotates midfielders most often", () => {
     const roster = players(11);
     const schedule = generateSchedule(roster);
     let midfieldersRotated = 0;
@@ -54,7 +54,9 @@ describe("fixed soccer schedule", () => {
       midfieldersRotated += previousMidfielders.filter((item) => !nextByPlayer.has(item.playerId)).length;
       for (const assignment of previous) {
         const nextPosition = nextByPlayer.get(assignment.playerId);
-        if (nextPosition) expect(nextPosition).toBe(assignment.positionKey);
+        if (nextPosition && SEGMENTS[index].quarter === SEGMENTS[index - 1].quarter) {
+          expect(nextPosition).toBe(assignment.positionKey);
+        }
       }
     }
     expect(midfieldersRotated).toBeGreaterThanOrEqual(10);
@@ -66,6 +68,70 @@ describe("fixed soccer schedule", () => {
       const second = schedule.find((item) => item.segmentKey === `q${quarter}b` && item.positionKey === "goalkeeper");
       expect(first?.playerId).toBe(second?.playerId);
     }
+  });
+  it("allows the same exact position in both segments of one quarter", () => {
+    const playerId = players(1)[0].id;
+    const assignments = [
+      { segmentKey: "q1a", positionKey: "leftDefense", playerId, source: "generated", locked: false },
+      { segmentKey: "q1b", positionKey: "leftDefense", playerId, source: "generated", locked: false },
+    ] as const;
+
+    expect(detectCrossQuarterPositionRepeats([...assignments])).toEqual([]);
+    expect(scheduleCellWarnings([...assignments]).filter(
+      (warning) => warning.kind === "cross-quarter-position-repeat",
+    )).toEqual([]);
+  });
+  it("warns every affected cell when an exact position repeats across quarters", () => {
+    const playerId = players(1)[0].id;
+    const assignments = [
+      { segmentKey: "q1a", positionKey: "leftDefense", playerId, source: "generated", locked: false },
+      { segmentKey: "q1b", positionKey: "leftDefense", playerId, source: "generated", locked: false },
+      { segmentKey: "q3a", positionKey: "leftDefense", playerId, source: "manual", locked: false },
+    ] as const;
+
+    expect(detectCrossQuarterPositionRepeats([...assignments])).toEqual([{
+      playerId,
+      positionKey: "leftDefense",
+      quarterNumbers: [1, 3],
+      segmentKeys: ["q1a", "q1b", "q3a"],
+    }]);
+    expect(scheduleCellWarnings([...assignments]).filter(
+      (warning) => warning.kind === "cross-quarter-position-repeat",
+    )).toHaveLength(3);
+  });
+  it.each([7, 8, 10, 11, 14])(
+    "avoids cross-quarter exact-position repeats for a generated %i-player rotation",
+    (count) => {
+    const roster = players(count);
+    const schedule = generateSchedule(roster);
+
+    expect(detectCrossQuarterPositionRepeats(schedule)).toEqual([]);
+    },
+  );
+  it("recomputes cross-quarter warnings after manual swaps", () => {
+    const roster = players(11);
+    const original = generateSchedule(roster);
+    const repeatedPlayerId = original.find(
+      (item) => item.segmentKey === "q1a" && item.positionKey === "leftDefense",
+    )!.playerId;
+    const originalTargetPlayerId = original.find(
+      (item) => item.segmentKey === "q2a" && item.positionKey === "leftDefense",
+    )!.playerId;
+    const changed = replaceAssignment(original, "q2a", "leftDefense", repeatedPlayerId);
+    const restored = replaceAssignment(changed, "q2a", "leftDefense", originalTargetPlayerId);
+
+    expect(scoreSchedule(
+      changed,
+      roster.map((player) => player.id),
+    ).crossQuarterPositionRepeats).toContainEqual(expect.objectContaining({
+      playerId: repeatedPlayerId,
+      positionKey: "leftDefense",
+      quarterNumbers: [1, 2],
+    }));
+    expect(scoreSchedule(
+      restored,
+      roster.map((player) => player.id),
+    ).crossQuarterPositionRepeats).toEqual([]);
   });
   it("repairs an unavailable assignment while preserving unaffected cells", () => { const roster = players(11); const original = generateSchedule(roster); const unavailable = original[0].playerId; const eligible = roster.filter((item) => item.id !== unavailable); const repaired = repairSchedule(original, eligible); expect(scoreSchedule(repaired, eligible.map((item) => item.id)).valid).toBe(true); expect(repaired.filter((item, index) => item.playerId === original[index].playerId).length).toBeGreaterThan(45); });
   it("swaps two field players within a segment", () => {
@@ -115,14 +181,14 @@ describe("fixed soccer schedule", () => {
     expect(overuseWarnings.map((warning) => warning.segmentKey)).toEqual(["q2a", "q2b"]);
     expect(scoreSchedule(changed, roster.map((player) => player.id)).goalkeeperOveruse).toBe(1);
   });
-  it("warns on the third substitute segment but allows two in a row", () => {
+  it("allows exactly three substitute segments", () => {
     const roster = players(8);
     const playerId = roster[0].id;
-    const changed = SEGMENTS.reduce((assignments, segment, index) => {
+    const changed = SEGMENTS.slice(0, 3).reduce((assignments, segment) => {
       const playerAssignment = assignments.find(
         (item) => item.segmentKey === segment.key && item.playerId === playerId,
       );
-      if (index < 3 && playerAssignment) {
+      if (playerAssignment) {
         const fieldIds = new Set(
           assignments
             .filter((item) => item.segmentKey === segment.key)
@@ -131,15 +197,34 @@ describe("fixed soccer schedule", () => {
         const substitute = roster.find((player) => !fieldIds.has(player.id))!;
         return replaceAssignment(assignments, segment.key, playerAssignment.positionKey, substitute.id);
       }
-      if (index >= 3 && !playerAssignment) {
-        return replaceAssignment(assignments, segment.key, "leftDefense", playerId);
-      }
       return assignments;
     }, generateSchedule(roster));
-    const warnings = scheduleSubstituteWarnings(changed, roster.map((player) => player.id));
 
-    expect(warnings.filter((warning) => warning.playerId === playerId)).toEqual([
-      expect.objectContaining({ segmentKey: "q2a", kind: "substitute-overuse" }),
+    expect(scheduleSubstituteWarnings(changed, roster.map((player) => player.id)).filter(
+      (warning) => warning.playerId === playerId,
+    )).toEqual([]);
+  });
+  it("warns on the fourth substitute segment", () => {
+    const roster = players(8);
+    const playerId = roster[0].id;
+    const changed = SEGMENTS.slice(0, 4).reduce((assignments, segment) => {
+      const playerAssignment = assignments.find(
+        (item) => item.segmentKey === segment.key && item.playerId === playerId,
+      );
+      if (!playerAssignment) return assignments;
+      const fieldIds = new Set(
+        assignments
+          .filter((item) => item.segmentKey === segment.key)
+          .map((item) => item.playerId),
+      );
+      const substitute = roster.find((player) => !fieldIds.has(player.id))!;
+      return replaceAssignment(assignments, segment.key, playerAssignment.positionKey, substitute.id);
+    }, generateSchedule(roster));
+
+    expect(scheduleSubstituteWarnings(changed, roster.map((player) => player.id)).filter(
+      (warning) => warning.playerId === playerId,
+    )).toEqual([
+      expect.objectContaining({ segmentKey: "q2b", kind: "substitute-overuse" }),
     ]);
     expect(scoreSchedule(changed, roster.map((player) => player.id)).substituteOveruse).toBe(1);
   });

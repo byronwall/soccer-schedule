@@ -1,6 +1,7 @@
 import { For, Show, createSignal } from "solid-js";
 import { AlertTriangle, CheckCircle2, ShieldCheck } from "lucide-solid";
 import { Badge, Button, Popover, SimplePopover, Text } from "~/components/ui";
+import type { PositionKey } from "~/lib/soccer/fixed-game";
 import type { ScheduleQuality } from "~/lib/soccer/scheduling";
 import { HStack, VStack } from "styled-system/jsx";
 
@@ -10,7 +11,8 @@ const hasQualityWarnings = (quality?: ScheduleQuality) =>
     quality.midfieldExceptions > 0 ||
     quality.goalkeeperExceptions > 0 ||
     quality.goalkeeperOveruse > 0 ||
-    quality.substituteOveruse > 0
+    quality.substituteOveruse > 0 ||
+    quality.crossQuarterPositionRepeats.length > 0
   );
 
 const qualityColor = (hardErrorCount: number, hasWarnings: boolean) => {
@@ -23,7 +25,11 @@ const qualityLabel = (hardErrorCount: number) => {
   return `${hardErrorCount} schedule ${hardErrorCount === 1 ? "error" : "errors"}`;
 };
 
-export function ScheduleQualityPopover(props: { quality?: ScheduleQuality }) {
+export function ScheduleQualityPopover(props: {
+  quality?: ScheduleQuality;
+  playerName: (playerId: string) => string;
+  positionName: (positionKey: PositionKey) => string;
+}) {
   const [open, setOpen] = createSignal(false);
   const hardErrorCount = () => props.quality?.hardViolations.length ?? 0;
 
@@ -49,7 +55,10 @@ export function ScheduleQualityPopover(props: { quality?: ScheduleQuality }) {
     >
       <Popover.Body>
         <Popover.Title>Schedule quality</Popover.Title>
-        <Popover.Description>Blocking errors must be resolved before publishing.</Popover.Description>
+        <Popover.Description>
+          Blocking errors must be resolved before publishing. Quality warnings can remain when a
+          valid rotation cannot avoid them.
+        </Popover.Description>
         <VStack alignItems="stretch" gap="3" mt="4">
           <Show
             when={hardErrorCount() > 0}
@@ -71,14 +80,22 @@ export function ScheduleQualityPopover(props: { quality?: ScheduleQuality }) {
               </For>
             </VStack>
           </Show>
-          <ScheduleQualityMetrics quality={props.quality} />
+          <ScheduleQualityMetrics
+            quality={props.quality}
+            playerName={props.playerName}
+            positionName={props.positionName}
+          />
         </VStack>
       </Popover.Body>
     </SimplePopover>
   );
 }
 
-function ScheduleQualityMetrics(props: { quality?: ScheduleQuality }) {
+function ScheduleQualityMetrics(props: {
+  quality?: ScheduleQuality;
+  playerName: (playerId: string) => string;
+  positionName: (positionKey: PositionKey) => string;
+}) {
   const minuteSpread = () => props.quality?.minuteSpread ?? 0;
   const midfieldExceptions = () => props.quality?.midfieldExceptions ?? 0;
   const goalkeeperExceptions = () => props.quality?.goalkeeperExceptions ?? 0;
@@ -91,7 +108,26 @@ function ScheduleQualityMetrics(props: { quality?: ScheduleQuality }) {
       <QualityMetric label="Midfield repeats" value={midfieldExceptions()} good={midfieldExceptions() === 0} />
       <QualityMetric label="Goalkeeper changes" value={goalkeeperExceptions()} good={goalkeeperExceptions() === 0} />
       <QualityMetric label="Players over 14 min in goal" value={goalkeeperOveruse()} good={goalkeeperOveruse() === 0} />
-      <QualityMetric label="Players over 14 min as sub" value={substituteOveruse()} good={substituteOveruse() === 0} />
+      <QualityMetric label="Players subbed 4+ segments" value={substituteOveruse()} good={substituteOveruse() === 0} />
+      <QualityMetric
+        label="Cross-quarter role repeats"
+        value={props.quality?.crossQuarterPositionRepeats.length ?? 0}
+        good={(props.quality?.crossQuarterPositionRepeats.length ?? 0) === 0}
+      />
+      <Show when={(props.quality?.crossQuarterPositionRepeats.length ?? 0) > 0}>
+        <VStack alignItems="stretch" gap="1">
+          <For each={props.quality?.crossQuarterPositionRepeats}>
+            {(repeat) => (
+              <Text textStyle="xs" color="fg.muted">
+                {props.playerName(repeat.playerId)} ·{" "}
+                {props.positionName(repeat.positionKey)}
+                {" · "}
+                {repeat.quarterNumbers.map((quarter) => `Q${quarter}`).join(", ")}
+              </Text>
+            )}
+          </For>
+        </VStack>
+      </Show>
     </VStack>
   );
 }

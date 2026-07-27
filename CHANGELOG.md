@@ -6,9 +6,10 @@ This file records user-visible changes, important development workflow changes, 
 
 ### Changed
 
+- Schedule generation now strongly avoids assigning a player the same exact position in different quarters while preserving validity and playing-time fairness. Remaining cross-quarter role repeats appear as non-blocking quality warnings on every affected cell and identify the player, position, and quarters in the quality panel. Substitute overuse now starts at 4 substitute segments; 3 is considered normal.
 - Game availability now repairs missing active-player records and upserts individual or bulk “All in” changes, including for players added or reactivated after a game was created. Bulk updates affect only the active roster, and stale client writes refresh team data and show a normal in-app error instead of causing an uncaught client exception.
 - SolidStart server base paths now avoid a trailing slash and remain enforced in the resolved client configuration so generated query/action requests use the intended `/_server` endpoint.
-- Automatic schedules now use the minimum substitutions needed to bring the full four-player bench onto the field, rotate midfielders out first, preserve retained players in their positions, and keep the goalkeeper stable within each quarter.
+- Automatic schedules now use the minimum substitutions needed to bring the full four-player bench onto the field, rotate midfielders out first, preserve retained players in their positions within each quarter, and keep the goalkeeper stable within each quarter.
 - Passwords now require only a non-empty value instead of a 12-character minimum.
 - Authentication now uses one environment-configured master sign-in plus persisted user accounts managed by the super user. User passwords are individually salted and hashed with scrypt, and removing a user revokes their active sessions.
   - Problem: production's `COACH_CREDENTIALS_JSON` was truncated and invalid, so the login page could not load its credential list.
