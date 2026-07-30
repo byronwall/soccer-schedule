@@ -1,17 +1,37 @@
 import { For, Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
-import { Badge, Card, Text } from "~/components/ui";
+import {
+  Badge,
+  IconButton,
+  Text,
+  Tooltip,
+} from "~/components/ui";
+import { Sparkles } from "lucide-solid";
 import { POSITIONS, SEGMENTS, type Position, type PositionKey, type SegmentKey } from "~/lib/soccer/fixed-game";
+import {
+  lockStateForAssignments,
+  type LockState,
+} from "~/lib/soccer/schedule-readiness";
 import {
   orderSubstitutesForDisplay,
   scheduleCellWarnings,
   scheduleSubstituteWarnings,
   substituteCountForRoster,
-  type ScheduleQuality,
 } from "~/lib/soccer/scheduling";
-import type { Player, Schedule } from "~/lib/soccer/schemas";
-import { Box, Grid, HStack } from "styled-system/jsx";
+import type {
+  Player,
+  PlayerPreference,
+  Schedule,
+} from "~/lib/soccer/schemas";
+import {
+  playerPreferenceLookup,
+  positionDisposition,
+} from "~/lib/soccer/player-preferences";
+import { setScheduleDragSelectionState } from "~/lib/soccer/schedule-drag-selection";
+import { Box, Grid, HStack, VStack } from "styled-system/jsx";
 import { PlayerAssignmentCell, SubstituteCell } from "./ScheduleGridCells";
+import { ScheduleGroupLockButton } from "./ScheduleGroupLockButton";
+import { ScheduleGroupClearButton } from "./ScheduleGroupClearButton";
 
 type Selection = { segmentKey: SegmentKey; positionKey: PositionKey };
 export type ScheduleSwap = Selection & { playerId: string };
@@ -25,6 +45,15 @@ type PositionGridProps = {
   editable: boolean;
   onSelect: (selection: Selection) => void;
   onSwap: (swap: ScheduleSwap) => void;
+  onLockPosition: (positionKey: PositionKey) => void;
+  onLockSegment: (segmentKey: SegmentKey) => void;
+  onClearPosition: (positionKey: PositionKey) => void;
+  onClearSegment: (segmentKey: SegmentKey) => void;
+  onGeneratePosition: (positionKey: PositionKey) => void;
+  onGenerateSegment: (segmentKey: SegmentKey) => void;
+  changedCellIds: string[];
+  preferences: PlayerPreference[];
+  selected?: Selection;
 };
 
 const cellKey = (segmentKey: SegmentKey, rowKey: string) => `${segmentKey}:${rowKey}`;
@@ -34,13 +63,20 @@ export function PositionGrid(props: PositionGridProps) {
   const [emphasizedPlayerId, setEmphasizedPlayerId] = createSignal<string>();
   let pointerDrag: { source: DragSource; startX: number; startY: number; moved: boolean } | undefined;
   let suppressNextClick = false;
+  let dragSelectionActive = false;
+  const setDragSelectionActive = (active: boolean) => {
+    if (dragSelectionActive === active) return;
+    dragSelectionActive = active;
+    setScheduleDragSelectionState(document.body, active, window.getSelection());
+  };
   const cancelDrag = () => {
     pointerDrag = undefined;
+    setDragSelectionActive(false);
     setDragState({ source: undefined, over: undefined });
   };
   onMount(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && dragState.source) cancelDrag();
+      if (event.key === "Escape" && (pointerDrag || dragState.source)) cancelDrag();
     };
     const handlePointerMove = (event: PointerEvent) => {
       if (!pointerDrag) return;
@@ -64,13 +100,25 @@ export function PositionGrid(props: PositionGridProps) {
       else cancelDrag();
       suppressNextClick = currentDrag.moved;
     };
+    const handlePointerCancel = () => cancelDrag();
+    const handleWindowBlur = () => cancelDrag();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") cancelDrag();
+    };
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("pointermove", handlePointerMove, { passive: false });
     window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerCancel);
+    window.addEventListener("blur", handleWindowBlur);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     onCleanup(() => {
+      cancelDrag();
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerCancel);
+      window.removeEventListener("blur", handleWindowBlur);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     });
   });
   const playerById = (id: string) => props.players.find((player) => player.id === id);
@@ -84,6 +132,7 @@ export function PositionGrid(props: PositionGridProps) {
         .filter((item) => item.segmentKey === segmentKey)
         .map((item) => item.playerId),
     );
+    if (fieldIds.size < POSITIONS.length) return [];
     return orderSubstitutesForDisplay(
       props.players.filter((player) => !fieldIds.has(player.id)),
       props.inactivePlayerIds,
@@ -92,6 +141,8 @@ export function PositionGrid(props: PositionGridProps) {
   const substituteCount = () => substituteCountForRoster(props.players.length);
   const isInactive = (player?: Player) => !!player && props.inactivePlayerIds.includes(player.id);
   const warnings = createMemo(() => scheduleCellWarnings(props.schedule.assignments));
+  const preferences = createMemo(() =>
+    playerPreferenceLookup(props.preferences));
   const substituteWarnings = createMemo(() => scheduleSubstituteWarnings(
     props.schedule.assignments,
     props.players
@@ -106,10 +157,23 @@ export function PositionGrid(props: PositionGridProps) {
     substituteWarnings()
       .filter((warning) => warning.segmentKey === segmentKey && warning.playerId === playerId)
       .map((warning) => warning.message);
+  const positionLockState = (positionKey: PositionKey): LockState =>
+    lockStateForAssignments(
+      props.schedule.assignments.filter(
+        (item) => item.positionKey === positionKey,
+      ),
+    );
+  const segmentLockState = (segmentKey: SegmentKey): LockState =>
+    lockStateForAssignments(
+      props.schedule.assignments.filter(
+        (item) => item.segmentKey === segmentKey,
+      ),
+    );
 
   const beginPointerDrag = (event: PointerEvent, source: DragSource) => {
     if (!props.editable) return;
     pointerDrag = { source, startX: event.clientX, startY: event.clientY, moved: false };
+    setDragSelectionActive(true);
   };
 
   const finishDrop = (target: DragSource & { rowKey: string }, sourceOverride?: DragSource) => {
@@ -142,15 +206,7 @@ export function PositionGrid(props: PositionGridProps) {
   };
 
   return (
-    <>
-      <HStack mb="2" gap="2" color="fg.muted">
-        <Text textStyle="xs">
-          {props.editable
-            ? "Drag within a segment column to swap. Outlined cells are valid targets; press Esc to cancel."
-            : "Published assignments are read-only. Choose Edit again to make changes."}
-        </Text>
-      </HStack>
-      <Box
+    <Box
         minW="760px"
         bg="bg.default"
         borderWidth="1px"
@@ -161,18 +217,108 @@ export function PositionGrid(props: PositionGridProps) {
         onPointerLeave={() => setEmphasizedPlayerId()}
       >
       <Grid gridTemplateColumns="128px repeat(8, minmax(0, 1fr))" gap="0" bg="bg.muted">
-        <Box p="2.5" fontWeight="semibold">Position</Box>
+        <Box px="2" py="1.5" fontWeight="semibold" fontSize="sm">Position</Box>
         <For each={SEGMENTS}>
-          {(segment) => <Box p="2.5" textAlign="center" fontSize="xs" fontWeight="semibold">{segment.label}</Box>}
+          {(segment) => (
+            <VStack px="1" py="0.5" justifyContent="center" gap="0">
+              <Text textStyle="xs" fontWeight="semibold">{segment.label}</Text>
+              <HStack gap="0">
+                <ScheduleGroupLockButton
+                  label={`${segment.label} segment`}
+                  state={segmentLockState(segment.key)}
+                  disabled={
+                    !props.editable ||
+                    !props.schedule.assignments.some(
+                      (item) => item.segmentKey === segment.key,
+                    )
+                  }
+                  onLock={() => props.onLockSegment(segment.key)}
+                />
+                <ScheduleGroupClearButton
+                  label={`${segment.label} assignments`}
+                  disabled={
+                    !props.editable ||
+                    !props.schedule.assignments.some(
+                      (item) => item.segmentKey === segment.key,
+                    )
+                  }
+                  onClear={() => props.onClearSegment(segment.key)}
+                />
+                <Tooltip
+                  content={`Regenerate ${segment.label} segment`}
+                  positioning={{
+                    strategy: "fixed",
+                    flip: true,
+                    slide: true,
+                    overflowPadding: 12,
+                  }}
+                >
+                <IconButton
+                  size="2xs"
+                  variant="plain"
+                  disabled={!props.editable}
+                  aria-label={`Regenerate ${segment.label} segment`}
+                  onClick={() => props.onGenerateSegment(segment.key)}
+                >
+                  <Sparkles size={14} />
+                </IconButton>
+                </Tooltip>
+              </HStack>
+            </VStack>
+          )}
         </For>
       </Grid>
       <For each={props.positions}>
         {(position) => (
           <Grid gridTemplateColumns="128px repeat(8, minmax(0, 1fr))" gap="0" borderTopWidth="1px" borderColor="border">
-            <HStack px="2.5" py="2" gap="2">
-              <Badge size="sm">{position.short}</Badge>
-              <Text textStyle="xs" fontWeight="medium">{position.label}</Text>
-            </HStack>
+            <VStack px="1.5" py="0.5" gap="0" alignItems="start" justifyContent="center">
+              <HStack gap="1" minW="0" width="full">
+                  <Badge size="sm">{position.short}</Badge>
+                  <Text textStyle="xs" fontWeight="medium" whiteSpace="nowrap">{position.label}</Text>
+              </HStack>
+              <HStack gap="0" flexShrink="0">
+                <ScheduleGroupLockButton
+                  label={`${position.label} row`}
+                  state={positionLockState(position.key)}
+                  disabled={
+                    !props.editable ||
+                    !props.schedule.assignments.some(
+                      (item) => item.positionKey === position.key,
+                    )
+                  }
+                  onLock={() => props.onLockPosition(position.key)}
+                />
+                <ScheduleGroupClearButton
+                  label={`${position.label} assignments`}
+                  disabled={
+                    !props.editable ||
+                    !props.schedule.assignments.some(
+                      (item) => item.positionKey === position.key,
+                    )
+                  }
+                  onClear={() => props.onClearPosition(position.key)}
+                />
+                <Tooltip
+                  content={`Regenerate ${position.label} position`}
+                  positioning={{
+                    strategy: "fixed",
+                    flip: true,
+                    slide: true,
+                    overflowPadding: 12,
+                  }}
+                >
+                  <IconButton
+                    size="2xs"
+                    variant="plain"
+                    disabled={!props.editable}
+                    aria-label={`Regenerate ${position.label} position`}
+                    onClick={() => props.onGeneratePosition(position.key)}
+                  >
+                    <Sparkles size={14} />
+                  </IconButton>
+                </Tooltip>
+              </HStack>
+            </VStack>
             <For each={SEGMENTS}>
               {(segment) => {
                 const item = () => assignment(segment.key, position.key);
@@ -193,6 +339,18 @@ export function PositionGrid(props: PositionGridProps) {
                     dragging={dragState.source?.playerId === assignedPlayer()?.id && dragState.source?.segmentKey === segment.key}
                     validTarget={!!dragState.source && dragState.source.segmentKey === segment.key && dragState.source.playerId !== assignedPlayer()?.id && !assignedPlayerInactive()}
                     dropTarget={dragState.over === key}
+                    changed={props.changedCellIds.includes(key)}
+                    selected={
+                      props.selected?.segmentKey === segment.key &&
+                      props.selected.positionKey === position.key
+                    }
+                    preference={assignedPlayer()
+                      ? positionDisposition(
+                          preferences(),
+                          assignedPlayer()!.id,
+                          position.key,
+                        )
+                      : "neutral"}
                     segmentKey={segment.key}
                     rowKey={position.key}
                     onEmphasisChange={setEmphasizedPlayerId}
@@ -210,13 +368,13 @@ export function PositionGrid(props: PositionGridProps) {
       </For>
       <Show when={substituteCount() > 0}>
         <Grid gridTemplateColumns="128px repeat(8, minmax(0, 1fr))" gap="0" borderTopWidth="2px" borderColor="border" bg="bg.subtle">
-          <Box px="2.5" py="1.5" fontWeight="semibold" fontSize="xs" color="fg.muted">Substitutes</Box>
+          <Box px="2" py="1" fontWeight="semibold" fontSize="xs" color="fg.muted">Substitutes</Box>
           <For each={SEGMENTS}>{() => <Box />}</For>
         </Grid>
         <For each={Array.from({ length: substituteCount() })}>
           {(_, substituteIndex) => (
             <Grid gridTemplateColumns="128px repeat(8, minmax(0, 1fr))" gap="0" borderTopWidth="1px" borderColor="border">
-              <HStack px="2.5" py="2" gap="2">
+              <HStack px="1.5" py="0.5" gap="1">
                 <Badge size="sm" colorPalette="gray">SUB</Badge>
                 <Text textStyle="xs" color="fg.muted">Sub {substituteIndex() + 1}</Text>
               </HStack>
@@ -238,6 +396,7 @@ export function PositionGrid(props: PositionGridProps) {
                       dragging={dragState.source?.playerId === substitute()?.id && dragState.source?.segmentKey === segment.key}
                       validTarget={!!dragState.source && dragState.source.segmentKey === segment.key && dragState.source.playerId !== substitute()?.id && !substituteInactive()}
                       dropTarget={dragState.over === key()}
+                      changed={false}
                       segmentKey={segment.key}
                       rowKey={`sub-${substituteIndex()}`}
                       onPointerDown={(event) => {
@@ -252,8 +411,7 @@ export function PositionGrid(props: PositionGridProps) {
           )}
         </For>
       </Show>
-      </Box>
-    </>
+    </Box>
   );
 }
 
@@ -268,32 +426,3 @@ const dragTargetAt = (x: number, y: number) => {
   const positionKey = POSITIONS.find((position) => position.key === rowKey)?.key;
   return { segmentKey, playerId, rowKey, positionKey };
 };
-
-export function PlannedMinutes(props: { quality?: ScheduleQuality; player: (id: string) => Player | undefined }) {
-  return (
-    <Card.Root mt="5">
-      <Card.Header>
-        <Card.Title>Planned minutes</Card.Title>
-        <Card.Description>Projected playing time across all eight segments.</Card.Description>
-      </Card.Header>
-      <Card.Body>
-        <Grid gridTemplateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))", xl: "repeat(6, minmax(0, 1fr))" }} gap="2">
-          <For each={props.quality?.totals}>
-            {(total) => {
-              const currentPlayer = () => props.player(total.playerId);
-              return (
-                <HStack justifyContent="space-between" minW="0" px="3" py="2" bg="bg.muted" borderRadius="l2">
-                  <HStack minW="0" gap="2">
-                    <Box boxSize="2.5" flexShrink="0" borderRadius="full" style={{ "background-color": currentPlayer()?.color }} />
-                    <Text textStyle="sm" truncate>{currentPlayer()?.displayName}</Text>
-                  </HStack>
-                  <Text textStyle="sm" fontWeight="bold" flexShrink="0">{total.minutes} min</Text>
-                </HStack>
-              );
-            }}
-          </For>
-        </Grid>
-      </Card.Body>
-    </Card.Root>
-  );
-}

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { SoccerStore } from "./schemas";
+import { SCHEDULE_CELL_COUNT } from "./schedule-readiness";
 
 export type ActionPayload = Record<string, unknown>;
 export type StoreActionHandler = (
@@ -58,7 +59,9 @@ export const markScheduleStale = (store: SoccerStore, gameId: string, stamp: str
       (schedule.status === "draft" || schedule.status === "stale"),
   );
   if (editable) {
-    editable.status = "stale";
+    if (editable.assignments.length === SCHEDULE_CELL_COUNT) {
+      editable.status = "stale";
+    }
     editable.updatedAt = stamp;
     return;
   }

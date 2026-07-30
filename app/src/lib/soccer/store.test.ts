@@ -59,6 +59,49 @@ describe("file-backed soccer store", () => {
     });
   });
 
+  it("does not expose retired continuity persistence actions", async () => {
+    await expect(applySoccerAction(
+      "updateDefensiveContinuityDefault",
+      { policy: "goalkeeper-and-defense" },
+    )).rejects.toThrow(/Unknown soccer action/);
+    expect(await getSnapshot()).not.toHaveProperty(
+      "defensiveContinuityDefault",
+    );
+  });
+
+  it("persists exact-position, field-time, and private-note preferences separately from player identity", async () => {
+    const before = await getSnapshot();
+    const player = before.players[0];
+    const dispositions = {
+      ...before.playerPreferences.entries.find(
+        (entry) => entry.playerId === player.id,
+      )!.positionDispositions,
+      goalkeeper: "avoid" as const,
+      leftMidfield: "prefer" as const,
+      rightMidfield: "prefer" as const,
+    };
+
+    await applySoccerAction("updatePlayerPreferences", {
+      playerId: player.id,
+      positionDispositions: dispositions,
+      fieldTimePreference: "favor-extra-when-needed",
+      coachNote: "Private coach context",
+    });
+
+    const after = await getSnapshot();
+    expect(after.players.find((candidate) => candidate.id === player.id)).toEqual(
+      player,
+    );
+    expect(after.playerPreferences.entries.find(
+      (entry) => entry.playerId === player.id,
+    )).toMatchObject({
+      playerId: player.id,
+      positionDispositions: dispositions,
+      fieldTimePreference: "favor-extra-when-needed",
+      coachNote: "Private coach context",
+    });
+  });
+
   it("authenticates the master user with an opaque persisted super-user session", async () => {
     expect(await loginCoach("admin", "wrong-password")).toBeNull();
     const result = await loginCoach("admin", "demo-sideline-2026");
@@ -111,11 +154,17 @@ describe("file-backed soccer store", () => {
   });
 
   it("rejects a stale schedule revision instead of overwriting", async () => {
-    const snapshot = await getSnapshot();
-    const published = snapshot.schedules.find((item) => item.status === "published");
-    await applySoccerAction("generateSchedule", { gameId: published?.gameId });
     const schedule = (await getSnapshot()).schedules.find((item) => item.status === "draft");
     await expect(applySoccerAction("toggleLock", { scheduleId: schedule?.id, segmentKey: "q1a", positionKey: "goalkeeper", expectedRevision: 999 })).rejects.toThrow(/Version conflict/);
+  });
+
+  it.each([
+    "generateSchedule", "previewScheduleRefinement", "acceptScheduleRefinement",
+    "previewScheduleCandidates", "acceptScheduleCandidate",
+  ])("removes the obsolete %s action contract", async (action) => {
+    await expect(applySoccerAction(action, {})).rejects.toThrow(
+      /Unknown soccer action/,
+    );
   });
 
   it("returns regeneration feedback when locks prevent a different schedule", async () => {
@@ -131,11 +180,14 @@ describe("file-backed soccer store", () => {
       }));
     });
 
-    await expect(applySoccerAction("generateSchedule", {
-      gameId: draft.gameId,
-    })).resolves.toEqual({
+    await expect(applySoccerAction("generateScheduleTarget", {
+      scheduleId: draft.id,
+      expectedRevision: draft.revision,
+      target: { kind: "all" },
+    })).resolves.toMatchObject({
       changed: false,
-      reason: "Every assignment is locked, so the schedule has only one allowed arrangement.",
+      changedCellIds: [],
+      noChangeReason: expect.stringMatching(/locked assignment/),
     });
     expect((await getSnapshot()).schedules.find(
       (item) => item.id === draft.id,
@@ -145,10 +197,63 @@ describe("file-backed soccer store", () => {
     })));
   });
 
-  it("preserves the published schedule and creates a stale working copy after availability changes", async () => {
+  it("applies targeted generation as one undoable revision", async () => {
+    const before = await getSnapshot();
+    const draft = before.schedules.find((item) => item.status === "draft");
+    if (!draft) throw new Error("Expected a working draft.");
+    await mutateStore((store) => {
+      const storedDraft = store.schedules.find((item) => item.id === draft.id);
+      if (!storedDraft) throw new Error("Expected the persisted working draft.");
+      storedDraft.assignments = storedDraft.assignments.map((assignment) => ({
+        ...assignment,
+        locked: false,
+      })).filter((_, index) => index % 4 !== 0);
+    });
+    const unlocked = (await getSnapshot()).schedules.find(
+      (item) => item.id === draft.id,
+    );
+    if (!unlocked) throw new Error("Expected the unlocked working draft.");
+
+    const result = await applySoccerAction("generateScheduleTarget", {
+      scheduleId: unlocked.id,
+      expectedRevision: unlocked.revision,
+      target: { kind: "segment", segmentKey: "q2a" },
+    });
+    expect(result).toMatchObject({
+      changed: true,
+      changedCellIds: expect.arrayContaining([
+        expect.stringMatching(/^q2a:/),
+      ]),
+    });
+    const accepted = (await getSnapshot()).schedules.find(
+      (item) => item.id === unlocked.id,
+    );
+    expect(accepted).toMatchObject({
+      revision: unlocked.revision + 1,
+    });
+    expect(accepted?.history).toHaveLength(unlocked.history.length + 1);
+    expect(accepted?.history.at(-1)).toEqual(unlocked.assignments);
+
+    await applySoccerAction("undoSchedule", {
+      scheduleId: accepted?.id,
+      expectedRevision: accepted?.revision,
+    });
+    expect((await getSnapshot()).schedules.find(
+      (item) => item.id === unlocked.id,
+    )?.assignments).toEqual(unlocked.assignments);
+  });
+
+  it("preserves the published schedule and incomplete draft after availability changes", async () => {
     const before = await getSnapshot();
     const published = before.schedules.find((item) => item.status === "published");
-    const player = before.players[0];
+    const working = before.schedules.find(
+      (item) => item.gameId === published?.gameId && item.status === "draft",
+    );
+    const player = before.players.find(
+      (candidate) =>
+        candidate.id === working?.assignments[0]?.playerId,
+    );
+    if (!player) throw new Error("Expected an assigned player in the draft.");
 
     await applySoccerAction("setAvailability", {
       gameId: published?.gameId,
@@ -158,9 +263,11 @@ describe("file-backed soccer store", () => {
 
     const after = await getSnapshot();
     expect(after.schedules.find((item) => item.id === published?.id)?.status).toBe("published");
-    expect(after.schedules).toContainEqual(
-      expect.objectContaining({ gameId: published?.gameId, status: "stale" }),
-    );
+    expect(after.schedules).toContainEqual(expect.objectContaining({
+      gameId: published?.gameId,
+      status: "draft",
+      assignments: working?.assignments,
+    }));
   });
 
   it("upserts availability when a persisted active-player record is missing", async () => {
@@ -309,4 +416,5 @@ describe("file-backed soccer store", () => {
     expect((await getSnapshot()).games.find((item) => item.id === game.id)?.status).toBe("completed");
     await expect(applySoccerAction("setGameStatus", { id: game.id, status: "played-ish" })).rejects.toThrow();
   });
+
 });

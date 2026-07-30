@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { POSITIONS, SEGMENTS, TOTAL_ASSIGNMENTS } from "./fixed-game";
-import { detectCrossQuarterPositionRepeats, generateSchedule, orderSubstitutesForDisplay, regenerateSchedule, repairSchedule, replaceAssignment, scheduleCellWarnings, scheduleSubstituteWarnings, scoreSchedule, substituteCountForRoster } from "./scheduling";
+import { detectCrossQuarterPositionRepeats, generateSchedule, orderSubstitutesForDisplay, repairSchedule, replaceAssignment, scheduleCellWarnings, scheduleSubstituteWarnings, scoreSchedule, substituteCountForRoster } from "./scheduling";
 import type { Player } from "./schemas";
 const players = (count: number): Player[] => Array.from({ length: count }, (_, index) => ({ id: `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`, displayName: `Player ${String(index + 1).padStart(2, "0")}`, color: "#2563EB", active: true, createdAt: "2026-07-16T00:00:00.000Z", updatedAt: "2026-07-16T00:00:00.000Z" }));
 describe("fixed soccer schedule", () => {
@@ -148,87 +148,6 @@ describe("fixed soccer schedule", () => {
       roster.map((player) => player.id),
     ).crossQuarterPositionRepeats).toEqual([]);
   });
-  it("regeneration avoids the current assignment when another variant is feasible", () => {
-    const roster = players(11);
-    const current = generateSchedule(roster, { seed: "current" });
-    const result = regenerateSchedule({
-      players: roster,
-      currentAssignments: current,
-      seeds: ["next-one", "next-two", "next-three"],
-    });
-
-    expect(result.changed).toBe(true);
-    expect(result.assignments).not.toEqual(current);
-    expect(scoreSchedule(
-      result.assignments,
-      roster.map((player) => player.id),
-    )).toMatchObject({ valid: true, minuteSpread: 7 });
-    expect(detectCrossQuarterPositionRepeats(result.assignments)).toEqual([]);
-  });
-  it("optimizes away from the current schedule even when supplied seeds repeat it", () => {
-    const roster = players(11);
-    const current = generateSchedule(roster, { seed: "reused-seed" });
-    const result = regenerateSchedule({
-      players: roster,
-      currentAssignments: current,
-      seeds: ["reused-seed", "reused-seed"],
-    });
-
-    expect(result.changed).toBe(true);
-    expect(result.assignments).not.toEqual(current);
-    expect(scoreSchedule(
-      result.assignments,
-      roster.map((player) => player.id),
-    ).valid).toBe(true);
-  });
-  it("keeps locked assignments fixed during regeneration", () => {
-    const roster = players(7);
-    const current = generateSchedule(roster, { seed: "locked-current" }).map(
-      (assignment) => ({
-        ...assignment,
-        locked:
-          assignment.segmentKey === "q2a" &&
-          assignment.positionKey === "leftDefense",
-      }),
-    );
-    const locked = current.find((assignment) => assignment.locked)!;
-    const result = regenerateSchedule({
-      players: roster,
-      currentAssignments: current,
-      seeds: ["locked-next-one", "locked-next-two", "locked-next-three"],
-    });
-
-    expect(result.changed).toBe(true);
-    expect(result.assignments.find(
-      (assignment) =>
-        assignment.segmentKey === locked.segmentKey &&
-        assignment.positionKey === locked.positionKey,
-    )).toMatchObject({
-      playerId: locked.playerId,
-      locked: true,
-    });
-    expect(scoreSchedule(
-      result.assignments,
-      roster.map((player) => player.id),
-    ).valid).toBe(true);
-  });
-  it("returns honest feedback when every assignment is locked", () => {
-    const roster = players(7);
-    const current = generateSchedule(roster, { seed: "only-solution" }).map(
-      (assignment) => ({ ...assignment, locked: true }),
-    );
-    const result = regenerateSchedule({
-      players: roster,
-      currentAssignments: current,
-      seeds: ["unused-one", "unused-two"],
-    });
-
-    expect(result).toEqual({
-      assignments: current,
-      changed: false,
-      reason: "Every assignment is locked, so the schedule has only one allowed arrangement.",
-    });
-  });
   it("repairs an unavailable assignment while preserving unaffected cells", () => { const roster = players(11); const original = generateSchedule(roster); const unavailable = original[0].playerId; const eligible = roster.filter((item) => item.id !== unavailable); const repaired = repairSchedule(original, eligible); expect(scoreSchedule(repaired, eligible.map((item) => item.id)).valid).toBe(true); expect(repaired.filter((item, index) => item.playerId === original[index].playerId).length).toBeGreaterThan(45); });
   it("swaps two field players within a segment", () => {
     const original = generateSchedule(players(8));
@@ -280,11 +199,12 @@ describe("fixed soccer schedule", () => {
   it("allows exactly three substitute segments", () => {
     const roster = players(8);
     const playerId = roster[0].id;
-    const changed = SEGMENTS.slice(0, 3).reduce((assignments, segment) => {
+    const substituteKeys = new Set(SEGMENTS.slice(0, 3).map((item) => item.key));
+    const changed = SEGMENTS.reduce((assignments, segment) => {
       const playerAssignment = assignments.find(
         (item) => item.segmentKey === segment.key && item.playerId === playerId,
       );
-      if (playerAssignment) {
+      if (substituteKeys.has(segment.key) && playerAssignment) {
         const fieldIds = new Set(
           assignments
             .filter((item) => item.segmentKey === segment.key)
@@ -292,6 +212,17 @@ describe("fixed soccer schedule", () => {
         );
         const substitute = roster.find((player) => !fieldIds.has(player.id))!;
         return replaceAssignment(assignments, segment.key, playerAssignment.positionKey, substitute.id);
+      }
+      if (!substituteKeys.has(segment.key) && !playerAssignment) {
+        const target = assignments.find(
+          (item) => item.segmentKey === segment.key,
+        )!;
+        return replaceAssignment(
+          assignments,
+          segment.key,
+          target.positionKey,
+          playerId,
+        );
       }
       return assignments;
     }, generateSchedule(roster));
@@ -303,18 +234,32 @@ describe("fixed soccer schedule", () => {
   it("warns on the fourth substitute segment", () => {
     const roster = players(8);
     const playerId = roster[0].id;
-    const changed = SEGMENTS.slice(0, 4).reduce((assignments, segment) => {
+    const substituteKeys = new Set(SEGMENTS.slice(0, 4).map((item) => item.key));
+    const changed = SEGMENTS.reduce((assignments, segment) => {
       const playerAssignment = assignments.find(
         (item) => item.segmentKey === segment.key && item.playerId === playerId,
       );
-      if (!playerAssignment) return assignments;
-      const fieldIds = new Set(
-        assignments
-          .filter((item) => item.segmentKey === segment.key)
-          .map((item) => item.playerId),
-      );
-      const substitute = roster.find((player) => !fieldIds.has(player.id))!;
-      return replaceAssignment(assignments, segment.key, playerAssignment.positionKey, substitute.id);
+      if (substituteKeys.has(segment.key) && playerAssignment) {
+        const fieldIds = new Set(
+          assignments
+            .filter((item) => item.segmentKey === segment.key)
+            .map((item) => item.playerId),
+        );
+        const substitute = roster.find((player) => !fieldIds.has(player.id))!;
+        return replaceAssignment(assignments, segment.key, playerAssignment.positionKey, substitute.id);
+      }
+      if (!substituteKeys.has(segment.key) && !playerAssignment) {
+        const target = assignments.find(
+          (item) => item.segmentKey === segment.key,
+        )!;
+        return replaceAssignment(
+          assignments,
+          segment.key,
+          target.positionKey,
+          playerId,
+        );
+      }
+      return assignments;
     }, generateSchedule(roster));
 
     expect(scheduleSubstituteWarnings(changed, roster.map((player) => player.id)).filter(

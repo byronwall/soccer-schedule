@@ -111,7 +111,7 @@ export function RosterPage() {
       <PageHeader
         eyebrow="Team"
         title="Roster"
-        description="Open a player to review their season, position history, and upcoming plans. Each player color carries through every schedule."
+        description="Open a player to compare published plans with confirmed actual history, review season coverage, and edit scheduling preferences. Each player color carries through every schedule."
         actions={<Button onClick={() => edit()}><Plus size={16} /> Add player</Button>}
       />
       <Card.Root>

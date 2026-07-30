@@ -40,6 +40,17 @@ export const segmentGroup = defineSlotRecipe({
       },
       _hover: {
         bg: "gray.surface.bg.hover",
+        boxShadow: "inset 0 0 0 1px var(--colors-gray-surface-border)",
+        zIndex: "1",
+        _before: {
+          opacity: "0",
+        },
+      },
+      "&[data-state=checked]:hover": {
+        bg: {
+          _light: "white",
+          _dark: "gray.2",
+        },
       },
       "&:has(input:focus-visible)": {
         focusVisibleRing: "outside",

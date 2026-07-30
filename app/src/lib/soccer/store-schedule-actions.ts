@@ -1,55 +1,113 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
+import { preferencesForPlayers } from "./player-preferences";
 import {
-  generateSchedule,
-  regenerateSchedule,
   repairSchedule,
   replaceAssignment,
   scoreSchedule,
 } from "./scheduling";
 import {
+  generateScheduleTarget,
+  scheduleGenerationRequestSchema,
+} from "./schedule-targeted-generation";
+import {
   assertEditableSchedule,
   assertRevision,
   playersAvailableForGame,
   replaceWorkingSchedule,
+  requireGame,
   requireSchedule,
   type StoreActionHandler,
 } from "./store-action-helpers";
+import { POSITIONS, SEGMENTS, type PositionGroup } from "./fixed-game";
+import { scheduleReadiness } from "./schedule-readiness";
+import { selectSeasonImpactAssignmentTarget } from "./season-impact-scheduling";
+import { z } from "zod";
+
+const groupLockRequestSchema = z.object({
+  scheduleId: z.string().uuid(),
+  expectedRevision: z.number().int().positive(),
+  scope: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("player"), playerId: z.string().uuid() }),
+    z.object({ kind: z.literal("position"), positionKey: z.enum(POSITIONS.map((item) => item.key)) }),
+    z.object({ kind: z.literal("segment"), segmentKey: z.enum(SEGMENTS.map((item) => item.key)) }),
+  ]),
+});
+const groupClearRequestSchema = z.object({
+  scheduleId: z.string().uuid(),
+  expectedRevision: z.number().int().positive(),
+  scope: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("player"), playerId: z.string().uuid() }),
+    z.object({ kind: z.literal("position"), positionKey: z.enum(POSITIONS.map((item) => item.key)) }),
+    z.object({ kind: z.literal("segment"), segmentKey: z.enum(SEGMENTS.map((item) => item.key)) }),
+  ]),
+});
+const scheduleRevisionRequestSchema = z.object({
+  scheduleId: z.string().uuid(),
+  expectedRevision: z.number().int().positive(),
+});
+const scheduleCellRequestSchema = scheduleRevisionRequestSchema.extend({
+  segmentKey: z.enum(SEGMENTS.map((item) => item.key)),
+  positionKey: z.enum(POSITIONS.map((item) => item.key)),
+});
+const replaceAssignmentRequestSchema = scheduleCellRequestSchema.extend({
+  playerId: z.string().uuid(),
+});
+const seasonImpactAssignmentRequestSchema = scheduleRevisionRequestSchema.extend({
+  playerId: z.string().uuid(),
+  group: z.enum(["goalkeeper", "defense", "midfield", "forward"] satisfies PositionGroup[]),
+});
+
+const recordScheduleChange = (
+  schedule: ReturnType<typeof requireSchedule>,
+) => {
+  schedule.history.push(schedule.assignments.map((assignment) => ({
+    ...assignment,
+  })));
+  schedule.future = [];
+};
+
+const continuityPolicyForGame = () => "goalkeeper-and-defense" as const;
 
 export const scheduleActionHandlers: Record<string, StoreActionHandler> = {
-  generateSchedule: (store, payload, stamp) => {
-    const gameId = String(payload.gameId);
-    const players = playersAvailableForGame(store, gameId);
-    const current = store.schedules
-      .filter(
-        (schedule) =>
-          schedule.gameId === gameId &&
-          (schedule.status === "draft" || schedule.status === "stale"),
-      )
-      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0];
-    if (current) {
-      const result = regenerateSchedule({
-        players,
-        currentAssignments: current.assignments,
-        priorAssignments: current.history,
-        seeds: Array.from({ length: 16 }, () => randomBytes(16).toString("hex")),
-      });
-      if (!result.changed) return { changed: false, reason: result.reason };
-      replaceWorkingSchedule(
-        store,
-        gameId,
-        result.assignments,
-        stamp,
-        [...current.history, current.assignments].slice(-24),
-      );
-      return { changed: true };
-    }
-    replaceWorkingSchedule(
-      store,
-      gameId,
-      generateSchedule(players, { seed: randomBytes(16).toString("hex") }),
-      stamp,
+  generateScheduleTarget: (store, payload, stamp) => {
+    const request = scheduleGenerationRequestSchema.parse(payload);
+    const schedule = requireSchedule(store, request.scheduleId);
+    assertEditableSchedule(schedule.status);
+    assertRevision(schedule.revision, request);
+    const players = playersAvailableForGame(store, schedule.gameId);
+    const preferences = preferencesForPlayers(
+      players,
+      store.playerPreferences.entries,
     );
-    return { changed: true };
+    const currentGame = requireGame(store, schedule.gameId);
+    const earlierGameIds = new Set(
+      store.games
+        .filter((game) => game.startsAt < currentGame.startsAt)
+        .map((game) => game.id),
+    );
+    const seasonAssignments = store.schedules
+      .filter(
+        (candidate) =>
+          earlierGameIds.has(candidate.gameId) &&
+          candidate.status === "published",
+      )
+      .flatMap((candidate) => candidate.assignments);
+    const generated = generateScheduleTarget({
+      players,
+      knownPlayers: store.players,
+      currentAssignments: schedule.assignments,
+      seasonAssignments,
+      target: request.target,
+      preferences,
+      continuityPolicy: continuityPolicyForGame(),
+    });
+    if (!generated.result.changed) return generated.result;
+    recordScheduleChange(schedule);
+    schedule.assignments = generated.assignments;
+    schedule.status = "draft";
+    schedule.revision += 1;
+    schedule.updatedAt = stamp;
+    return generated.result;
   },
   editPublishedSchedule: (store, payload, stamp) => {
     const published = requireSchedule(store, payload.scheduleId);
@@ -84,29 +142,91 @@ export const scheduleActionHandlers: Record<string, StoreActionHandler> = {
     replaceWorkingSchedule(
       store,
       gameId,
-      repairSchedule(source.assignments, playersAvailableForGame(store, gameId)),
+      (() => {
+        const players = playersAvailableForGame(store, gameId);
+        return repairSchedule(
+          source.assignments,
+          players,
+          preferencesForPlayers(players, store.playerPreferences.entries),
+          continuityPolicyForGame(),
+        );
+      })(),
       stamp,
     );
   },
   replaceAssignment: (store, payload, stamp) => {
-    const schedule = requireSchedule(store, payload.scheduleId);
+    const request = replaceAssignmentRequestSchema.parse(payload);
+    const schedule = requireSchedule(store, request.scheduleId);
     assertEditableSchedule(schedule.status);
-    assertRevision(schedule.revision, payload);
-    schedule.history.push(schedule.assignments);
-    schedule.future = [];
+    assertRevision(schedule.revision, request);
+    const availablePlayerIds = new Set(
+      playersAvailableForGame(store, schedule.gameId).map((player) => player.id),
+    );
+    if (!availablePlayerIds.has(request.playerId)) {
+      throw new Error("Choose a player who is available for this game.");
+    }
+    recordScheduleChange(schedule);
     schedule.assignments = replaceAssignment(
       schedule.assignments,
-      payload.segmentKey as never,
-      payload.positionKey as never,
-      String(payload.playerId),
+      request.segmentKey,
+      request.positionKey,
+      request.playerId,
     );
     schedule.revision += 1;
     schedule.updatedAt = stamp;
   },
-  undoSchedule: (store, payload, stamp) => {
-    const schedule = requireSchedule(store, payload.scheduleId);
+  assignSeasonImpactSlot: (store, payload, stamp) => {
+    const request = seasonImpactAssignmentRequestSchema.parse(payload);
+    const schedule = requireSchedule(store, request.scheduleId);
     assertEditableSchedule(schedule.status);
-    assertRevision(schedule.revision, payload);
+    assertRevision(schedule.revision, request);
+    const players = playersAvailableForGame(store, schedule.gameId);
+    const target = selectSeasonImpactAssignmentTarget({
+      assignments: schedule.assignments,
+      playerId: request.playerId,
+      group: request.group,
+      eligibleIds: players.map((player) => player.id),
+      preferences: preferencesForPlayers(players, store.playerPreferences.entries),
+    });
+    if (!target) return { changed: false };
+    recordScheduleChange(schedule);
+    schedule.assignments = replaceAssignment(
+      schedule.assignments,
+      target.segmentKey,
+      target.positionKey,
+      request.playerId,
+    );
+    schedule.revision += 1;
+    schedule.updatedAt = stamp;
+    return { changed: true, target };
+  },
+  clearAssignment: (store, payload, stamp) => {
+    const request = scheduleCellRequestSchema.parse(payload);
+    const schedule = requireSchedule(store, request.scheduleId);
+    assertEditableSchedule(schedule.status);
+    assertRevision(schedule.revision, request);
+    const assignmentIndex = schedule.assignments.findIndex(
+      (item) =>
+        item.segmentKey === request.segmentKey &&
+        item.positionKey === request.positionKey,
+    );
+    if (assignmentIndex === -1) return { changed: false };
+    if (schedule.assignments[assignmentIndex].locked) {
+      throw new Error("Unlock this assignment before clearing it.");
+    }
+    recordScheduleChange(schedule);
+    schedule.assignments = schedule.assignments.filter(
+      (_, index) => index !== assignmentIndex,
+    );
+    schedule.revision += 1;
+    schedule.updatedAt = stamp;
+    return { changed: true };
+  },
+  undoSchedule: (store, payload, stamp) => {
+    const request = scheduleRevisionRequestSchema.parse(payload);
+    const schedule = requireSchedule(store, request.scheduleId);
+    assertEditableSchedule(schedule.status);
+    assertRevision(schedule.revision, request);
     const prior = schedule.history.pop();
     if (!prior) throw new Error("Nothing to undo.");
     schedule.future.push(schedule.assignments);
@@ -115,9 +235,10 @@ export const scheduleActionHandlers: Record<string, StoreActionHandler> = {
     schedule.updatedAt = stamp;
   },
   redoSchedule: (store, payload, stamp) => {
-    const schedule = requireSchedule(store, payload.scheduleId);
+    const request = scheduleRevisionRequestSchema.parse(payload);
+    const schedule = requireSchedule(store, request.scheduleId);
     assertEditableSchedule(schedule.status);
-    assertRevision(schedule.revision, payload);
+    assertRevision(schedule.revision, request);
     const next = schedule.future.pop();
     if (!next) throw new Error("Nothing to redo.");
     schedule.history.push(schedule.assignments);
@@ -126,29 +247,114 @@ export const scheduleActionHandlers: Record<string, StoreActionHandler> = {
     schedule.updatedAt = stamp;
   },
   toggleLock: (store, payload, stamp) => {
-    const schedule = requireSchedule(store, payload.scheduleId);
+    const request = scheduleCellRequestSchema.parse(payload);
+    const schedule = requireSchedule(store, request.scheduleId);
     assertEditableSchedule(schedule.status);
-    assertRevision(schedule.revision, payload);
+    assertRevision(schedule.revision, request);
     const assignment = schedule.assignments.find(
       (item) =>
-        item.segmentKey === payload.segmentKey &&
-        item.positionKey === payload.positionKey,
+        item.segmentKey === request.segmentKey &&
+        item.positionKey === request.positionKey,
     );
     if (!assignment) throw new Error("Assignment not found.");
+    recordScheduleChange(schedule);
     assignment.locked = !assignment.locked;
     schedule.revision += 1;
     schedule.updatedAt = stamp;
   },
+  lockAssignmentGroup: (store, payload, stamp) => {
+    const request = groupLockRequestSchema.parse(payload);
+    const schedule = requireSchedule(store, request.scheduleId);
+    assertEditableSchedule(schedule.status);
+    assertRevision(schedule.revision, request);
+    const matches = schedule.assignments.filter((assignment) => {
+      if (request.scope.kind === "player") {
+        return assignment.playerId === request.scope.playerId;
+      }
+      if (request.scope.kind === "position") {
+        return assignment.positionKey === request.scope.positionKey;
+      }
+      return assignment.segmentKey === request.scope.segmentKey;
+    });
+    if (matches.length === 0) return { changed: false };
+    const shouldLock = matches.some((assignment) => !assignment.locked);
+    recordScheduleChange(schedule);
+    for (const assignment of matches) assignment.locked = shouldLock;
+    schedule.revision += 1;
+    schedule.updatedAt = stamp;
+    return { changed: true };
+  },
+  clearAssignmentGroup: (store, payload, stamp) => {
+    const request = groupClearRequestSchema.parse(payload);
+    const schedule = requireSchedule(store, request.scheduleId);
+    assertEditableSchedule(schedule.status);
+    assertRevision(schedule.revision, request);
+    const matchesScope = (assignment: (typeof schedule.assignments)[number]) => {
+      if (request.scope.kind === "player") {
+        return assignment.playerId === request.scope.playerId;
+      }
+      if (request.scope.kind === "position") {
+        return assignment.positionKey === request.scope.positionKey;
+      }
+      return assignment.segmentKey === request.scope.segmentKey;
+    };
+    if (!schedule.assignments.some(matchesScope)) return { changed: false };
+    recordScheduleChange(schedule);
+    schedule.assignments = schedule.assignments.filter(
+      (assignment) => !matchesScope(assignment),
+    );
+    schedule.status = "draft";
+    schedule.revision += 1;
+    schedule.updatedAt = stamp;
+    return { changed: true };
+  },
+  removeAllScheduleLocks: (store, payload, stamp) => {
+    const request = scheduleRevisionRequestSchema.parse(payload);
+    const schedule = requireSchedule(store, request.scheduleId);
+    assertEditableSchedule(schedule.status);
+    assertRevision(schedule.revision, request);
+    if (schedule.assignments.every((assignment) => !assignment.locked)) {
+      return { changed: false };
+    }
+    recordScheduleChange(schedule);
+    for (const assignment of schedule.assignments) assignment.locked = false;
+    schedule.revision += 1;
+    schedule.updatedAt = stamp;
+    return { changed: true };
+  },
+  clearScheduleAssignments: (store, payload, stamp) => {
+    const request = scheduleRevisionRequestSchema.parse(payload);
+    const schedule = requireSchedule(store, request.scheduleId);
+    assertEditableSchedule(schedule.status);
+    assertRevision(schedule.revision, request);
+    if (schedule.assignments.length === 0) return { changed: false };
+    recordScheduleChange(schedule);
+    schedule.assignments = [];
+    schedule.status = "draft";
+    schedule.revision += 1;
+    schedule.updatedAt = stamp;
+    return { changed: true };
+  },
   publishSchedule: (store, payload, stamp) => {
-    const schedule = requireSchedule(store, payload.scheduleId);
+    const request = scheduleRevisionRequestSchema.parse(payload);
+    const schedule = requireSchedule(store, request.scheduleId);
     if (schedule.status !== "draft") {
       throw new Error("Repair or regenerate the stale schedule before publishing.");
     }
-    assertRevision(schedule.revision, payload);
+    assertRevision(schedule.revision, request);
     const eligibleIds = store.availability
       .filter((item) => item.gameId === schedule.gameId && item.status === "available")
       .map((item) => item.playerId);
-    if (!scoreSchedule(schedule.assignments, eligibleIds).valid) {
+    const readiness = scheduleReadiness(schedule, eligibleIds);
+    if (readiness.kind === "incomplete") {
+      throw new Error(`Incomplete schedule: ${readiness.message}`);
+    }
+    if (!scoreSchedule(
+      schedule.assignments,
+      eligibleIds,
+      store.playerPreferences.entries,
+      continuityPolicyForGame(),
+    ).valid) {
       throw new Error("Invalid schedule: repair hard errors before publishing.");
     }
     for (const item of store.schedules.filter(

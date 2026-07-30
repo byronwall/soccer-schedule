@@ -45,7 +45,8 @@ export function PositionSettingsPage() {
       description="Change the labels coaches and players see. Position IDs stay fixed so existing and future schedules continue to work."
       actions={<Button loading={pending()} disabled={!valid() || !dirty()} onClick={() => void save()}><Save size={16} /> Save names</Button>}
     />
-    <Card.Root maxW="4xl">
+    <VStack alignItems="stretch" gap="5" maxW="4xl">
+    <Card.Root>
       <Card.Header>
         <Card.Title>Field positions</Card.Title>
         <Card.Description>Each scheduling position has one permanent ID and one editable display name.</Card.Description>
@@ -73,5 +74,6 @@ export function PositionSettingsPage() {
         <Show when={saved() && !dirty()}><HStack color="grass.solid.bg"><Check size={16} /><Text textStyle="sm" fontWeight="medium">Saved</Text></HStack></Show>
       </Card.Footer>
     </Card.Root>
+    </VStack>
   </>;
 }

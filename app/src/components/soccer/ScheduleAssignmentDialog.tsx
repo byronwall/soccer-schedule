@@ -14,6 +14,7 @@ type ScheduleAssignmentDialogProps = {
     positionKey: PositionKey,
   ) => Assignment | undefined;
   onClose: () => void;
+  onClear: () => void;
   onReplace: (playerId: string) => void;
   onToggleLock: () => void;
 };
@@ -31,6 +32,13 @@ export function ScheduleAssignmentDialog(
       props.selection.positionKey,
     )?.playerId;
   };
+  const selectedAssignment = () => {
+    if (!props.selection) return undefined;
+    return props.assignment(
+      props.selection.segmentKey,
+      props.selection.positionKey,
+    );
+  };
 
   return (
     <SimpleDialog
@@ -39,10 +47,20 @@ export function ScheduleAssignmentDialog(
       title="Change assignment"
       description="Selecting a player already on the field swaps the two assignments automatically."
       footer={
-        <Show when={props.selection && isEditable(props.schedule)}>
-          <Button variant="outline" onClick={props.onToggleLock}>
-            <Lock size={16} /> Toggle lock
-          </Button>
+        <Show when={selectedAssignment() && isEditable(props.schedule)}>
+          <>
+            <Button variant="outline" onClick={props.onToggleLock}>
+              <Lock size={16} /> {selectedAssignment()?.locked ? "Unlock cell" : "Lock cell"}
+            </Button>
+            <Button
+              variant="outline"
+              colorPalette="red"
+              disabled={selectedAssignment()?.locked}
+              onClick={props.onClear}
+            >
+              Clear assignment
+            </Button>
+          </>
         </Show>
       }
     >

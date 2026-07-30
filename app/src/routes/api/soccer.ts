@@ -14,6 +14,13 @@ export async function POST(event: APIEvent) {
   if (!coach) return Response.json({ error: "unauthenticated" }, { status: 401 });
   const parsed = actionSchema.safeParse(await event.request.json());
   if (!parsed.success) return Response.json({ error: "Invalid action." }, { status: 400 });
-  try { const result = await applySoccerAction(parsed.data.action, parsed.data.payload); return Response.json({ ok: true, result }); }
+  try {
+    const result = await applySoccerAction(
+      parsed.data.action,
+      parsed.data.payload,
+      { id: coach.id, displayName: coach.displayName },
+    );
+    return Response.json({ ok: true, result });
+  }
   catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Action failed." }, { status: 400 }); }
 }

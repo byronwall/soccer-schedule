@@ -1,5 +1,12 @@
 import { z } from "zod";
 import { DEFAULT_POSITION_LABELS, POSITIONS, SEGMENTS } from "./fixed-game";
+import {
+  legacyLiveStateSchema,
+  liveStateSchema,
+  type LiveState,
+} from "./live-event-schemas";
+
+export { liveStateSchema } from "./live-event-schemas";
 
 const id = z.string().uuid();
 const timestamp = z.string().datetime();
@@ -8,10 +15,19 @@ export const playerSchema = z.object({
   color: z.string().regex(/^#[0-9A-F]{6}$/i), active: z.boolean(), createdAt: timestamp, updatedAt: timestamp,
 });
 export const gameStatusSchema = z.enum(["scheduled", "completed", "canceled"]);
-export const gameSchema = z.object({
+export const defensiveContinuityPolicySchema = z.enum([
+  "goalkeeper-only",
+  "goalkeeper-and-defense",
+]);
+const legacyGameSchema = z.object({
   id, opponentName: z.string().trim().min(1).max(80), venueName: z.string().trim().min(1).max(100),
   venueAddress: z.string().trim().max(160).optional(), startsAt: timestamp, arrivalAt: timestamp.optional(),
-  status: gameStatusSchema, createdAt: timestamp, updatedAt: timestamp,
+  status: gameStatusSchema,
+  defensiveContinuityOverride: defensiveContinuityPolicySchema.optional(),
+  createdAt: timestamp, updatedAt: timestamp,
+});
+export const gameSchema = legacyGameSchema.omit({
+  defensiveContinuityOverride: true,
 });
 export const availabilityStatusSchema = z.enum(["unknown", "available", "unavailable"]);
 export const availabilitySchema = z.object({
@@ -24,14 +40,8 @@ export const assignmentSchema = z.object({
 });
 export const scheduleSchema = z.object({
   id, gameId: id, revision: z.number().int().positive(), status: z.enum(["draft", "published", "stale", "superseded"]),
-  assignments: z.array(assignmentSchema), history: z.array(z.array(assignmentSchema)).default([]), future: z.array(z.array(assignmentSchema)).default([]),
+  assignments: z.array(assignmentSchema).max(56), history: z.array(z.array(assignmentSchema).max(56)).default([]), future: z.array(z.array(assignmentSchema).max(56)).default([]),
   generatedAt: timestamp, updatedAt: timestamp, publishedAt: timestamp.optional(),
-});
-export const liveStateSchema = z.object({
-  gameId: id, revision: z.number().int().nonnegative(), status: z.enum(["not_started", "running", "paused", "completed"]),
-  quarter: z.number().int().min(1).max(4), accumulatedQuarterSeconds: z.number().int().min(0).max(840),
-  runningSince: timestamp.optional(), overrides: z.array(z.object({ positionKey: z.enum(POSITIONS.map((item) => item.key)), replacementPlayerId: id })),
-  updatedAt: timestamp,
 });
 export const authUserSchema = z.object({
   id,
@@ -58,12 +68,66 @@ export const positionLabelsSchema = z.object({
   leftForward: z.string().trim().min(1).max(40),
   rightForward: z.string().trim().min(1).max(40),
 });
-export const soccerStoreSchema = z.object({
-  schemaVersion: z.literal(2), teamDisplayName: z.string(), seasonName: z.string(), players: z.array(playerSchema), games: z.array(gameSchema),
+export const positionDispositionSchema = z.enum(["prefer", "neutral", "avoid"]);
+export const positionDispositionsSchema = z.object({
+  goalkeeper: positionDispositionSchema,
+  leftDefense: positionDispositionSchema,
+  rightDefense: positionDispositionSchema,
+  leftMidfield: positionDispositionSchema,
+  rightMidfield: positionDispositionSchema,
+  leftForward: positionDispositionSchema,
+  rightForward: positionDispositionSchema,
+});
+export const fieldTimePreferenceSchema = z.enum([
+  "standard",
+  "favor-extra-when-needed",
+]);
+export const playerPreferenceSchema = z.object({
+  playerId: id,
+  positionDispositions: positionDispositionsSchema,
+  fieldTimePreference: fieldTimePreferenceSchema,
+  coachNote: z.string().max(500),
+  updatedAt: timestamp,
+});
+export const playerPreferencesSchema = z.object({
+  schemaVersion: z.literal(1),
+  entries: z.array(playerPreferenceSchema),
+});
+const legacySoccerStoreFields = {
+  teamDisplayName: z.string(), seasonName: z.string(), players: z.array(playerSchema), games: z.array(legacyGameSchema),
   positionLabels: positionLabelsSchema.default(() => ({ ...DEFAULT_POSITION_LABELS })),
-  availability: z.array(availabilitySchema), schedules: z.array(scheduleSchema), liveGames: z.array(liveStateSchema),
+  availability: z.array(availabilitySchema), schedules: z.array(scheduleSchema), liveGames: z.array(legacyLiveStateSchema),
   users: z.array(authUserSchema).default([]),
   sessions: z.array(sessionSchema),
+};
+export const soccerStoreV2Schema = z.object({
+  schemaVersion: z.literal(2),
+  ...legacySoccerStoreFields,
+});
+export const soccerStoreV3Schema = z.object({
+  schemaVersion: z.literal(3),
+  ...legacySoccerStoreFields,
+  playerPreferences: playerPreferencesSchema,
+});
+export const soccerStoreV4Schema = z.object({
+  schemaVersion: z.literal(4),
+  ...legacySoccerStoreFields,
+  playerPreferences: playerPreferencesSchema,
+  defensiveContinuityDefault: defensiveContinuityPolicySchema,
+});
+export const soccerStoreV5Schema = z.object({
+  schemaVersion: z.literal(5),
+  ...legacySoccerStoreFields,
+  liveGames: z.array(liveStateSchema),
+  playerPreferences: playerPreferencesSchema,
+  defensiveContinuityDefault: defensiveContinuityPolicySchema,
+});
+export const soccerStoreSchema = z.object({
+  schemaVersion: z.literal(6),
+  ...legacySoccerStoreFields,
+  games: z.array(gameSchema),
+  liveGames: z.array(liveStateSchema),
+  playerPreferences: playerPreferencesSchema,
 });
 export type Player = z.infer<typeof playerSchema>;
 export type Game = z.infer<typeof gameSchema>;
@@ -71,7 +135,14 @@ export type GameStatus = z.infer<typeof gameStatusSchema>;
 export type Availability = z.infer<typeof availabilitySchema>;
 export type Assignment = z.infer<typeof assignmentSchema>;
 export type Schedule = z.infer<typeof scheduleSchema>;
-export type LiveState = z.infer<typeof liveStateSchema>;
+export type { LiveState };
 export type PositionLabels = z.infer<typeof positionLabelsSchema>;
+export type PositionDisposition = z.infer<typeof positionDispositionSchema>;
+export type PositionDispositions = z.infer<typeof positionDispositionsSchema>;
+export type FieldTimePreference = z.infer<typeof fieldTimePreferenceSchema>;
+export type PlayerPreference = z.infer<typeof playerPreferenceSchema>;
+export type DefensiveContinuityPolicy = z.infer<
+  typeof defensiveContinuityPolicySchema
+>;
 export type AuthUser = z.infer<typeof authUserSchema>;
 export type SoccerStore = z.infer<typeof soccerStoreSchema>;

@@ -21,14 +21,14 @@ export function PrintPage() {
     <Box bg="white" color="black" p={{ base: "3", md: "8" }} borderRadius="l3">
       <HStack justifyContent="space-between" mb="5" class="no-print">
         <A href={`/games/${params.gameId}/schedule`}><Button variant="outline">Back to editor</Button></A>
-        <Button onClick={() => window.print()}>Print schedule</Button>
+        <Button disabled={!schedule()} onClick={() => window.print()}>Print schedule</Button>
       </HStack>
       <VStack alignItems="start" gap="1" mb="5">
         <Box as="h1" fontSize="3xl" fontWeight="bold">{data.snapshot()?.teamDisplayName} vs. {current().opponentName}</Box>
         <Text>{new Date(current().startsAt).toLocaleString()} · {current().venueName}</Text>
         <Text>Arrival: {current().arrivalAt ? new Date(current().arrivalAt!).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "—"}</Text>
       </VStack>
-      <Show when={schedule()} fallback={<Text>No published schedule is available.</Text>}>{(published) => <>
+      <Show when={schedule()} fallback={<Text>Publish a complete, valid schedule before printing the final game plan.</Text>}>{(published) => <>
         <Box borderWidth="1px" borderColor="gray.6">
           <Grid gridTemplateColumns="150px repeat(8, minmax(70px, 1fr))" bg="gray.3">
             <Box p="2" fontWeight="bold">Position</Box>

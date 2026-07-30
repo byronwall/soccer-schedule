@@ -1,5 +1,21 @@
 import { POSITIONS, SEGMENTS, SEGMENT_SECONDS, type PositionKey } from "./fixed-game";
-import type { Assignment, Player } from "./schemas";
+import type {
+  Assignment,
+  DefensiveContinuityPolicy,
+  Player,
+  PlayerPreference,
+} from "./schemas";
+import {
+  scheduleContinuityExceptions,
+  scheduleExperienceWarnings,
+  type ContinuityException,
+  type ExperienceCoverageWarning,
+} from "./schedule-experience-quality";
+import {
+  scoreSchedulePreferences,
+  type RelaxedPositionAvoid,
+  type UnmetPositionPreference,
+} from "./schedule-preference-quality";
 export { generateSchedule } from "./schedule-generator";
 import { generateSchedule } from "./schedule-generator";
 import {
@@ -10,16 +26,16 @@ export {
   crossQuarterPositionRepeatScore,
   detectCrossQuarterPositionRepeats,
 } from "./schedule-position-repeats";
-export {
-  assignmentSignature,
-  regenerateSchedule,
-  type RegenerateScheduleResult,
-} from "./schedule-regenerator";
 
 export type ScheduleQuality = {
   valid: boolean; hardViolations: string[]; minuteSpread: number;
   midfieldExceptions: number; goalkeeperExceptions: number; goalkeeperOveruse: number;
   substituteOveruse: number; crossQuarterPositionRepeats: CrossQuarterPositionRepeat[];
+  avoidAssignmentCount: number; favoredExtraMisses: number;
+  preferredAssignmentCount: number; relaxedAvoids: RelaxedPositionAvoid[];
+  unmetPreferences: UnmetPositionPreference[];
+  continuityExceptions: ContinuityException[];
+  experienceWarnings: ExperienceCoverageWarning[];
   totals: Array<{ playerId: string; segments: number; minutes: number }>;
 };
 
@@ -56,10 +72,12 @@ export const scheduleSubstituteWarnings = (
   const warnings: ScheduleSubstituteWarning[] = [];
   const substituteSegments = new Map(eligibleIds.map((playerId) => [playerId, 0]));
   for (const segment of SEGMENTS) {
+    const segmentAssignments = assignments.filter(
+      (item) => item.segmentKey === segment.key,
+    );
+    if (segmentAssignments.length !== POSITIONS.length) continue;
     const fieldIds = new Set(
-      assignments
-        .filter((item) => item.segmentKey === segment.key)
-        .map((item) => item.playerId),
+      segmentAssignments.map((item) => item.playerId),
     );
     for (const playerId of eligibleIds) {
       if (fieldIds.has(playerId)) continue;
@@ -151,6 +169,10 @@ export const validateAssignments = (assignments: Assignment[], eligibleIds: stri
   for (const segment of SEGMENTS) {
     const cells = assignments.filter((item) => item.segmentKey === segment.key);
     if (cells.length !== POSITIONS.length) errors.push(`${segment.label} does not fill all seven positions.`);
+    const positionKeys = new Set(cells.map((item) => item.positionKey));
+    if (POSITIONS.some((position) => !positionKeys.has(position.key))) {
+      errors.push(`${segment.label} does not assign every required position exactly once.`);
+    }
     const players = cells.map((item) => item.playerId);
     if (new Set(players).size !== players.length) errors.push(`${segment.label} assigns a player twice.`);
     if (cells.some((item) => !eligible.has(item.playerId))) errors.push(`${segment.label} includes an unavailable player.`);
@@ -158,7 +180,12 @@ export const validateAssignments = (assignments: Assignment[], eligibleIds: stri
   return errors;
 };
 
-export const scoreSchedule = (assignments: Assignment[], eligibleIds: string[]): ScheduleQuality => {
+export const scoreSchedule = (
+  assignments: Assignment[],
+  eligibleIds: string[],
+  preferences: PlayerPreference[] = [],
+  continuityPolicy: DefensiveContinuityPolicy = "goalkeeper-and-defense",
+): ScheduleQuality => {
   const counts = new Map(eligibleIds.map((id) => [id, 0]));
   for (const item of assignments) counts.set(item.playerId, (counts.get(item.playerId) ?? 0) + 1);
   const totals = eligibleIds.map((playerId) => ({ playerId, segments: counts.get(playerId) ?? 0, minutes: (counts.get(playerId) ?? 0) * 7 }));
@@ -176,7 +203,30 @@ export const scoreSchedule = (assignments: Assignment[], eligibleIds: string[]):
   ).size;
   const hardViolations = validateAssignments(assignments, eligibleIds);
   const crossQuarterPositionRepeats = detectCrossQuarterPositionRepeats(assignments);
-  return { valid: hardViolations.length === 0, hardViolations, minuteSpread: (Math.max(...segmentCounts) - Math.min(...segmentCounts)) * 7, midfieldExceptions, goalkeeperExceptions, goalkeeperOveruse, substituteOveruse, crossQuarterPositionRepeats, totals };
+  const preferenceQuality = scoreSchedulePreferences(
+    assignments,
+    eligibleIds,
+    preferences,
+  );
+  return {
+    valid: hardViolations.length === 0,
+    hardViolations,
+    minuteSpread: segmentCounts.length > 0
+      ? (Math.max(...segmentCounts) - Math.min(...segmentCounts)) * 7
+      : 0,
+    midfieldExceptions,
+    goalkeeperExceptions,
+    goalkeeperOveruse,
+    substituteOveruse,
+    crossQuarterPositionRepeats,
+    continuityExceptions: scheduleContinuityExceptions(
+      assignments,
+      continuityPolicy,
+    ),
+    experienceWarnings: scheduleExperienceWarnings(assignments, eligibleIds),
+    ...preferenceQuality,
+    totals,
+  };
 };
 
 const selectRepairPlayer = (options: {
@@ -190,16 +240,28 @@ const selectRepairPlayer = (options: {
 }) => {
   const { current, suggested, players, eligible, used, reserved, counts } = options;
   if (current && eligible.has(current.playerId) && !used.has(current.playerId)) return current.playerId;
-  if (suggested && !used.has(suggested) && !reserved.has(suggested)) return suggested;
+  const unreserved = players.filter(
+    (player) => !used.has(player.id) && !reserved.has(player.id),
+  );
+  const minimumCount = Math.min(
+    ...unreserved.map((player) => counts.get(player.id) ?? 0),
+  );
+  if (
+    suggested &&
+    !used.has(suggested) &&
+    !reserved.has(suggested) &&
+    (counts.get(suggested) ?? 0) === minimumCount
+  ) {
+    return suggested;
+  }
 
-  const unreserved = players
-    .filter((player) => !used.has(player.id) && !reserved.has(player.id))
+  const lowestCount = unreserved
     .sort(
       (left, right) =>
         (counts.get(left.id) ?? 0) - (counts.get(right.id) ?? 0) ||
         left.id.localeCompare(right.id),
     )[0];
-  return unreserved?.id ?? players.find((player) => !used.has(player.id))?.id;
+  return lowestCount?.id ?? players.find((player) => !used.has(player.id))?.id;
 };
 
 const repairSegment = (options: {
@@ -252,12 +314,20 @@ const repairSegment = (options: {
   });
 };
 
-export const repairSchedule = (assignments: Assignment[], players: Player[]): Assignment[] => {
+export const repairSchedule = (
+  assignments: Assignment[],
+  players: Player[],
+  preferences: PlayerPreference[] = [],
+  continuityPolicy: DefensiveContinuityPolicy = "goalkeeper-and-defense",
+): Assignment[] => {
   if (players.length < POSITIONS.length) {
     throw new Error("At least seven available players are required.");
   }
   const eligible = new Set(players.map((item) => item.id));
-  const generated = generateSchedule(players);
+  const generated = generateSchedule(players, {
+    preferences,
+    continuityPolicy,
+  });
   const counts = new Map(players.map((item) => [item.id, 0]));
   return SEGMENTS.flatMap((segment) =>
     repairSegment({ assignments, generated, players, eligible, counts, segment }),
@@ -267,9 +337,27 @@ export const repairSchedule = (assignments: Assignment[], players: Player[]): As
 export const replaceAssignment = (assignments: Assignment[], segmentKey: Assignment["segmentKey"], positionKey: PositionKey, playerId: string) => {
   const target = assignments.find((item) => item.segmentKey === segmentKey && item.positionKey === positionKey);
   const existing = assignments.find((item) => item.segmentKey === segmentKey && item.playerId === playerId);
-  if (!target) throw new Error("Assignment not found.");
+  if (!target) {
+    return [
+      ...assignments,
+      {
+        segmentKey,
+        positionKey,
+        playerId,
+        source: "manual" as const,
+        locked: true,
+      },
+    ];
+  }
   return assignments.map((item) => {
-    if (item === target) return { ...item, playerId, source: "manual" as const };
+    if (item === target) {
+      return {
+        ...item,
+        playerId,
+        source: "manual" as const,
+        locked: true,
+      };
+    }
     if (item === existing) return { ...item, playerId: target.playerId, source: "manual" as const };
     return item;
   });

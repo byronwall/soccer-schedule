@@ -23,14 +23,17 @@ export const getSnapshot = async () => {
   return { ...store, users: undefined, sessions: undefined };
 };
 
-export const applySoccerAction = (action: string, payload: Record<string, unknown>) =>
+export const applySoccerAction = (
+  action: string,
+  payload: Record<string, unknown>,
+  actor = { id: "system", displayName: "System" },
+) =>
   mutateStore((store) => {
     const stamp = new Date().toISOString();
     const handler = actionHandlers[action];
     if (handler) return handler(store, payload, stamp) ?? {};
     if (action.startsWith("live")) {
-      applyLiveAction(store, action, payload, stamp);
-      return {};
+      return applyLiveAction(store, action, payload, stamp, actor);
     }
     throw new Error(`Unknown soccer action: ${action}`);
   });

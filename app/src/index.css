@@ -1,5 +1,11 @@
 @layer reset, base, tokens, recipes, utilities;
 
+body.schedule-drag-active,
+body.schedule-drag-active * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 @media print {
   @page { size: landscape; margin: 0.35in; }
   .no-print { display: none !important; }

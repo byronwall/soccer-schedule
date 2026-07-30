@@ -3,9 +3,14 @@ import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { DEFAULT_POSITION_LABELS } from "./fixed-game";
 import { pickPlayerColor } from "./player-colors";
+import {
+  createDefaultPlayerPreference,
+  ensurePlayerPreferences,
+} from "./player-preferences";
 import { generateSchedule } from "./scheduling";
 import { soccerStoreSchema, type Game, type Player, type SoccerStore } from "./schemas";
 import { ensureActivePlayerAvailability } from "./store-availability";
+import { migrateSoccerStore } from "./store-migrations";
 
 const appRoot = () => path.basename(process.cwd()) === "app"
   ? process.cwd()
@@ -48,7 +53,7 @@ const createSeedStore = (): SoccerStore => {
   };
   const assignments = generateSchedule(players);
   return soccerStoreSchema.parse({
-    schemaVersion: 2,
+    schemaVersion: 6,
     teamDisplayName: "Indy United U12",
     seasonName: "Fall 2026",
     positionLabels: { ...DEFAULT_POSITION_LABELS },
@@ -73,6 +78,11 @@ const createSeedStore = (): SoccerStore => {
       publishedAt: stamp,
     }],
     liveGames: [],
+    playerPreferences: {
+      schemaVersion: 1,
+      entries: players.map((player) =>
+        createDefaultPlayerPreference(player.id, stamp)),
+    },
     users: [],
     sessions: [],
   });
@@ -80,10 +90,13 @@ const createSeedStore = (): SoccerStore => {
 
 export const readStore = async () => {
   try {
-    const store = soccerStoreSchema.parse(
-      JSON.parse(await readFile(storePath(), "utf8")),
-    );
+    const persisted = JSON.parse(await readFile(storePath(), "utf8")) as {
+      schemaVersion?: unknown;
+    };
+    const store = migrateSoccerStore(persisted);
+    ensurePlayerPreferences(store, new Date().toISOString());
     ensureActivePlayerAvailability(store, new Date().toISOString());
+    if (persisted.schemaVersion !== 6) await persistStore(store);
     return store;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;

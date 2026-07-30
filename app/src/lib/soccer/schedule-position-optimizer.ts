@@ -1,6 +1,10 @@
 import { POSITIONS, type PositionKey, type SegmentKey } from "./fixed-game";
 import { crossQuarterPositionRepeatScore } from "./schedule-position-repeats";
-import type { Assignment, Player } from "./schemas";
+import {
+  playerPreferenceLookup,
+  positionDisposition,
+} from "./player-preferences";
+import type { Assignment, Player, PlayerPreference } from "./schemas";
 
 export type Lineup = Map<PositionKey, Player>;
 
@@ -29,11 +33,25 @@ export const chooseLowestRepeatLineup = (options: {
   positionKeys: PositionKey[];
   assignments: Assignment[];
   segmentKey: SegmentKey;
+  preferences?: PlayerPreference[];
 }) => {
   const { lineup, positionKeys, assignments, segmentKey } = options;
   const players = positionKeys.map((positionKey) => lineup.get(positionKey));
   if (players.some((player) => !player)) throw new Error("Could not fill every position.");
 
+  const preferences = playerPreferenceLookup(options.preferences ?? []);
+  const preferenceRank = (lineup: Lineup, disposition: "avoid" | "prefer") =>
+    options.positionKeys.reduce(
+      (total, positionKey) =>
+        total + Number(
+          positionDisposition(
+            preferences,
+            lineup.get(positionKey)?.id ?? "",
+            positionKey,
+          ) === disposition,
+        ),
+      0,
+    );
   return permutations(players as Player[])
     .map((permutation) => {
       const candidate = new Map(lineup);
@@ -41,6 +59,8 @@ export const chooseLowestRepeatLineup = (options: {
       return candidate;
     })
     .sort((left, right) =>
+      preferenceRank(left, "avoid") - preferenceRank(right, "avoid") ||
+      preferenceRank(right, "prefer") - preferenceRank(left, "prefer") ||
       crossQuarterPositionRepeatScore([
         ...assignments,
         ...assignmentsForLineup(left, segmentKey),
@@ -57,6 +77,7 @@ export const minimumIncomingPositionRepeatScore = (options: {
   incomingPlayers: Player[];
   positionKeys: PositionKey[];
   segmentKey: SegmentKey;
+  preferences?: PlayerPreference[];
 }) => Math.min(
   ...permutations(options.incomingPlayers).map((permutation) =>
     crossQuarterPositionRepeatScore([

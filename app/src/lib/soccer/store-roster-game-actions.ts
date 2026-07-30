@@ -1,8 +1,13 @@
 import { randomInt, randomUUID } from "node:crypto";
 import { isPlayerColor, pickPlayerColor } from "./player-colors";
 import {
+  assertPositionDispositionLimits,
+  createDefaultPlayerPreference,
+} from "./player-preferences";
+import {
   availabilityStatusSchema,
   gameStatusSchema,
+  playerPreferenceSchema,
   positionLabelsSchema,
   type Game,
 } from "./schemas";
@@ -50,8 +55,9 @@ export const rosterAndGameActionHandlers: Record<string, StoreActionHandler> = {
     if (store.players.some((player) => player.color === color)) {
       throw new Error("Choose a color that is not already assigned to another player.");
     }
+    const playerId = randomUUID();
     store.players.push({
-      id: randomUUID(),
+      id: playerId,
       displayName: String(payload.displayName),
       jerseyNumber: String(payload.jerseyNumber || "") || undefined,
       color,
@@ -59,6 +65,9 @@ export const rosterAndGameActionHandlers: Record<string, StoreActionHandler> = {
       createdAt: stamp,
       updatedAt: stamp,
     });
+    store.playerPreferences.entries.push(
+      createDefaultPlayerPreference(playerId, stamp),
+    );
     ensureActivePlayerAvailability(store, stamp);
   },
   updatePlayer: (store, payload, stamp) => {
@@ -76,6 +85,22 @@ export const rosterAndGameActionHandlers: Record<string, StoreActionHandler> = {
     player.color = color;
     player.updatedAt = stamp;
   },
+  updatePlayerPreferences: (store, payload, stamp) => {
+    const player = requirePlayer(store, payload.playerId);
+    const preference = playerPreferenceSchema.parse({
+      playerId: player.id,
+      positionDispositions: payload.positionDispositions,
+      fieldTimePreference: payload.fieldTimePreference,
+      coachNote: payload.coachNote,
+      updatedAt: stamp,
+    });
+    assertPositionDispositionLimits(preference.positionDispositions);
+    const index = store.playerPreferences.entries.findIndex(
+      (entry) => entry.playerId === player.id,
+    );
+    if (index === -1) store.playerPreferences.entries.push(preference);
+    else store.playerPreferences.entries[index] = preference;
+  },
   togglePlayer: (store, payload, stamp) => {
     const player = requirePlayer(store, payload.id);
     player.active = !player.active;
@@ -89,11 +114,24 @@ export const rosterAndGameActionHandlers: Record<string, StoreActionHandler> = {
       throw new Error("Players with schedule history must be marked inactive instead of deleted.");
     }
     store.players = store.players.filter((item) => item.id !== payload.id);
+    store.playerPreferences.entries =
+      store.playerPreferences.entries.filter((item) => item.playerId !== payload.id);
     store.availability = store.availability.filter((item) => item.playerId !== payload.id);
   },
   createGame: (store, payload, stamp) => {
     const game = createGameFromPayload(payload, stamp);
     store.games.push(game);
+    store.schedules.push({
+      id: randomUUID(),
+      gameId: game.id,
+      revision: 1,
+      status: "draft",
+      assignments: [],
+      history: [],
+      future: [],
+      generatedAt: stamp,
+      updatedAt: stamp,
+    });
     store.availability.push(
       ...store.players
         .filter((player) => player.active)
