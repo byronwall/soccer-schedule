@@ -4,6 +4,8 @@ This file records user-visible changes, important development workflow changes, 
 
 ## Unreleased
 
+- The schedule editor now keeps Clear all and Remove all locks directly in the
+  main toolbar instead of hiding them in a More menu.
 - Schedule row and segment headers now offer scoped clear actions that remove
   only their assignments and locks, with an immediate Undo that restores the
   exact prior scope.

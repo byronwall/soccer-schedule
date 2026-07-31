@@ -1,20 +1,18 @@
 import { Match, Show, Switch } from "solid-js";
 import {
   CheckCircle2,
-  Ellipsis,
+  LockOpen,
   PencilLine,
   Redo2,
   RefreshCw,
   Trash2,
   Undo2,
-  LockOpen,
 } from "lucide-solid";
 import {
   Badge,
   Button,
   ButtonGroup,
   IconButton,
-  Menu,
   SegmentGroup,
   Tooltip,
 } from "~/components/ui";
@@ -163,32 +161,33 @@ export function ScheduleToolbar(props: ScheduleToolbarProps) {
           </HStack>
         )}
       </Show>
-      <Show when={props.schedule?.status === "draft" || props.schedule?.status === "stale"}>
-        <Menu.Root positioning={{ placement: "bottom-end" }}>
-          <Menu.Trigger asChild={(triggerProps) => (
-            <Button {...triggerProps()} size="sm" variant="outline">
-              <Ellipsis size={16} /> More
-            </Button>
-          )} />
-          <Menu.Positioner>
-            <Menu.Content>
-              <Show when={props.schedule?.assignments.some((assignment) => assignment.locked)}>
-                <Menu.Item value="remove-locks" onClick={props.onRemoveAllLocks}>
-                  <LockOpen size={16} />
-                  <Menu.ItemText>Remove all locks</Menu.ItemText>
-                </Menu.Item>
-              </Show>
-              <Menu.Item
-                value="clear-all"
-                disabled={!props.schedule?.assignments.length}
-                onClick={props.onClearAll}
-              >
-                <Trash2 size={16} />
-                <Menu.ItemText>Clear all</Menu.ItemText>
-              </Menu.Item>
-            </Menu.Content>
-          </Menu.Positioner>
-        </Menu.Root>
+      <Show
+        when={
+          props.schedule?.status === "draft" ||
+          props.schedule?.status === "stale"
+        }
+      >
+        <Show
+          when={props.schedule?.assignments.some(
+            (assignment) => assignment.locked,
+          )}
+        >
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={props.onRemoveAllLocks}
+          >
+            <LockOpen size={16} /> Remove all locks
+          </Button>
+        </Show>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={!props.schedule?.assignments.length}
+          onClick={props.onClearAll}
+        >
+          <Trash2 size={16} /> Clear all
+        </Button>
       </Show>
     </Flex>
   );
