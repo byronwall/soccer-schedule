@@ -64,10 +64,6 @@ export interface TextareaDemoProps {
 
 export const TextareaDemo = (props: TextareaDemoProps) => {
   return (
-    <Textarea
-      {...(props.variantProps ?? {})}
-      value={props.value ?? "Textarea preview"}
-      readOnly
-    />
+    <Textarea {...(props.variantProps ?? {})} value={props.value ?? "Textarea preview"} readOnly />
   );
 };

@@ -9,12 +9,7 @@ type LineNumberedCodeProps = JSX.HTMLAttributes<HTMLElement> & {
 };
 
 export function LineNumberedCode(props: LineNumberedCodeProps) {
-  const [local, rest] = splitProps(props, [
-    "language",
-    "codeText",
-    "highlightedHtml",
-    "class",
-  ]);
+  const [local, rest] = splitProps(props, ["language", "codeText", "highlightedHtml", "class"]);
 
   const lineCount = () => {
     const text = local.codeText.replace(/\r?\n$/, "");

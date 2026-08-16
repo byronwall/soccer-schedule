@@ -1,18 +1,8 @@
 import { z } from "zod";
-import {
-  POSITIONS,
-  type PositionGroup,
-  type PositionKey,
-  type SegmentKey,
-} from "./fixed-game";
+import { POSITIONS, type PositionGroup, type PositionKey, type SegmentKey } from "./fixed-game";
 import { crossQuarterPositionRepeatScore } from "./schedule-position-repeats";
 import { scoreSchedulePreferences } from "./schedule-preference-quality";
-import type {
-  Assignment,
-  DefensiveContinuityPolicy,
-  Player,
-  PlayerPreference,
-} from "./schemas";
+import type { Assignment, DefensiveContinuityPolicy, Player, PlayerPreference } from "./schemas";
 import { scheduleCellWarnings, validateAssignments } from "./scheduling";
 
 export const scheduleGenerationQualitySchema = z.object({
@@ -32,9 +22,7 @@ export const scheduleGenerationQualitySchema = z.object({
   varietyGaps: z.number().int().min(0),
 });
 
-export type ScheduleGenerationQuality = z.infer<
-  typeof scheduleGenerationQualitySchema
->;
+export type ScheduleGenerationQuality = z.infer<typeof scheduleGenerationQualitySchema>;
 
 type QualityOptions = {
   players: Player[];
@@ -47,19 +35,15 @@ const assignmentAt = (
   assignments: Assignment[],
   segmentKey: SegmentKey,
   positionKey: PositionKey,
-) => assignments.find(
-  (assignment) =>
-    assignment.segmentKey === segmentKey &&
-    assignment.positionKey === positionKey,
-);
+) =>
+  assignments.find(
+    (assignment) => assignment.segmentKey === segmentKey && assignment.positionKey === positionKey,
+  );
 
 const assignedCounts = (assignments: Assignment[], playerIds: string[]) => {
   const counts = new Map(playerIds.map((playerId) => [playerId, 0]));
   for (const assignment of assignments) {
-    counts.set(
-      assignment.playerId,
-      (counts.get(assignment.playerId) ?? 0) + 1,
-    );
+    counts.set(assignment.playerId, (counts.get(assignment.playerId) ?? 0) + 1);
   }
   return counts;
 };
@@ -67,10 +51,7 @@ const assignedCounts = (assignments: Assignment[], playerIds: string[]) => {
 const spread = (values: number[]) =>
   values.length === 0 ? 0 : Math.max(...values) - Math.min(...values);
 
-const currentHardErrorCount = (
-  assignments: Assignment[],
-  eligibleIds: string[],
-) => {
+const currentHardErrorCount = (assignments: Assignment[], eligibleIds: string[]) => {
   if (assignments.length === POSITIONS.length * 8) {
     return validateAssignments(assignments, eligibleIds).length;
   }
@@ -85,13 +66,13 @@ const currentHardErrorCount = (
   }
   let count = 0;
   for (const assignment of assignments) {
-    const duplicatePosition = (
-      positions.get(`${assignment.segmentKey}:${assignment.positionKey}`) ?? 0
-    ) > 1;
-    const duplicatePlayer = (
-      players.get(`${assignment.segmentKey}:${assignment.playerId}`) ?? 0
-    ) > 1;
-    count += Number(duplicatePosition) + Number(duplicatePlayer) +
+    const duplicatePosition =
+      (positions.get(`${assignment.segmentKey}:${assignment.positionKey}`) ?? 0) > 1;
+    const duplicatePlayer =
+      (players.get(`${assignment.segmentKey}:${assignment.playerId}`) ?? 0) > 1;
+    count +=
+      Number(duplicatePosition) +
+      Number(duplicatePlayer) +
       Number(!eligible.has(assignment.playerId));
   }
   return count;
@@ -99,50 +80,37 @@ const currentHardErrorCount = (
 
 const goalkeeperChanges = (assignments: Assignment[]) =>
   [1, 2, 3, 4].filter((quarter) => {
-    const first = assignmentAt(
-      assignments,
-      `q${quarter}a` as SegmentKey,
-      "goalkeeper",
-    );
-    const second = assignmentAt(
-      assignments,
-      `q${quarter}b` as SegmentKey,
-      "goalkeeper",
-    );
+    const first = assignmentAt(assignments, `q${quarter}a` as SegmentKey, "goalkeeper");
+    const second = assignmentAt(assignments, `q${quarter}b` as SegmentKey, "goalkeeper");
     return first && second && first.playerId !== second.playerId;
   }).length;
 
 const defenderChanges = (assignments: Assignment[]) =>
-  [1, 2, 3, 4].reduce((total, quarter) =>
-    total + (["leftDefense", "rightDefense"] as const).filter((positionKey) => {
-      const first = assignmentAt(
-        assignments,
-        `q${quarter}a` as SegmentKey,
-        positionKey,
-      );
-      const second = assignmentAt(
-        assignments,
-        `q${quarter}b` as SegmentKey,
-        positionKey,
-      );
-      return first && second && first.playerId !== second.playerId;
-    }).length, 0);
+  [1, 2, 3, 4].reduce(
+    (total, quarter) =>
+      total +
+      (["leftDefense", "rightDefense"] as const).filter((positionKey) => {
+        const first = assignmentAt(assignments, `q${quarter}a` as SegmentKey, positionKey);
+        const second = assignmentAt(assignments, `q${quarter}b` as SegmentKey, positionKey);
+        return first && second && first.playerId !== second.playerId;
+      }).length,
+    0,
+  );
 
 const varietyGaps = (assignments: Assignment[], playerIds: string[]) => {
-  const exactPositions = new Map(
-    playerIds.map((playerId) => [playerId, new Set<PositionKey>()]),
-  );
+  const exactPositions = new Map(playerIds.map((playerId) => [playerId, new Set<PositionKey>()]));
   for (const assignment of assignments) {
     exactPositions.get(assignment.playerId)?.add(assignment.positionKey);
   }
   return playerIds.reduce((total, playerId) => {
     const positions = exactPositions.get(playerId) ?? new Set<PositionKey>();
-    const hasAttack = [...positions].some((positionKey) =>
-      positionKey.includes("Midfield") || positionKey.includes("Forward"));
-    const hasDefense = [...positions].some((positionKey) =>
-      positionKey === "goalkeeper" || positionKey.includes("Defense"));
-    return total + Number(!hasAttack) + Number(!hasDefense) +
-      (POSITIONS.length - positions.size);
+    const hasAttack = [...positions].some(
+      (positionKey) => positionKey.includes("Midfield") || positionKey.includes("Forward"),
+    );
+    const hasDefense = [...positions].some(
+      (positionKey) => positionKey === "goalkeeper" || positionKey.includes("Defense"),
+    );
+    return total + Number(!hasAttack) + Number(!hasDefense) + (POSITIONS.length - positions.size);
   }, 0);
 };
 
@@ -166,9 +134,7 @@ export const evaluateGenerationQuality = (
     ]),
   );
   for (const assignment of season) {
-    const group = POSITIONS.find(
-      (position) => position.key === assignment.positionKey,
-    )?.group;
+    const group = POSITIONS.find((position) => position.key === assignment.positionKey)?.group;
     if (!group) continue;
     const counts = roleCounts.get(assignment.playerId);
     counts?.set(group, (counts.get(group) ?? 0) + 1);
@@ -184,13 +150,11 @@ export const evaluateGenerationQuality = (
     hardErrorCount: currentHardErrorCount(assignments, playerIds),
     gameMinuteSpread: spread([...gameCounts.values()]) * 7,
     seasonMinuteSpread: spread([...seasonCounts.values()]) * 7,
-    seasonRoleImbalance: (
-      ["goalkeeper", "defense", "midfield", "forward"] as const
-    ).reduce((total, group) =>
-      total + spread(
-        playerIds.map((playerId) =>
-          roleCounts.get(playerId)?.get(group) ?? 0),
-      ), 0),
+    seasonRoleImbalance: (["goalkeeper", "defense", "midfield", "forward"] as const).reduce(
+      (total, group) =>
+        total + spread(playerIds.map((playerId) => roleCounts.get(playerId)?.get(group) ?? 0)),
+      0,
+    ),
     avoidAssignmentCount: preferenceQuality.avoidAssignmentCount,
     preferredAssignmentCount: preferenceQuality.preferredAssignmentCount,
     favoredExtraMisses: preferenceQuality.favoredExtraMisses,
@@ -200,14 +164,10 @@ export const evaluateGenerationQuality = (
         .map((warning) => warning.playerId),
     ).size,
     goalkeeperChanges: goalkeeperChanges(assignments),
-    defenderChanges: options.continuityPolicy === "goalkeeper-only"
-      ? 0
-      : defenderChanges(assignments),
-    midfieldRepeats: cellWarnings.filter(
-      (warning) => warning.kind === "midfield-repeat",
-    ).length,
-    crossQuarterPositionRepeats:
-      crossQuarterPositionRepeatScore(assignments),
+    defenderChanges:
+      options.continuityPolicy === "goalkeeper-only" ? 0 : defenderChanges(assignments),
+    midfieldRepeats: cellWarnings.filter((warning) => warning.kind === "midfield-repeat").length,
+    crossQuarterPositionRepeats: crossQuarterPositionRepeatScore(assignments),
     varietyGaps: varietyGaps(season, playerIds),
   };
 };
@@ -249,47 +209,49 @@ export const generationHardErrors = (options: {
   const eligibleIds = options.players.map((player) => player.id);
   const eligibleById = new Set(eligibleIds);
   const knownById = new Map(
-    (options.knownPlayers ?? options.players).map((player) => [
-      player.id,
-      player,
-    ]),
+    (options.knownPlayers ?? options.players).map((player) => [player.id, player]),
   );
-  const lockedAvailabilityErrors = options.currentAssignments.flatMap(
-    (assignment) =>
-      assignment.locked && !eligibleById.has(assignment.playerId)
+  const lockedAvailabilityErrors = options.currentAssignments.flatMap((assignment) =>
+    assignment.locked && !eligibleById.has(assignment.playerId)
+      ? [
+          `Locked ${assignment.segmentKey.toUpperCase()} ${
+            POSITIONS.find((position) => position.key === assignment.positionKey)?.label ??
+            assignment.positionKey
+          } assigns ${
+            knownById.get(assignment.playerId)?.displayName ?? "an unavailable player"
+          }, who is unavailable. Unlock that assignment or restore availability.`,
+        ]
+      : [],
+  );
+  const currentConflicts = options.assignments.flatMap((assignment, index, assignments) => {
+    const duplicatePosition =
+      assignments.findIndex(
+        (candidate) =>
+          candidate.segmentKey === assignment.segmentKey &&
+          candidate.positionKey === assignment.positionKey,
+      ) !== index;
+    const duplicatePlayer =
+      assignments.findIndex(
+        (candidate) =>
+          candidate.segmentKey === assignment.segmentKey &&
+          candidate.playerId === assignment.playerId,
+      ) !== index;
+    return [
+      ...(duplicatePosition
         ? [
-            `Locked ${assignment.segmentKey.toUpperCase()} ${
-              POSITIONS.find((position) =>
-                position.key === assignment.positionKey)?.label ??
-                assignment.positionKey
-            } assigns ${
-              knownById.get(assignment.playerId)?.displayName ??
-              "an unavailable player"
-            }, who is unavailable. Unlock that assignment or restore availability.`,
+            `${assignment.segmentKey.toUpperCase()} assigns ${assignment.positionKey} more than once.`,
           ]
-        : [],
-  );
-  const currentConflicts = options.assignments.flatMap(
-    (assignment, index, assignments) => {
-      const duplicatePosition = assignments.findIndex((candidate) =>
-        candidate.segmentKey === assignment.segmentKey &&
-        candidate.positionKey === assignment.positionKey) !== index;
-      const duplicatePlayer = assignments.findIndex((candidate) =>
-        candidate.segmentKey === assignment.segmentKey &&
-        candidate.playerId === assignment.playerId) !== index;
-      return [
-        ...(duplicatePosition
-          ? [`${assignment.segmentKey.toUpperCase()} assigns ${assignment.positionKey} more than once.`]
-          : []),
-        ...(duplicatePlayer
-          ? [`${assignment.segmentKey.toUpperCase()} assigns one player to multiple positions.`]
-          : []),
-        ...(!eligibleById.has(assignment.playerId)
-          ? [`${assignment.segmentKey.toUpperCase()} ${assignment.positionKey} assigns an unavailable player.`]
-          : []),
-      ];
-    },
-  );
+        : []),
+      ...(duplicatePlayer
+        ? [`${assignment.segmentKey.toUpperCase()} assigns one player to multiple positions.`]
+        : []),
+      ...(!eligibleById.has(assignment.playerId)
+        ? [
+            `${assignment.segmentKey.toUpperCase()} ${assignment.positionKey} assigns an unavailable player.`,
+          ]
+        : []),
+    ];
+  });
   return [
     ...lockedAvailabilityErrors,
     ...(options.assignments.length === 56
@@ -317,17 +279,13 @@ export const summarizeGenerationImprovement = (
     ["goalkeeperChanges", "Improved goalkeeper continuity."],
     ["defenderChanges", "Improved defender continuity."],
     ["midfieldRepeats", "Reduced within-quarter midfield repeats."],
-    [
-      "crossQuarterPositionRepeats",
-      "Reduced exact-position repeats across quarters.",
-    ],
+    ["crossQuarterPositionRepeats", "Reduced exact-position repeats across quarters."],
     ["varietyGaps", "Improved attack, defense, and exact-position variety."],
     ["favoredExtraMisses", "Improved the late extra-time tie-breaker."],
   ];
   for (const [key, message] of improvements) {
-    const improved = key === "preferredAssignmentCount"
-      ? after[key] > before[key]
-      : after[key] < before[key];
+    const improved =
+      key === "preferredAssignmentCount" ? after[key] > before[key] : after[key] < before[key];
     if (improved) return message;
   }
   return "Applied the smallest equally strong targeted adjustment.";

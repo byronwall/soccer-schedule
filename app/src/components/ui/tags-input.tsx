@@ -10,24 +10,16 @@ export type RootProps = ComponentProps<typeof Root>;
 export type ItemProps = ComponentProps<typeof Item>;
 export const Root = withProvider(TagsInput.Root, "root");
 export const RootProvider = withProvider(TagsInput.RootProvider, "root");
-export const ClearTrigger = withContext(
-  TagsInput.ClearTrigger,
-  "clearTrigger",
-  {
-    defaultProps: () => ({ children: <XIcon /> }),
-  },
-);
+export const ClearTrigger = withContext(TagsInput.ClearTrigger, "clearTrigger", {
+  defaultProps: () => ({ children: <XIcon /> }),
+});
 export const Control = withContext(TagsInput.Control, "control");
 export const HiddenInput = TagsInput.HiddenInput;
 export const Input = withContext(TagsInput.Input, "input");
 export const Item = withContext(TagsInput.Item, "item");
-export const ItemDeleteTrigger = withContext(
-  TagsInput.ItemDeleteTrigger,
-  "itemDeleteTrigger",
-  {
-    defaultProps: () => ({ children: <XIcon /> }),
-  },
-);
+export const ItemDeleteTrigger = withContext(TagsInput.ItemDeleteTrigger, "itemDeleteTrigger", {
+  defaultProps: () => ({ children: <XIcon /> }),
+});
 export const ItemInput = withContext(TagsInput.ItemInput, "itemInput");
 export const ItemPreview = withContext(TagsInput.ItemPreview, "itemPreview");
 export const ItemText = withContext(TagsInput.ItemText, "itemText");
@@ -62,11 +54,7 @@ export interface TagsInputDemoProps {
 
 export const TagsInputDemo = (props: TagsInputDemoProps) => {
   return (
-    <Root
-      {...(props.variantProps ?? {})}
-      value={props.value ?? ["design", "system"]}
-      width="72"
-    >
+    <Root {...(props.variantProps ?? {})} value={props.value ?? ["design", "system"]} width="72">
       <Label>Tags</Label>
       <Control>
         <Items />

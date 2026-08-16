@@ -2,10 +2,7 @@ import { For, Show, createMemo } from "solid-js";
 import { Undo2 } from "lucide-solid";
 import { Badge, Button, Card, Text } from "~/components/ui";
 import { useLiveGame } from "~/features/soccer/LiveGameProvider";
-import {
-  isCorrectableLiveEvent,
-  voidedLiveEventIds,
-} from "~/lib/soccer/live-game";
+import { isCorrectableLiveEvent, voidedLiveEventIds } from "~/lib/soccer/live-game";
 import type { LiveEvent } from "~/lib/soccer/live-event-schemas";
 import { HStack, VStack } from "styled-system/jsx";
 
@@ -15,14 +12,10 @@ const clockLabel = (event: LiveEvent) =>
 export function LiveEventList() {
   const tracker = useLiveGame();
   const events = createMemo(() => [...(tracker.live()?.events ?? [])].reverse());
-  const voidedIds = createMemo(() =>
-    voidedLiveEventIds(tracker.live()?.events ?? []),
-  );
-  const playerName = (id: string) =>
-    tracker.player(id)?.displayName ?? "Unknown player";
+  const voidedIds = createMemo(() => voidedLiveEventIds(tracker.live()?.events ?? []));
+  const playerName = (id: string) => tracker.player(id)?.displayName ?? "Unknown player";
   const positionName = (key: string) =>
-    tracker.data.positions().find((position) => position.key === key)?.label ??
-    key;
+    tracker.data.positions().find((position) => position.key === key)?.label ?? key;
 
   const eventLabel = (event: LiveEvent) => {
     if (event.type === "game_started") return "Game started";
@@ -54,9 +47,7 @@ export function LiveEventList() {
     <Card.Root>
       <Card.Header>
         <Card.Title>Recent events</Card.Title>
-        <Card.Description>
-          Durable game-day history, newest first.
-        </Card.Description>
+        <Card.Description>Durable game-day history, newest first.</Card.Description>
       </Card.Header>
       <Card.Body>
         <VStack alignItems="stretch" gap="2">
@@ -87,8 +78,7 @@ export function LiveEventList() {
                         </Show>
                       </HStack>
                       <Text textStyle="xs" color="fg.muted">
-                        Q{event.quarter} · {clockLabel(event)} ·{" "}
-                        {event.actor.displayName}
+                        Q{event.quarter} · {clockLabel(event)} · {event.actor.displayName}
                       </Text>
                     </VStack>
                     <Show

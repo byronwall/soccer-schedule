@@ -34,10 +34,7 @@ export default defineConfig({
       hooks: {
         "preset:resolved": ({ utils, preset, name }) =>
           name === "@pandacss/preset-panda"
-            ? utils.omit(preset, [
-                "theme.tokens.colors",
-                "theme.semanticTokens.colors",
-              ])
+            ? utils.omit(preset, ["theme.tokens.colors", "theme.semanticTokens.colors"])
             : preset,
       },
     },

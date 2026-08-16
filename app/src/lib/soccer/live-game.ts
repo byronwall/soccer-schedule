@@ -13,18 +13,13 @@ export const elapsedLiveSecondsAt = (
   }
   const runningSeconds = Math.max(
     0,
-    Math.floor(
-      (new Date(timestamp).getTime() - new Date(live.runningSince).getTime()) /
-        1000,
-    ),
+    Math.floor((new Date(timestamp).getTime() - new Date(live.runningSince).getTime()) / 1000),
   );
   return Math.min(840, live.accumulatedQuarterSeconds + runningSeconds);
 };
 
-export const segmentKeyForLiveState = (
-  quarter: number,
-  elapsedQuarterSeconds: number,
-) => `q${quarter}${elapsedQuarterSeconds < 420 ? "a" : "b"}` as const;
+export const segmentKeyForLiveState = (quarter: number, elapsedQuarterSeconds: number) =>
+  `q${quarter}${elapsedQuarterSeconds < 420 ? "a" : "b"}` as const;
 
 export const voidedLiveEventIds = (events: LiveEvent[]) =>
   new Set(
@@ -35,26 +30,19 @@ export const voidedLiveEventIds = (events: LiveEvent[]) =>
 
 export const activeLiveEvents = (events: LiveEvent[]) => {
   const voidedIds = voidedLiveEventIds(events);
-  return events.filter(
-    (event) => event.type === "event_voided" || !voidedIds.has(event.id),
-  );
+  return events.filter((event) => event.type === "event_voided" || !voidedIds.has(event.id));
 };
 
-const plannedLineup = (
-  schedule: Schedule,
-  segmentKey: ReturnType<typeof segmentKeyForLiveState>,
-) => Object.fromEntries(
-  schedule.assignments
-    .filter((assignment) => assignment.segmentKey === segmentKey)
-    .map((assignment) => [assignment.positionKey, assignment.playerId]),
-) as LiveLineup;
+const plannedLineup = (schedule: Schedule, segmentKey: ReturnType<typeof segmentKeyForLiveState>) =>
+  Object.fromEntries(
+    schedule.assignments
+      .filter((assignment) => assignment.segmentKey === segmentKey)
+      .map((assignment) => [assignment.positionKey, assignment.playerId]),
+  ) as LiveLineup;
 
 const replaceFieldPlayer = (
   lineup: LiveLineup,
-  payload: Extract<
-    LiveEvent,
-    { type: "bench_replaced_field_player" }
-  >["payload"],
+  payload: Extract<LiveEvent, { type: "bench_replaced_field_player" }>["payload"],
 ) => {
   const incomingPosition = Object.entries(lineup).find(
     ([, playerId]) => playerId === payload.incomingPlayerId,
@@ -76,9 +64,7 @@ export const reconstructLiveLineup = (
   const elapsedSeconds = elapsedLiveSecondsAt(live, timestamp);
   const segmentKey = segmentKeyForLiveState(live.quarter, elapsedSeconds);
   let lineup = plannedLineup(schedule, segmentKey);
-  const events = activeLiveEvents(live.events).filter(
-    (event) => event.quarter === live.quarter,
-  );
+  const events = activeLiveEvents(live.events).filter((event) => event.quarter === live.quarter);
 
   for (const event of events) {
     if (event.type === "quarter_advanced") {
@@ -105,10 +91,7 @@ export const isCorrectableLiveEvent = (
 ): event is Extract<
   LiveEvent,
   {
-    type:
-      | "bench_replaced_field_player"
-      | "field_players_swapped"
-      | "own_team_goal_scored";
+    type: "bench_replaced_field_player" | "field_players_swapped" | "own_team_goal_scored";
   }
 > =>
   event.type === "bench_replaced_field_player" ||
@@ -117,7 +100,5 @@ export const isCorrectableLiveEvent = (
 
 export const correctableLiveEvents = (events: LiveEvent[]) => {
   const voidedIds = voidedLiveEventIds(events);
-  return events.filter(
-    (event) => isCorrectableLiveEvent(event) && !voidedIds.has(event.id),
-  );
+  return events.filter((event) => isCorrectableLiveEvent(event) && !voidedIds.has(event.id));
 };

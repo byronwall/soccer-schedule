@@ -1,9 +1,4 @@
-import {
-  Show,
-  createEffect,
-  onCleanup,
-  splitProps,
-} from "solid-js";
+import { Show, createEffect, onCleanup, splitProps } from "solid-js";
 import { createStore } from "solid-js/store";
 import { loadMermaid } from "./markdown-code-utils";
 import { MarkdownMermaidActionTray } from "./markdown-mermaid-action-tray";
@@ -23,11 +18,7 @@ type MarkdownMermaidBlockProps = JSX.HTMLAttributes<HTMLPreElement> & {
 };
 
 export function MarkdownMermaidBlock(props: MarkdownMermaidBlockProps) {
-  const [local, rest] = splitProps(props, [
-    "children",
-    "codeText",
-    "isHydrated",
-  ]);
+  const [local, rest] = splitProps(props, ["children", "codeText", "isHydrated"]);
   const [state, setState] = createStore({
     isCopied: false,
     isDialogCopied: false,
@@ -181,11 +172,7 @@ export function MarkdownMermaidBlock(props: MarkdownMermaidBlockProps) {
       </Show>
 
       <Show when={state.mermaidError}>
-        {(value) => (
-          <div class={markdownStyles.mermaidError}>
-            Mermaid render failed: {value()}
-          </div>
-        )}
+        {(value) => <div class={markdownStyles.mermaidError}>Mermaid render failed: {value()}</div>}
       </Show>
     </>
   );

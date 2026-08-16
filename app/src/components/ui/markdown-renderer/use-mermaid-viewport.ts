@@ -59,19 +59,10 @@ export function useMermaidViewport() {
     const dimensions = getMermaidBaseDimensions();
     if (!dimensions) return;
 
-    const viewportWidth = Math.max(
-      viewportRef.clientWidth - MERMAID_FIT_PADDING * 2,
-      1,
-    );
-    const viewportHeight = Math.max(
-      viewportRef.clientHeight - MERMAID_FIT_PADDING * 2,
-      1,
-    );
+    const viewportWidth = Math.max(viewportRef.clientWidth - MERMAID_FIT_PADDING * 2, 1);
+    const viewportHeight = Math.max(viewportRef.clientHeight - MERMAID_FIT_PADDING * 2, 1);
     const nextScale = clampMermaidScale(
-      Math.min(
-        viewportWidth / dimensions.width,
-        viewportHeight / dimensions.height,
-      ),
+      Math.min(viewportWidth / dimensions.width, viewportHeight / dimensions.height),
     );
     console.log("Markdown:mermaid:fitToViewport", {
       nextScale,
@@ -113,11 +104,7 @@ export function useMermaidViewport() {
     });
   };
 
-  const applyScale = (
-    nextScale: number,
-    anchorClientX: number,
-    anchorClientY: number,
-  ) => {
+  const applyScale = (nextScale: number, anchorClientX: number, anchorClientY: number) => {
     if (!viewportRef) {
       setState("scale", clampMermaidScale(nextScale));
       return;
@@ -144,9 +131,7 @@ export function useMermaidViewport() {
     });
   };
 
-  const handleWheel: JSX.EventHandlerUnion<HTMLDivElement, WheelEvent> = (
-    event,
-  ) => {
+  const handleWheel: JSX.EventHandlerUnion<HTMLDivElement, WheelEvent> = (event) => {
     event.preventDefault();
     const rawDelta =
       event.deltaMode === 1
@@ -159,10 +144,7 @@ export function useMermaidViewport() {
     applyScale(state.scale * factor, event.clientX, event.clientY);
   };
 
-  const handlePointerDown: JSX.EventHandlerUnion<
-    HTMLDivElement,
-    PointerEvent
-  > = (event) => {
+  const handlePointerDown: JSX.EventHandlerUnion<HTMLDivElement, PointerEvent> = (event) => {
     if (event.button !== 0) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -173,10 +155,7 @@ export function useMermaidViewport() {
     });
   };
 
-  const handlePointerMove: JSX.EventHandlerUnion<
-    HTMLDivElement,
-    PointerEvent
-  > = (event) => {
+  const handlePointerMove: JSX.EventHandlerUnion<HTMLDivElement, PointerEvent> = (event) => {
     if (state.pointerId !== event.pointerId) return;
     const deltaX = event.clientX - state.lastPointerX;
     const deltaY = event.clientY - state.lastPointerY;
@@ -188,9 +167,7 @@ export function useMermaidViewport() {
     });
   };
 
-  const handlePointerUp: JSX.EventHandlerUnion<HTMLDivElement, PointerEvent> = (
-    event,
-  ) => {
+  const handlePointerUp: JSX.EventHandlerUnion<HTMLDivElement, PointerEvent> = (event) => {
     if (state.pointerId !== event.pointerId) return;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
@@ -201,31 +178,20 @@ export function useMermaidViewport() {
   const zoomIn = () => {
     if (!viewportRef) return;
     const bounds = viewportRef.getBoundingClientRect();
-    applyScale(
-      state.scale * 1.2,
-      bounds.left + bounds.width / 2,
-      bounds.top + bounds.height / 2,
-    );
+    applyScale(state.scale * 1.2, bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
   };
 
   const zoomOut = () => {
     if (!viewportRef) return;
     const bounds = viewportRef.getBoundingClientRect();
-    applyScale(
-      state.scale * 0.84,
-      bounds.left + bounds.width / 2,
-      bounds.top + bounds.height / 2,
-    );
+    applyScale(state.scale * 0.84, bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
   };
 
   const transform = createMemo(
-    () =>
-      `translate(-50%, -50%) translate(${state.panX}px, ${state.panY}px) scale(${state.scale})`,
+    () => `translate(-50%, -50%) translate(${state.panX}px, ${state.panY}px) scale(${state.scale})`,
   );
 
-  const cursor = createMemo(() =>
-    state.pointerId === null ? "grab" : "grabbing",
-  );
+  const cursor = createMemo(() => (state.pointerId === null ? "grab" : "grabbing"));
 
   onCleanup(() => {
     timeoutIds.forEach((id) => window.clearTimeout(id));

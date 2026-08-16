@@ -13,9 +13,7 @@ const isEditableTarget = (target: EventTarget | null) => {
   );
 };
 
-export function ConsoleLogCaptureProvider(
-  props: ConsoleLogCaptureProviderProps,
-) {
+export function ConsoleLogCaptureProvider(props: ConsoleLogCaptureProviderProps) {
   const [isOpen, setIsOpen] = createSignal(false);
 
   onMount(() => {
@@ -37,7 +35,5 @@ export function ConsoleLogCaptureProvider(
     onCleanup(() => window.removeEventListener("keydown", onKeyDown));
   });
 
-  return (
-    <ConsoleLogCapturePanel open={isOpen()} onClose={() => setIsOpen(false)} />
-  );
+  return <ConsoleLogCapturePanel open={isOpen()} onClose={() => setIsOpen(false)} />;
 }

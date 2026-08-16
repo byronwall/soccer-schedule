@@ -23,13 +23,7 @@ export interface ProgressDemoProps {
 
 export const ProgressDemo = (props: ProgressDemoProps) => {
   return (
-    <Root
-      {...(props.variantProps ?? {})}
-      value={68}
-      max={100}
-      width="full"
-      maxW="72"
-    >
+    <Root {...(props.variantProps ?? {})} value={68} max={100} width="full" maxW="72">
       <Label>Progress</Label>
       <Track>
         <Range />

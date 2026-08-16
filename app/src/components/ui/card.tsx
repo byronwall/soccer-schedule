@@ -33,8 +33,7 @@ const [showDescription, setShowDescription] = createSignal(true);
 const [showFooter, setShowFooter] = createSignal(true);
 const [interactive, setInteractive] = createSignal(false);
 const [centered, setCentered] = createSignal(false);
-const [contentMode, setContentMode] =
-  createSignal<(typeof contentModes)[number]>("summary");
+const [contentMode, setContentMode] = createSignal<(typeof contentModes)[number]>("summary");
 
 let nextCardDemoInstanceId = 0;
 const [controlsOwnerId, setControlsOwnerId] = createSignal<number | null>(null);

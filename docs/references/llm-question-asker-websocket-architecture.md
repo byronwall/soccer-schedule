@@ -111,10 +111,7 @@ const notifyJobUpdate = (job: Job) => {
 class JobsDb {
   // ... other methods ...
 
-  private async modifyJob<T>(
-    jobId: string,
-    fn: (job: Job) => Promise<T>
-  ): Promise<T> {
+  private async modifyJob<T>(jobId: string, fn: (job: Job) => Promise<T>): Promise<T> {
     let result: T;
     this.writeQueue = this.writeQueue.then(async () => {
       const data = await this.readJobFile(jobId);
@@ -287,12 +284,7 @@ export default defineConfig({
 A robust websocket client with automatic reconnection and exponential backoff.
 
 ```typescript
-export type JobSocketStatus =
-  | "idle"
-  | "connecting"
-  | "open"
-  | "closed"
-  | "error";
+export type JobSocketStatus = "idle" | "connecting" | "open" | "closed" | "error";
 
 type JobSocketClientOptions = {
   path: string;
@@ -316,9 +308,7 @@ const nextDelay = (attempt: number) => {
   return Math.min(delay, MAX_RECONNECT_DELAY_MS);
 };
 
-export function createJobSocketClient(
-  options: JobSocketClientOptions
-): JobSocketClient {
+export function createJobSocketClient(options: JobSocketClientOptions): JobSocketClient {
   let socket: WebSocket | null = null;
   let reconnectTimer: number | null = null;
   let reconnectAttempt = 0;

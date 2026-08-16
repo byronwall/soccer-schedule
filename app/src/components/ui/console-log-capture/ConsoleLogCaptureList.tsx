@@ -39,36 +39,21 @@ export const ConsoleLogCaptureList = () => {
                   }
                 }}
               >
-                <Text
-                  fontSize="2xs"
-                  color="fg.subtle"
-                  flexShrink="0"
-                  fontFamily="mono"
-                >
+                <Text fontSize="2xs" color="fg.subtle" flexShrink="0" fontFamily="mono">
                   {formatTime(entry.timestamp)}
                 </Text>
                 <span class={levelChipClass(entry.level)}>{entry.level}</span>
                 <Show when={entry.prefix}>
-                  {(prefix) => (
-                    <span class={prefixChipClass}>[{prefix()}]</span>
-                  )}
+                  {(prefix) => <span class={prefixChipClass}>[{prefix()}]</span>}
                 </Show>
-                <Text
-                  fontSize="sm"
-                  flex="1"
-                  truncate
-                  textAlign="left"
-                  class={rowTitleClass}
-                >
+                <Text fontSize="sm" flex="1" truncate textAlign="left" class={rowTitleClass}>
                   {entry.summary}
                 </Text>
                 <Tooltip
                   portalled={false}
                   contentProps={tooltipContentProps}
                   content={
-                    panel.copiedRowId() === entry.id
-                      ? "Copied row JSON"
-                      : "Copy this row JSON"
+                    panel.copiedRowId() === entry.id ? "Copied row JSON" : "Copy this row JSON"
                   }
                   showArrow
                 >
@@ -83,10 +68,7 @@ export const ConsoleLogCaptureList = () => {
                       panel.actions.copySingleEntry(entry);
                     }}
                   >
-                    <Show
-                      when={panel.copiedRowId() === entry.id}
-                      fallback={<CopyIcon size={12} />}
-                    >
+                    <Show when={panel.copiedRowId() === entry.id} fallback={<CopyIcon size={12} />}>
                       <CheckIcon size={12} />
                     </Show>
                   </IconButton>

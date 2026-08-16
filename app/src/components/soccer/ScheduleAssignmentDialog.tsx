@@ -9,10 +9,7 @@ type ScheduleAssignmentDialogProps = {
   selection?: { segmentKey: SegmentKey; positionKey: PositionKey };
   schedule?: Schedule;
   players: Player[];
-  assignment: (
-    segmentKey: SegmentKey,
-    positionKey: PositionKey,
-  ) => Assignment | undefined;
+  assignment: (segmentKey: SegmentKey, positionKey: PositionKey) => Assignment | undefined;
   onClose: () => void;
   onClear: () => void;
   onReplace: (playerId: string) => void;
@@ -22,22 +19,14 @@ type ScheduleAssignmentDialogProps = {
 const isEditable = (schedule?: Schedule) =>
   schedule?.status === "draft" || schedule?.status === "stale";
 
-export function ScheduleAssignmentDialog(
-  props: ScheduleAssignmentDialogProps,
-) {
+export function ScheduleAssignmentDialog(props: ScheduleAssignmentDialogProps) {
   const selectedPlayerId = () => {
     if (!props.selection) return undefined;
-    return props.assignment(
-      props.selection.segmentKey,
-      props.selection.positionKey,
-    )?.playerId;
+    return props.assignment(props.selection.segmentKey, props.selection.positionKey)?.playerId;
   };
   const selectedAssignment = () => {
     if (!props.selection) return undefined;
-    return props.assignment(
-      props.selection.segmentKey,
-      props.selection.positionKey,
-    );
+    return props.assignment(props.selection.segmentKey, props.selection.positionKey);
   };
 
   return (
@@ -70,10 +59,7 @@ export function ScheduleAssignmentDialog(
             <Show
               when={selectedPlayerId() === player.id}
               fallback={
-                <Button
-                  variant="outline"
-                  onClick={() => props.onReplace(player.id)}
-                >
+                <Button variant="outline" onClick={() => props.onReplace(player.id)}>
                   #{player.jerseyNumber ?? "—"} {player.displayName}
                 </Button>
               }

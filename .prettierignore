@@ -1,0 +1,23 @@
+# Generated and runtime data
+app/styled-system/
+app/data/
+app/.output/
+app/.vinxi/
+app/node_modules/
+node_modules/
+.pnpm-store/
+tmp/
+.vite/
+live-server-details.json
+live-server-details.json.*.tmp
+live-server.lock/
+
+# Tool and skill content
+.agents/
+.codex/
+app/pnpm-lock.yaml
+app/app.config.timestamp_*.js
+
+# Binary and visual assets
+app/public/*.svg
+app/public/*.ico

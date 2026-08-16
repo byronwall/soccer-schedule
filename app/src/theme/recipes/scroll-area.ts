@@ -12,8 +12,7 @@ export const scrollArea = defineSlotRecipe({
       position: "relative",
       overflow: "hidden",
       "--scrollbar-margin": "0px",
-      "--scrollbar-size":
-        "calc(var(--thumb-size) + calc(var(--scrollbar-margin) * 2))",
+      "--scrollbar-size": "calc(var(--thumb-size) + calc(var(--scrollbar-margin) * 2))",
     },
     viewport: {
       display: "flex",

@@ -4,13 +4,7 @@ import {
   useRatingGroupItemContext,
 } from "@ark-ui/solid/rating-group";
 import { StarIcon } from "lucide-solid";
-import {
-  type ComponentProps,
-  For,
-  type JSX,
-  mergeProps,
-  splitProps,
-} from "solid-js";
+import { type ComponentProps, For, type JSX, mergeProps, splitProps } from "solid-js";
 import { createStyleContext, type HTMLStyledProps } from "styled-system/jsx";
 import { ratingGroup } from "styled-system/recipes";
 

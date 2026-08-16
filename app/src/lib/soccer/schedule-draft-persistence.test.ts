@@ -17,9 +17,7 @@ afterAll(async () => {
   await rm(dataDir, { recursive: true, force: true });
 });
 
-const requireDraft = async (
-  predicate: (schedule: Schedule) => boolean,
-) => {
+const requireDraft = async (predicate: (schedule: Schedule) => boolean) => {
   const draft = (await getSnapshot()).schedules.find(predicate);
   if (!draft) throw new Error("Expected the partial schedule draft.");
   return draft;
@@ -33,20 +31,20 @@ const requireActivePlayer = (players: Player[]) => {
 
 describe("partial schedule persistence", () => {
   it("preserves a blank-start draft across refresh, undo, redo, and availability changes", async () => {
-    const created = await applySoccerAction("createGame", {
+    const created = (await applySoccerAction("createGame", {
       opponentName: "Partial Draft United",
       venueName: "Practice Field",
       startsAt: "2026-10-01T12:00:00.000Z",
-    }) as { gameId: string };
+    })) as { gameId: string };
     await applySoccerAction("markAllAvailable", { gameId: created.gameId });
-    await expect(applySoccerAction("liveStart", {
-      gameId: created.gameId,
-      expectedRevision: 0,
-    })).rejects.toThrow("Publish a schedule before using live mode.");
+    await expect(
+      applySoccerAction("liveStart", {
+        gameId: created.gameId,
+        expectedRevision: 0,
+      }),
+    ).rejects.toThrow("Publish a schedule before using live mode.");
     const snapshot = await getSnapshot();
-    let draft = await requireDraft(
-      (schedule) => schedule.gameId === created.gameId,
-    );
+    let draft = await requireDraft((schedule) => schedule.gameId === created.gameId);
     expect(draft.assignments).toEqual([]);
 
     const player = requireActivePlayer(snapshot.players);
@@ -83,9 +81,7 @@ describe("partial schedule persistence", () => {
       playerId: player.id,
       status: "unavailable",
     });
-    const afterAvailability = await requireDraft(
-      (schedule) => schedule.id === draftId,
-    );
+    const afterAvailability = await requireDraft((schedule) => schedule.id === draftId);
     expect(afterAvailability).toMatchObject({
       status: "draft",
       assignments: draft?.assignments,

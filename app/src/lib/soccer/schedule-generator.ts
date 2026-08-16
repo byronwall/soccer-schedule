@@ -1,24 +1,14 @@
 import { POSITIONS, SEGMENTS } from "./fixed-game";
-import {
-  chooseLowestRepeatLineup,
-  type Lineup,
-} from "./schedule-position-optimizer";
+import { chooseLowestRepeatLineup, type Lineup } from "./schedule-position-optimizer";
 import {
   favorsExtraTime,
   playerPreferenceLookup,
   type PlayerPreferenceLookup,
 } from "./player-preferences";
-import {
-  choosePreferredGoalkeeper,
-} from "./schedule-preference-ordering";
+import { choosePreferredGoalkeeper } from "./schedule-preference-ordering";
 import { selectGeneratedSchedule } from "./schedule-generated-quality";
 import { chooseOptionalOutgoing } from "./schedule-outgoing-selection";
-import type {
-  Assignment,
-  DefensiveContinuityPolicy,
-  Player,
-  PlayerPreference,
-} from "./schemas";
+import type { Assignment, DefensiveContinuityPolicy, Player, PlayerPreference } from "./schemas";
 
 const FIELD_POSITIONS = POSITIONS.filter((position) => position.key !== "goalkeeper");
 
@@ -36,8 +26,7 @@ const stableRotationRank = (playerId: string, segmentIndex: number, seed: string
 
 const byRotationRank = (segmentIndex: number, seed: string) => (left: Player, right: Player) =>
   stableRotationRank(left.id, segmentIndex, seed) -
-  stableRotationRank(right.id, segmentIndex, seed) ||
-  left.id.localeCompare(right.id);
+    stableRotationRank(right.id, segmentIndex, seed) || left.id.localeCompare(right.id);
 
 const recordLineup = (
   result: Assignment[],
@@ -79,10 +68,10 @@ const createInitialLineup = (
   });
   const remaining = players
     .filter((player) => player.id !== goalkeeper.id)
-    .sort((left, right) =>
-      Number(favorsExtraTime(preferences, right.id)) -
-        Number(favorsExtraTime(preferences, left.id)) ||
-      byRotationRank(0, seed)(left, right),
+    .sort(
+      (left, right) =>
+        Number(favorsExtraTime(preferences, right.id)) -
+          Number(favorsExtraTime(preferences, left.id)) || byRotationRank(0, seed)(left, right),
     )
     .slice(0, POSITIONS.length - 1);
   const lineup: Lineup = new Map([["goalkeeper", goalkeeper]]);
@@ -104,9 +93,7 @@ const rotateSevenPlayerGoalkeeper = (
   const previousGoalkeeper = previous.get("goalkeeper");
   if (!previousGoalkeeper) throw new Error("Previous lineup has no goalkeeper.");
   const goalkeeper = choosePreferredGoalkeeper({
-    candidates: players.filter(
-      (player) => player.id !== previousGoalkeeper.id,
-    ),
+    candidates: players.filter((player) => player.id !== previousGoalkeeper.id),
     goalkeeperCounts,
     fieldCounts,
     preferences,
@@ -182,11 +169,12 @@ const createNextLineup = (options: {
   const requiredOutgoing = quarterStart ? ["goalkeeper" as const] : [];
   const incomingPlayers = substitutes
     .filter((player) => player.id !== incomingGoalkeeper?.id)
-    .sort((left, right) =>
-      (fieldCounts.get(left.id) ?? 0) - (fieldCounts.get(right.id) ?? 0) ||
-      Number(favorsExtraTime(preferences, right.id)) -
-        Number(favorsExtraTime(preferences, left.id)) ||
-      byRotationRank(segmentIndex, seed)(left, right),
+    .sort(
+      (left, right) =>
+        (fieldCounts.get(left.id) ?? 0) - (fieldCounts.get(right.id) ?? 0) ||
+        Number(favorsExtraTime(preferences, right.id)) -
+          Number(favorsExtraTime(preferences, left.id)) ||
+        byRotationRank(segmentIndex, seed)(left, right),
     );
   const optionalOutgoing = chooseOptionalOutgoing({
     players,
@@ -199,8 +187,7 @@ const createNextLineup = (options: {
     quarterStart,
     assignments,
     incomingPlayers,
-    rotationRank: (playerId) =>
-      stableRotationRank(playerId, segmentIndex, seed),
+    rotationRank: (playerId) => stableRotationRank(playerId, segmentIndex, seed),
     preferences,
     continuityPolicy,
     prioritizeContinuity,
@@ -230,23 +217,17 @@ const generateCandidate = (
   if (players.length < POSITIONS.length) {
     throw new Error("At least seven available players are required.");
   }
-  const ordered = [...players].sort((left, right) =>
-    left.displayName.localeCompare(right.displayName) || left.id.localeCompare(right.id),
+  const ordered = [...players].sort(
+    (left, right) =>
+      left.displayName.localeCompare(right.displayName) || left.id.localeCompare(right.id),
   );
   const seed = options.seed ?? "default";
   const preferences = playerPreferenceLookup(options.preferences ?? []);
-  const continuityPolicy =
-    options.continuityPolicy ?? "goalkeeper-and-defense";
+  const continuityPolicy = options.continuityPolicy ?? "goalkeeper-and-defense";
   const fieldCounts = new Map(ordered.map((player) => [player.id, 0]));
   const goalkeeperCounts = new Map(ordered.map((player) => [player.id, 0]));
   const result: Assignment[] = [];
-  let lineup = createInitialLineup(
-    ordered,
-    fieldCounts,
-    goalkeeperCounts,
-    seed,
-    preferences,
-  );
+  let lineup = createInitialLineup(ordered, fieldCounts, goalkeeperCounts, seed, preferences);
 
   SEGMENTS.forEach((segment, segmentIndex) => {
     const previous = lineup;
@@ -264,14 +245,12 @@ const generateCandidate = (
         prioritizeContinuity,
       });
     }
-    const positionKeys = segment.half === "a"
-      ? FIELD_POSITIONS.map((position) => position.key)
-      : FIELD_POSITIONS
-          .filter(
-            (position) =>
-              previous.get(position.key)?.id !== lineup.get(position.key)?.id,
-          )
-          .map((position) => position.key);
+    const positionKeys =
+      segment.half === "a"
+        ? FIELD_POSITIONS.map((position) => position.key)
+        : FIELD_POSITIONS.filter(
+            (position) => previous.get(position.key)?.id !== lineup.get(position.key)?.id,
+          ).map((position) => position.key);
     if (positionKeys.length > 1) {
       lineup = chooseLowestRepeatLineup({
         lineup,
@@ -290,20 +269,19 @@ export const generateSchedule = (
   players: Player[],
   options: GenerateScheduleOptions = {},
 ): Assignment[] => {
-  const continuityPolicy =
-    options.continuityPolicy ?? "goalkeeper-and-defense";
+  const continuityPolicy = options.continuityPolicy ?? "goalkeeper-and-defense";
   const fairnessFirst = generateCandidate(players, options, false);
   const continuityFirst = generateCandidate(players, options, true);
   if (options.compareAssignments) {
-    return [fairnessFirst, continuityFirst].sort(
-      options.compareAssignments,
-    )[0] ?? fairnessFirst;
+    return [fairnessFirst, continuityFirst].sort(options.compareAssignments)[0] ?? fairnessFirst;
   }
   const preferences = options.preferences ?? [];
-  return selectGeneratedSchedule({
-    candidates: [fairnessFirst, continuityFirst],
-    players,
-    preferences,
-    continuityPolicy,
-  }) ?? fairnessFirst;
+  return (
+    selectGeneratedSchedule({
+      candidates: [fairnessFirst, continuityFirst],
+      players,
+      preferences,
+      continuityPolicy,
+    }) ?? fairnessFirst
+  );
 };

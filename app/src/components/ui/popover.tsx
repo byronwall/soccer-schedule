@@ -31,7 +31,5 @@ export const Footer = withContext(ark.div, "footer");
 
 export { PopoverContext as Context } from "@ark-ui/solid/popover";
 
-
-
 export type { PopoverDemoProps } from "./popover.demo";
 export { PopoverDemo } from "./popover.demo";

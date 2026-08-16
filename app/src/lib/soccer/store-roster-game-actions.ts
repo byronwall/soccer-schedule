@@ -11,10 +11,7 @@ import {
   positionLabelsSchema,
   type Game,
 } from "./schemas";
-import {
-  ensureActivePlayerAvailability,
-  upsertAvailability,
-} from "./store-availability";
+import { ensureActivePlayerAvailability, upsertAvailability } from "./store-availability";
 import {
   markScheduleStale,
   requireGame,
@@ -25,7 +22,7 @@ import {
 
 const nextPlayerColor = (players: Array<{ color?: string }>) =>
   pickPlayerColor(
-    players.flatMap((player) => player.color ? [player.color] : []),
+    players.flatMap((player) => (player.color ? [player.color] : [])),
     randomInt,
   );
 
@@ -35,9 +32,7 @@ const createGameFromPayload = (payload: ActionPayload, stamp: string): Game => (
   venueName: String(payload.venueName),
   venueAddress: String(payload.venueAddress || "") || undefined,
   startsAt: new Date(String(payload.startsAt)).toISOString(),
-  arrivalAt: payload.arrivalAt
-    ? new Date(String(payload.arrivalAt)).toISOString()
-    : undefined,
+  arrivalAt: payload.arrivalAt ? new Date(String(payload.arrivalAt)).toISOString() : undefined,
   status: "scheduled",
   createdAt: stamp,
   updatedAt: stamp,
@@ -48,9 +43,7 @@ export const rosterAndGameActionHandlers: Record<string, StoreActionHandler> = {
     store.positionLabels = positionLabelsSchema.parse(payload.positionLabels);
   },
   addPlayer: (store, payload, stamp) => {
-    const requestedColor = isPlayerColor(payload.color)
-      ? payload.color.toUpperCase()
-      : undefined;
+    const requestedColor = isPlayerColor(payload.color) ? payload.color.toUpperCase() : undefined;
     const color = requestedColor ?? nextPlayerColor(store.players);
     if (store.players.some((player) => player.color === color)) {
       throw new Error("Choose a color that is not already assigned to another player.");
@@ -65,19 +58,15 @@ export const rosterAndGameActionHandlers: Record<string, StoreActionHandler> = {
       createdAt: stamp,
       updatedAt: stamp,
     });
-    store.playerPreferences.entries.push(
-      createDefaultPlayerPreference(playerId, stamp),
-    );
+    store.playerPreferences.entries.push(createDefaultPlayerPreference(playerId, stamp));
     ensureActivePlayerAvailability(store, stamp);
   },
   updatePlayer: (store, payload, stamp) => {
     const player = requirePlayer(store, payload.id);
-    const color = isPlayerColor(payload.color)
-      ? payload.color.toUpperCase()
-      : player.color;
-    if (store.players.some(
-      (candidate) => candidate.id !== player.id && candidate.color === color,
-    )) {
+    const color = isPlayerColor(payload.color) ? payload.color.toUpperCase() : player.color;
+    if (
+      store.players.some((candidate) => candidate.id !== player.id && candidate.color === color)
+    ) {
       throw new Error("Choose a color that is not already assigned to another player.");
     }
     player.displayName = String(payload.displayName);
@@ -109,13 +98,15 @@ export const rosterAndGameActionHandlers: Record<string, StoreActionHandler> = {
   },
   deletePlayer: (store, payload) => {
     const hasHistory = store.schedules.some((schedule) =>
-      schedule.assignments.some((item) => item.playerId === payload.id));
+      schedule.assignments.some((item) => item.playerId === payload.id),
+    );
     if (hasHistory) {
       throw new Error("Players with schedule history must be marked inactive instead of deleted.");
     }
     store.players = store.players.filter((item) => item.id !== payload.id);
-    store.playerPreferences.entries =
-      store.playerPreferences.entries.filter((item) => item.playerId !== payload.id);
+    store.playerPreferences.entries = store.playerPreferences.entries.filter(
+      (item) => item.playerId !== payload.id,
+    );
     store.availability = store.availability.filter((item) => item.playerId !== payload.id);
   },
   createGame: (store, payload, stamp) => {
@@ -172,22 +163,30 @@ export const rosterAndGameActionHandlers: Record<string, StoreActionHandler> = {
     if (!player.active) {
       throw new Error("This player is no longer active. Team data has been refreshed.");
     }
-    upsertAvailability(store, {
-      gameId: game.id,
-      playerId: player.id,
-      status: availabilityStatusSchema.parse(payload.status),
-    }, stamp);
+    upsertAvailability(
+      store,
+      {
+        gameId: game.id,
+        playerId: player.id,
+        status: availabilityStatusSchema.parse(payload.status),
+      },
+      stamp,
+    );
     markScheduleStale(store, game.id, stamp);
   },
   markAllAvailable: (store, payload, stamp) => {
     const game = requireGame(store, payload.gameId);
     ensureActivePlayerAvailability(store, stamp);
     for (const player of store.players.filter((item) => item.active)) {
-      upsertAvailability(store, {
-        gameId: game.id,
-        playerId: player.id,
-        status: "available",
-      }, stamp);
+      upsertAvailability(
+        store,
+        {
+          gameId: game.id,
+          playerId: player.id,
+          status: "available",
+        },
+        stamp,
+      );
     }
     markScheduleStale(store, game.id, stamp);
   },

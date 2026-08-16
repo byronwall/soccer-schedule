@@ -12,11 +12,7 @@ export interface IconDemoProps {
 
 export const IconDemo = (props: IconDemoProps) => {
   return (
-    <Icon
-      {...(props.variantProps ?? {})}
-      viewBox="0 0 24 24"
-      aria-label="Icon preview"
-    >
+    <Icon {...(props.variantProps ?? {})} viewBox="0 0 24 24" aria-label="Icon preview">
       <path
         fill="none"
         stroke="currentColor"

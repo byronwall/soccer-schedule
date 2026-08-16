@@ -10,10 +10,7 @@ export const Root = withProvider(Slider.Root, "root", {
   forwardProps: ["orientation"],
 });
 export const Control = withContext(Slider.Control, "control");
-export const DraggingIndicator = withContext(
-  Slider.DraggingIndicator,
-  "draggingIndicator",
-);
+export const DraggingIndicator = withContext(Slider.DraggingIndicator, "draggingIndicator");
 export const Label = withContext(Slider.Label, "label");
 export const Marker = withContext(Slider.Marker, "marker");
 export const MarkerIndicator = withContext(ark.div, "markerIndicator");

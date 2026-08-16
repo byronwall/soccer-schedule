@@ -1,11 +1,5 @@
 import { SegmentGroup } from "@ark-ui/solid/segment-group";
-import {
-  type ComponentProps,
-  createMemo,
-  For,
-  type JSX,
-  splitProps,
-} from "solid-js";
+import { type ComponentProps, createMemo, For, type JSX, splitProps } from "solid-js";
 import { createStyleContext } from "styled-system/jsx";
 import { segmentGroup } from "styled-system/recipes";
 
@@ -56,9 +50,7 @@ export const Items = (props: ItemsProps) => {
 };
 
 const normalize = (items: Array<string | Item>): Item[] =>
-  items.map((item) =>
-    typeof item === "string" ? { value: item, label: item } : item,
-  );
+  items.map((item) => (typeof item === "string" ? { value: item, label: item } : item));
 
 export interface SegmentGroupDemoProps {
   variantProps?: Record<string, string>;

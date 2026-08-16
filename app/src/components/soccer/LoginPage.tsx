@@ -46,9 +46,8 @@ export function LoginPage() {
         setError(body.error ?? "Sign in failed.");
         return;
       }
-      const next = typeof params.next === "string" && params.next.startsWith("/")
-        ? params.next
-        : "/";
+      const next =
+        typeof params.next === "string" && params.next.startsWith("/") ? params.next : "/";
       navigate(next);
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "Sign in failed.");
@@ -62,11 +61,20 @@ export function LoginPage() {
       <Card.Root width="full" maxW="md" boxShadow="lg">
         <Card.Header>
           <VStack gap="3">
-            <Box boxSize="14" borderRadius="l3" bg="grass.solid.bg" color="grass.solid.fg" display="grid" placeItems="center">
+            <Box
+              boxSize="14"
+              borderRadius="l3"
+              bg="grass.solid.bg"
+              color="grass.solid.fg"
+              display="grid"
+              placeItems="center"
+            >
               <ShieldCheck size={30} />
             </Box>
             <Card.Title textStyle="3xl">Coach Companion</Card.Title>
-            <Card.Description textAlign="center">Private match planning for Indy United U12</Card.Description>
+            <Card.Description textAlign="center">
+              Private match planning for Indy United U12
+            </Card.Description>
           </VStack>
         </Card.Header>
         <Card.Body>
@@ -89,7 +97,10 @@ export function LoginPage() {
                 autofocus
               />
             </Field.Root>
-            <Field.Root required invalid={!!error() && !error()?.includes("temporarily unavailable")}>
+            <Field.Root
+              required
+              invalid={!!error() && !error()?.includes("temporarily unavailable")}
+            >
               <Field.Label>Password</Field.Label>
               <Input
                 type="password"
@@ -98,13 +109,22 @@ export function LoginPage() {
                 onKeyDown={(event) => event.key === "Enter" && login()}
                 autocomplete="current-password"
               />
-              <Show when={error()}>{(message) => <Field.ErrorText>{message()}</Field.ErrorText>}</Show>
+              <Show when={error()}>
+                {(message) => <Field.ErrorText>{message()}</Field.ErrorText>}
+              </Show>
             </Field.Root>
-            <Button size="lg" loading={pending()} disabled={!username().trim() || !password()} onClick={login}>
+            <Button
+              size="lg"
+              loading={pending()}
+              disabled={!username().trim() || !password()}
+              onClick={login}
+            >
               Sign in
             </Button>
             <Box p="3" bg="bg.muted" borderRadius="l2">
-              <Text textStyle="sm" color="fg.muted">Use the username and private password provided by your administrator.</Text>
+              <Text textStyle="sm" color="fg.muted">
+                Use the username and private password provided by your administrator.
+              </Text>
             </Box>
           </VStack>
         </Card.Body>

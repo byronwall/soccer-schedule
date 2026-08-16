@@ -1,9 +1,5 @@
 import { For } from "solid-js";
-import {
-  Button,
-  SimpleDialog,
-  SimpleSelect,
-} from "~/components/ui";
+import { Button, SimpleDialog, SimpleSelect } from "~/components/ui";
 import { useLiveGame } from "~/features/soccer/LiveGameProvider";
 import { HStack, VStack } from "styled-system/jsx";
 
@@ -11,9 +7,7 @@ export function LiveTrackerDialogs() {
   const tracker = useLiveGame();
   const pending = () => !!tracker.ui.pendingAction;
   const currentPosition = () =>
-    tracker.data.positions().find(
-      (position) => position.key === tracker.ui.selectedPositionKey,
-    );
+    tracker.data.positions().find((position) => position.key === tracker.ui.selectedPositionKey);
 
   return (
     <>
@@ -39,9 +33,9 @@ export function LiveTrackerDialogs() {
           </For>
           <strong>Swap field positions</strong>
           <For
-            each={tracker.data.positions().filter(
-              (position) => position.key !== tracker.ui.selectedPositionKey,
-            )}
+            each={tracker.data
+              .positions()
+              .filter((position) => position.key !== tracker.ui.selectedPositionKey)}
           >
             {(position) => (
               <Button
@@ -79,9 +73,7 @@ export function LiveTrackerDialogs() {
             disabled={!tracker.ui.goalPlayerId || pending()}
             onClick={() => void tracker.recordGoal()}
           >
-            {tracker.ui.pendingAction === "liveRecordGoal"
-              ? "Recording…"
-              : "Record goal"}
+            {tracker.ui.pendingAction === "liveRecordGoal" ? "Recording…" : "Record goal"}
           </Button>
         </VStack>
       </SimpleDialog>
@@ -94,17 +86,10 @@ export function LiveTrackerDialogs() {
         skipPortal
       >
         <HStack justifyContent="flex-end">
-          <Button
-            variant="outline"
-            onClick={() => tracker.requestVoid(undefined)}
-          >
+          <Button variant="outline" onClick={() => tracker.requestVoid(undefined)}>
             Cancel
           </Button>
-          <Button
-            colorPalette="red"
-            disabled={pending()}
-            onClick={() => void tracker.voidEvent()}
-          >
+          <Button colorPalette="red" disabled={pending()} onClick={() => void tracker.voidEvent()}>
             Void event
           </Button>
         </HStack>
@@ -118,10 +103,7 @@ export function LiveTrackerDialogs() {
         skipPortal
       >
         <HStack justifyContent="flex-end">
-          <Button
-            variant="outline"
-            onClick={() => tracker.setCompletionOpen(false)}
-          >
+          <Button variant="outline" onClick={() => tracker.setCompletionOpen(false)}>
             Keep tracking
           </Button>
           <Button

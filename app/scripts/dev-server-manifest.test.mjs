@@ -8,10 +8,8 @@ import {
 
 describe("dev server manifest helpers", () => {
   it("detects and normalizes local Vinxi URLs", () => {
-    expect(detectServerUrl("  Local: http://0.0.0.0:3210/"))
-      .toBe("http://localhost:3210");
-    expect(normalizeLocalServerUrl("https://example.com:3000"))
-      .toBeNull();
+    expect(detectServerUrl("  Local: http://0.0.0.0:3210/")).toBe("http://localhost:3210");
+    expect(normalizeLocalServerUrl("https://example.com:3000")).toBeNull();
   });
 
   it("advertises active server details", () => {

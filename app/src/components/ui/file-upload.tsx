@@ -1,17 +1,7 @@
 import { FileUpload, useFileUploadContext } from "@ark-ui/solid/file-upload";
 import { FileIcon, XIcon } from "lucide-solid";
-import {
-  type ComponentProps,
-  createMemo,
-  For,
-  Show,
-  splitProps,
-} from "solid-js";
-import {
-  createStyleContext,
-  type HTMLStyledProps,
-  Stack,
-} from "styled-system/jsx";
+import { type ComponentProps, createMemo, For, Show, splitProps } from "solid-js";
+import { createStyleContext, type HTMLStyledProps, Stack } from "styled-system/jsx";
 import { fileUpload } from "styled-system/recipes";
 import { Span } from "./span";
 import { Button as DemoButton } from "./button";
@@ -43,33 +33,20 @@ export type ItemProps = ComponentProps<typeof Item>;
 
 export const Root = withProvider(FileUpload.Root, "root");
 export const RootProvider = withProvider(FileUpload.RootProvider, "root");
-export const ClearTrigger = withContext(
-  FileUpload.ClearTrigger,
-  "clearTrigger",
-);
+export const ClearTrigger = withContext(FileUpload.ClearTrigger, "clearTrigger");
 export const Dropzone = withContext(FileUpload.Dropzone, "dropzone");
 export const HiddenInput = FileUpload.HiddenInput;
 export const Item = withContext(FileUpload.Item, "item");
-export const ItemDeleteTrigger = withContext(
-  FileUpload.ItemDeleteTrigger,
-  "itemDeleteTrigger",
-  {
-    defaultProps: () => ({ children: <XIcon /> }),
-  },
-);
+export const ItemDeleteTrigger = withContext(FileUpload.ItemDeleteTrigger, "itemDeleteTrigger", {
+  defaultProps: () => ({ children: <XIcon /> }),
+});
 export const ItemGroup = withContext(FileUpload.ItemGroup, "itemGroup");
 export const ItemName = withContext(FileUpload.ItemName, "itemName");
 export const ItemPreview = withContext(FileUpload.ItemPreview, "itemPreview", {
   defaultProps: () => ({ children: <FileIcon /> }),
 });
-export const ItemPreviewImage = withContext(
-  FileUpload.ItemPreviewImage,
-  "itemPreviewImage",
-);
-export const ItemSizeText = withContext(
-  FileUpload.ItemSizeText,
-  "itemSizeText",
-);
+export const ItemPreviewImage = withContext(FileUpload.ItemPreviewImage, "itemPreviewImage");
+export const ItemSizeText = withContext(FileUpload.ItemSizeText, "itemSizeText");
 export const Label = withContext(FileUpload.Label, "label");
 export const Trigger = withContext(FileUpload.Trigger, "trigger");
 
@@ -116,11 +93,7 @@ export const List = (props: FileUploadListProps) => {
 
   return (
     <ItemGroup {...rest}>
-      <Items
-        showSize={local.showSize}
-        clearable={local.clearable}
-        files={local.files}
-      />
+      <Items showSize={local.showSize} clearable={local.clearable} files={local.files} />
     </ItemGroup>
   );
 };
@@ -168,9 +141,7 @@ export const FileUploadDemo = (props: FileUploadDemoProps) => {
     <Root {...(props.variantProps ?? {})} maxFiles={1} width="72">
       <Label>Upload File</Label>
       <HiddenInput />
-      <Trigger
-        asChild={(props) => <DemoButton {...props()}>Choose File</DemoButton>}
-      />
+      <Trigger asChild={(props) => <DemoButton {...props()}>Choose File</DemoButton>} />
     </Root>
   );
 };

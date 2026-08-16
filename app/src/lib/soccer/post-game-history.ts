@@ -1,8 +1,4 @@
-import {
-  POSITIONS,
-  type PositionKey,
-  type SegmentKey,
-} from "./fixed-game";
+import { POSITIONS, type PositionKey, type SegmentKey } from "./fixed-game";
 import { activeLiveEvents, type LiveLineup } from "./live-game";
 import type { LiveEvent, LiveState } from "./live-event-schemas";
 import type { Schedule } from "./schemas";
@@ -53,50 +49,34 @@ type IndexedEvent = { event: LiveEvent };
 const segmentKey = (quarter: number, seconds: number) =>
   `q${quarter}${seconds < 420 ? "a" : "b"}` as SegmentKey;
 
-const publishedLineup = (
-  schedule: Schedule,
-  quarter: number,
-  seconds: number,
-) => Object.fromEntries(
-  schedule.assignments
-    .filter((assignment) =>
-      assignment.segmentKey === segmentKey(quarter, seconds))
-    .map((assignment) => [assignment.positionKey, assignment.playerId]),
-) as LiveLineup;
+const publishedLineup = (schedule: Schedule, quarter: number, seconds: number) =>
+  Object.fromEntries(
+    schedule.assignments
+      .filter((assignment) => assignment.segmentKey === segmentKey(quarter, seconds))
+      .map((assignment) => [assignment.positionKey, assignment.playerId]),
+  ) as LiveLineup;
 
-const mutationEventsThrough = (
-  events: IndexedEvent[],
-  quarter: number,
-  seconds: number,
-) => events.filter(({ event }) =>
-  event.quarter === quarter &&
-  event.elapsedGameClockSeconds <= seconds &&
-  (
-    event.type === "bench_replaced_field_player" ||
-    event.type === "field_players_swapped" ||
-    event.type === "lineup_reset_to_published_plan"
-  ));
+const mutationEventsThrough = (events: IndexedEvent[], quarter: number, seconds: number) =>
+  events.filter(
+    ({ event }) =>
+      event.quarter === quarter &&
+      event.elapsedGameClockSeconds <= seconds &&
+      (event.type === "bench_replaced_field_player" ||
+        event.type === "field_players_swapped" ||
+        event.type === "lineup_reset_to_published_plan"),
+  );
 
-const lineupAt = (
-  schedule: Schedule,
-  events: IndexedEvent[],
-  quarter: number,
-  seconds: number,
-) => {
+const lineupAt = (schedule: Schedule, events: IndexedEvent[], quarter: number, seconds: number) => {
   let lineup = publishedLineup(schedule, quarter, seconds);
   for (const { event } of mutationEventsThrough(events, quarter, seconds)) {
     if (event.type === "lineup_reset_to_published_plan") {
       lineup = publishedLineup(schedule, quarter, seconds);
     } else if (event.type === "bench_replaced_field_player") {
       const incomingPosition = POSITIONS.find(
-        (position) =>
-          lineup[position.key] === event.payload.incomingPlayerId,
+        (position) => lineup[position.key] === event.payload.incomingPlayerId,
       )?.key;
       lineup[event.payload.positionKey] = event.payload.incomingPlayerId;
-      if (
-        incomingPosition &&
-        incomingPosition !== event.payload.positionKey
-      ) {
+      if (incomingPosition && incomingPosition !== event.payload.positionKey) {
         lineup[incomingPosition] = event.payload.outgoingPlayerId;
       }
     } else if (event.type === "field_players_swapped") {
@@ -110,12 +90,9 @@ const lineupAt = (
 };
 
 const confirmedBoundary = (events: LiveEvent[]) => {
-  const completionIndex = events.findIndex(
-    (event) => event.type === "game_completed",
-  );
+  const completionIndex = events.findIndex((event) => event.type === "game_completed");
   const confirmationIndex = events.findIndex(
-    (event, index) =>
-      index > completionIndex && event.type === "actual_record_confirmed",
+    (event, index) => index > completionIndex && event.type === "actual_record_confirmed",
   );
   if (completionIndex < 0 || confirmationIndex < 0) return undefined;
   return { completionIndex, confirmationIndex, completion: events[completionIndex] };
@@ -134,10 +111,7 @@ const quarterEnds = (events: LiveEvent[], completion: LiveEvent) => {
     .sort(([left], [right]) => left - right);
 };
 
-const appendInterval = (
-  intervals: ActualPositionInterval[],
-  interval: ActualPositionInterval,
-) => {
+const appendInterval = (intervals: ActualPositionInterval[], interval: ActualPositionInterval) => {
   if (interval.durationSeconds <= 0) return;
   const previous = intervals.at(-1);
   if (
@@ -163,22 +137,19 @@ const deriveIntervals = (
   const intervals: ActualPositionInterval[] = [];
   for (const [quarter, endSeconds] of ends) {
     const mutationTimes = events
-      .filter(({ event }) =>
-        event.quarter === quarter &&
-        event.elapsedGameClockSeconds > 0 &&
-        event.elapsedGameClockSeconds < endSeconds &&
-        (
-          event.type === "bench_replaced_field_player" ||
-          event.type === "field_players_swapped" ||
-          event.type === "lineup_reset_to_published_plan"
-        ))
+      .filter(
+        ({ event }) =>
+          event.quarter === quarter &&
+          event.elapsedGameClockSeconds > 0 &&
+          event.elapsedGameClockSeconds < endSeconds &&
+          (event.type === "bench_replaced_field_player" ||
+            event.type === "field_players_swapped" ||
+            event.type === "lineup_reset_to_published_plan"),
+      )
       .map(({ event }) => event.elapsedGameClockSeconds);
-    const points = [...new Set([
-      0,
-      ...(endSeconds > 420 ? [420] : []),
-      ...mutationTimes,
-      endSeconds,
-    ])].sort((left, right) => left - right);
+    const points = [
+      ...new Set([0, ...(endSeconds > 420 ? [420] : []), ...mutationTimes, endSeconds]),
+    ].sort((left, right) => left - right);
 
     for (let index = 0; index < points.length - 1; index += 1) {
       const startSeconds = points[index];
@@ -217,29 +188,28 @@ const summarizePlayers = (
   playerIds: string[],
   intervals: ActualPositionInterval[],
   goals: ActualGoal[],
-) => playerIds.map((playerId) => {
-  const playerIntervals = intervals.filter(
-    (interval) => interval.playerId === playerId,
-  );
-  const positionSeconds: Partial<Record<PositionKey, number>> = {};
-  for (const interval of playerIntervals) {
-    if (!interval.positionKey) continue;
-    positionSeconds[interval.positionKey] =
-      (positionSeconds[interval.positionKey] ?? 0) + interval.durationSeconds;
-  }
-  return {
-    playerId,
-    fieldSeconds: playerIntervals
-      .filter((interval) => interval.positionKey)
-      .reduce((total, interval) => total + interval.durationSeconds, 0),
-    benchSeconds: playerIntervals
-      .filter((interval) => !interval.positionKey)
-      .reduce((total, interval) => total + interval.durationSeconds, 0),
-    positionSeconds,
-    intervals: playerIntervals,
-    goals: goals.filter((goal) => goal.playerId === playerId),
-  };
-});
+) =>
+  playerIds.map((playerId) => {
+    const playerIntervals = intervals.filter((interval) => interval.playerId === playerId);
+    const positionSeconds: Partial<Record<PositionKey, number>> = {};
+    for (const interval of playerIntervals) {
+      if (!interval.positionKey) continue;
+      positionSeconds[interval.positionKey] =
+        (positionSeconds[interval.positionKey] ?? 0) + interval.durationSeconds;
+    }
+    return {
+      playerId,
+      fieldSeconds: playerIntervals
+        .filter((interval) => interval.positionKey)
+        .reduce((total, interval) => total + interval.durationSeconds, 0),
+      benchSeconds: playerIntervals
+        .filter((interval) => !interval.positionKey)
+        .reduce((total, interval) => total + interval.durationSeconds, 0),
+      positionSeconds,
+      intervals: playerIntervals,
+      goals: goals.filter((goal) => goal.playerId === playerId),
+    };
+  });
 
 export const deriveActualGameSummary = (options: {
   schedule?: Schedule;
@@ -274,26 +244,25 @@ export const deriveActualGameSummary = (options: {
       return [];
     }
     seenGoalSubmissions.add(event.payload.submissionId);
-    return [{
-      eventId: event.id,
-      playerId: event.payload.playerId,
-      quarter: event.quarter,
-      elapsedGameClockSeconds: event.elapsedGameClockSeconds,
-      serverTimestamp: event.serverTimestamp,
-    }];
+    return [
+      {
+        eventId: event.id,
+        playerId: event.payload.playerId,
+        quarter: event.quarter,
+        elapsedGameClockSeconds: event.elapsedGameClockSeconds,
+        serverTimestamp: event.serverTimestamp,
+      },
+    ];
   });
   const ends = quarterEnds(trustedEvents, boundary.completion);
-  const intervals = deriveIntervals(
-    schedule,
-    indexed,
-    availablePlayerIds,
-    ends,
-  );
-  const playerIds = [...new Set([
-    ...availablePlayerIds,
-    ...intervals.map((interval) => interval.playerId),
-    ...goals.map((goal) => goal.playerId),
-  ])];
+  const intervals = deriveIntervals(schedule, indexed, availablePlayerIds, ends);
+  const playerIds = [
+    ...new Set([
+      ...availablePlayerIds,
+      ...intervals.map((interval) => interval.playerId),
+      ...goals.map((goal) => goal.playerId),
+    ]),
+  ];
 
   return {
     status: "confirmed",

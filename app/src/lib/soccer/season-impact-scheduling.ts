@@ -1,23 +1,18 @@
-import {
-  POSITIONS,
-  SEGMENTS,
-  type PositionGroup,
-} from "./fixed-game";
+import { POSITIONS, SEGMENTS, type PositionGroup } from "./fixed-game";
 import { scoreSchedule } from "./scheduling";
 import type { Assignment, PlayerPreference } from "./schemas";
 import { z } from "zod";
 
-export type SeasonImpactAssignmentTarget = Pick<
-  Assignment,
-  "segmentKey" | "positionKey"
->;
+export type SeasonImpactAssignmentTarget = Pick<Assignment, "segmentKey" | "positionKey">;
 
 export const seasonImpactAssignmentResultSchema = z.object({
   changed: z.boolean(),
-  target: z.object({
-    segmentKey: z.string(),
-    positionKey: z.string(),
-  }).optional(),
+  target: z
+    .object({
+      segmentKey: z.string(),
+      positionKey: z.string(),
+    })
+    .optional(),
 });
 
 const candidateRank = (
@@ -55,10 +50,15 @@ export const selectSeasonImpactAssignmentTarget = (options: {
   eligibleIds: string[];
   preferences?: PlayerPreference[];
 }): SeasonImpactAssignmentTarget | undefined => {
-  if (options.assignments.some((assignment) =>
-    assignment.playerId === options.playerId &&
-    POSITIONS.find((position) => position.key === assignment.positionKey)?.group === options.group,
-  )) return undefined;
+  if (
+    options.assignments.some(
+      (assignment) =>
+        assignment.playerId === options.playerId &&
+        POSITIONS.find((position) => position.key === assignment.positionKey)?.group ===
+          options.group,
+    )
+  )
+    return undefined;
 
   const eligible = new Set(options.eligibleIds);
   if (!eligible.has(options.playerId)) return undefined;
@@ -66,28 +66,34 @@ export const selectSeasonImpactAssignmentTarget = (options: {
   let selected: SeasonImpactAssignmentTarget | undefined;
   let selectedRank: number[] | undefined;
   for (const segment of SEGMENTS) {
-    const scheduledInSegment = options.assignments.some((assignment) =>
-      assignment.segmentKey === segment.key && assignment.playerId === options.playerId,
+    const scheduledInSegment = options.assignments.some(
+      (assignment) =>
+        assignment.segmentKey === segment.key && assignment.playerId === options.playerId,
     );
     if (scheduledInSegment) continue;
 
     for (const position of POSITIONS) {
       if (position.group !== options.group) continue;
-      const occupied = options.assignments.some((assignment) =>
-        assignment.segmentKey === segment.key && assignment.positionKey === position.key,
+      const occupied = options.assignments.some(
+        (assignment) =>
+          assignment.segmentKey === segment.key && assignment.positionKey === position.key,
       );
       if (occupied) continue;
 
       const target = { segmentKey: segment.key, positionKey: position.key };
-      const rank = candidateRank([
-        ...options.assignments,
-        {
-          ...target,
-          playerId: options.playerId,
-          source: "manual",
-          locked: true,
-        },
-      ], options.eligibleIds, options.preferences ?? []);
+      const rank = candidateRank(
+        [
+          ...options.assignments,
+          {
+            ...target,
+            playerId: options.playerId,
+            source: "manual",
+            locked: true,
+          },
+        ],
+        options.eligibleIds,
+        options.preferences ?? [],
+      );
       if (!selectedRank || compareRank(rank, selectedRank) < 0) {
         selected = target;
         selectedRank = rank;

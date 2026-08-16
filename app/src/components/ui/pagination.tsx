@@ -20,11 +20,7 @@ export const NextTrigger = withContext(Pagination.NextTrigger, "nextTrigger");
 export { PaginationContext as Context } from "@ark-ui/solid/pagination";
 
 export interface PaginationItemsProps extends JSX.HTMLAttributes<HTMLElement> {
-  render: (page: {
-    type: "page";
-    value: number;
-    selected: boolean;
-  }) => JSX.Element;
+  render: (page: { type: "page"; value: number; selected: boolean }) => JSX.Element;
   ellipsis?: JSX.Element | undefined;
 }
 
@@ -64,19 +60,13 @@ export const PaginationDemo = (props: PaginationDemoProps) => {
   return (
     <Root {...(props.variantProps ?? {})} count={120} pageSize={10}>
       <DemoHStack gap="2">
-        <PrevTrigger
-          asChild={(props) => <DemoButton {...props()}>Prev</DemoButton>}
-        />
+        <PrevTrigger asChild={(props) => <DemoButton {...props()}>Prev</DemoButton>} />
         <Items
           render={(page) => (
-            <DemoButton variant={page.selected ? "solid" : "outline"}>
-              {page.value}
-            </DemoButton>
+            <DemoButton variant={page.selected ? "solid" : "outline"}>{page.value}</DemoButton>
           )}
         />
-        <NextTrigger
-          asChild={(props) => <DemoButton {...props()}>Next</DemoButton>}
-        />
+        <NextTrigger asChild={(props) => <DemoButton {...props()}>Next</DemoButton>} />
       </DemoHStack>
     </Root>
   );

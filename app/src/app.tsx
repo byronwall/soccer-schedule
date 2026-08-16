@@ -1,13 +1,7 @@
 import { Router } from "@solidjs/router";
 import { Link, Meta, MetaProvider, Title } from "@solidjs/meta";
 import { FileRoutes } from "@solidjs/start/router";
-import {
-  ErrorBoundary,
-  Suspense,
-  createSignal,
-  onCleanup,
-  onMount,
-} from "solid-js";
+import { ErrorBoundary, Suspense, createSignal, onCleanup, onMount } from "solid-js";
 import { ConsoleLogCaptureProvider } from "./components/ui";
 import { GlobalErrorOverlay } from "./components/errors/GlobalErrorOverlay";
 
@@ -19,11 +13,9 @@ type ClientExceptionState = {
 };
 
 export default function App() {
-  const [clientException, setClientException] =
-    createSignal<ClientExceptionState | null>(null);
+  const [clientException, setClientException] = createSignal<ClientExceptionState | null>(null);
   const serverBase = import.meta.env.SERVER_BASE_URL || "/";
-  const routerBase =
-    serverBase === "/" ? "/" : serverBase.replace(/\/+$/, "");
+  const routerBase = serverBase === "/" ? "/" : serverBase.replace(/\/+$/, "");
 
   onMount(() => {
     const handleError = (event: ErrorEvent) => {

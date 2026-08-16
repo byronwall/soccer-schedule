@@ -11,11 +11,7 @@ import {
   type LiveSwapCommand,
   type LiveVoidCommand,
 } from "./live-command-schemas";
-import {
-  correctableLiveEvents,
-  elapsedLiveSecondsAt,
-  reconstructLiveLineup,
-} from "./live-game";
+import { correctableLiveEvents, elapsedLiveSecondsAt, reconstructLiveLineup } from "./live-game";
 import {
   liveActorSchema,
   liveEventSchema,
@@ -30,18 +26,13 @@ type LiveRecord = SoccerStore["liveGames"][number];
 
 const requirePublishedSchedule = (store: SoccerStore, gameId: string) => {
   const schedule = store.schedules.find(
-    (candidate) =>
-      candidate.gameId === gameId && candidate.status === "published",
+    (candidate) => candidate.gameId === gameId && candidate.status === "published",
   );
   if (!schedule) throw new Error("Publish a schedule before using live mode.");
   return schedule;
 };
 
-const getOrCreateLiveState = (
-  store: SoccerStore,
-  gameId: string,
-  stamp: string,
-) => {
+const getOrCreateLiveState = (store: SoccerStore, gameId: string, stamp: string) => {
   const existing = store.liveGames.find((item) => item.gameId === gameId);
   if (existing) return existing;
   const created: LiveRecord = {
@@ -79,9 +70,7 @@ const appendEvent = (
 
 const assertTrackingAvailable = (live: LiveRecord) => {
   if (live.actualHistoryStatus === "legacy_unavailable") {
-    throw new Error(
-      "Actual history is unavailable for this legacy live record.",
-    );
+    throw new Error("Actual history is unavailable for this legacy live record.");
   }
   if (live.status === "completed") {
     throw new Error("This game has already been completed and confirmed.");
@@ -95,10 +84,7 @@ const assertGameStarted = (live: LiveRecord) => {
   }
 };
 
-const assertLiveRevision = (
-  live: LiveRecord,
-  payload: { expectedRevision: number },
-) => {
+const assertLiveRevision = (live: LiveRecord, payload: { expectedRevision: number }) => {
   if (payload.expectedRevision !== live.revision) {
     throw new Error(
       "Version conflict: this live record changed on another device. Refresh and reapply the action.",
@@ -109,21 +95,13 @@ const assertLiveRevision = (
 const availablePlayers = (store: SoccerStore, gameId: string) => {
   const availableIds = new Set(
     store.availability
-      .filter(
-        (item) => item.gameId === gameId && item.status === "available",
-      )
+      .filter((item) => item.gameId === gameId && item.status === "available")
       .map((item) => item.playerId),
   );
-  return store.players.filter(
-    (player) => player.active && availableIds.has(player.id),
-  );
+  return store.players.filter((player) => player.active && availableIds.has(player.id));
 };
 
-const requireAvailablePlayer = (
-  store: SoccerStore,
-  gameId: string,
-  playerId: string,
-) => {
+const requireAvailablePlayer = (store: SoccerStore, gameId: string, playerId: string) => {
   const player = requirePlayer(store, playerId);
   if (!availablePlayers(store, gameId).some((item) => item.id === player.id)) {
     throw new Error("That player is unavailable for this game.");
@@ -131,16 +109,8 @@ const requireAvailablePlayer = (
   return player;
 };
 
-const currentLineup = (
-  store: SoccerStore,
-  live: LiveRecord,
-  stamp: string,
-) =>
-  reconstructLiveLineup(
-    requirePublishedSchedule(store, live.gameId),
-    live,
-    stamp,
-  );
+const currentLineup = (store: SoccerStore, live: LiveRecord, stamp: string) =>
+  reconstructLiveLineup(requirePublishedSchedule(store, live.gameId), live, stamp);
 
 const requirePosition = (positionKey: PositionKey) => {
   const position = POSITIONS.find((candidate) => candidate.key === positionKey);
@@ -148,11 +118,7 @@ const requirePosition = (positionKey: PositionKey) => {
   return position;
 };
 
-const startOrResume = (
-  live: LiveRecord,
-  actor: LiveActor,
-  stamp: string,
-) => {
+const startOrResume = (live: LiveRecord, actor: LiveActor, stamp: string) => {
   assertTrackingAvailable(live);
   if (live.status === "running") throw new Error("The clock is already running.");
   const type = live.status === "paused" ? "game_resumed" : "game_started";
@@ -174,11 +140,7 @@ const pause = (live: LiveRecord, actor: LiveActor, stamp: string) => {
   return event;
 };
 
-const advanceQuarter = (
-  live: LiveRecord,
-  actor: LiveActor,
-  stamp: string,
-) => {
+const advanceQuarter = (live: LiveRecord, actor: LiveActor, stamp: string) => {
   assertGameStarted(live);
   if (live.quarter === 4) {
     throw new Error('Use "Complete and confirm" after the fourth quarter.');
@@ -269,11 +231,7 @@ const recordGoal = (
   });
 };
 
-const resetLineup = (
-  live: LiveRecord,
-  actor: LiveActor,
-  stamp: string,
-) => {
+const resetLineup = (live: LiveRecord, actor: LiveActor, stamp: string) => {
   assertGameStarted(live);
   return appendEvent(live, actor, stamp, {
     type: "lineup_reset_to_published_plan",
@@ -281,12 +239,7 @@ const resetLineup = (
   });
 };
 
-const voidEvent = (
-  live: LiveRecord,
-  actor: LiveActor,
-  stamp: string,
-  payload: LiveVoidCommand,
-) => {
+const voidEvent = (live: LiveRecord, actor: LiveActor, stamp: string, payload: LiveVoidCommand) => {
   assertGameStarted(live);
   const target = correctableLiveEvents(live.events).find(
     (event) => event.id === payload.targetEventId,
@@ -357,38 +310,15 @@ export const applyLiveAction = (
   else if (action === "liveAdvanceQuarter") {
     result = advanceQuarter(live, actor, stamp);
   } else if (action === "liveSubstitute") {
-    result = substitute(
-      store,
-      live,
-      actor,
-      stamp,
-      liveSubstituteCommandSchema.parse(payload),
-    );
+    result = substitute(store, live, actor, stamp, liveSubstituteCommandSchema.parse(payload));
   } else if (action === "liveSwapPositions") {
-    result = swapPositions(
-      store,
-      live,
-      actor,
-      stamp,
-      liveSwapCommandSchema.parse(payload),
-    );
+    result = swapPositions(store, live, actor, stamp, liveSwapCommandSchema.parse(payload));
   } else if (action === "liveRecordGoal") {
-    result = recordGoal(
-      store,
-      live,
-      actor,
-      stamp,
-      liveGoalCommandSchema.parse(payload),
-    );
+    result = recordGoal(store, live, actor, stamp, liveGoalCommandSchema.parse(payload));
   } else if (action === "liveResetLineup") {
     result = resetLineup(live, actor, stamp);
   } else if (action === "liveVoidEvent") {
-    result = voidEvent(
-      live,
-      actor,
-      stamp,
-      liveVoidCommandSchema.parse(payload),
-    );
+    result = voidEvent(live, actor, stamp, liveVoidCommandSchema.parse(payload));
   } else {
     result = completeAndConfirm(store, live, actor, stamp);
   }

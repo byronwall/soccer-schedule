@@ -7,8 +7,7 @@ type MermaidImport = typeof MermaidModule;
 let mermaidModulePromise: Promise<MermaidImport> | null = null;
 
 export function isBlockCode(className: unknown, inlineProp: unknown): boolean {
-  const hasLanguageClass =
-    typeof className === "string" && /language-\w+/.test(className);
+  const hasLanguageClass = typeof className === "string" && /language-\w+/.test(className);
   if (typeof inlineProp === "boolean") {
     return !inlineProp;
   }

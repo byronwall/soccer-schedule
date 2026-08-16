@@ -9,15 +9,8 @@ type MarkdownMermaidActionTrayProps = {
   onExpand: () => void;
 };
 
-export function MarkdownMermaidActionTray(
-  props: MarkdownMermaidActionTrayProps,
-) {
-  const [local] = splitProps(props, [
-    "isCopied",
-    "onCopy",
-    "onDownload",
-    "onExpand",
-  ]);
+export function MarkdownMermaidActionTray(props: MarkdownMermaidActionTrayProps) {
+  const [local] = splitProps(props, ["isCopied", "onCopy", "onDownload", "onExpand"]);
 
   return (
     <div class={markdownStyles.codeActionTray}>

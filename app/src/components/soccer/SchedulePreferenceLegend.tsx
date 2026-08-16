@@ -1,9 +1,7 @@
 import { For } from "solid-js";
 import { LockKeyhole, TriangleAlert } from "lucide-solid";
 import { Text } from "~/components/ui";
-import type {
-  PositionDisposition,
-} from "~/lib/soccer/schemas";
+import type { PositionDisposition } from "~/lib/soccer/schemas";
 import { Box, HStack } from "styled-system/jsx";
 
 const ITEMS: Array<{
@@ -27,7 +25,9 @@ function RingKey(props: { label: string; dashed?: boolean; color?: string }) {
           "outline-offset": "-2px",
         }}
       />
-      <Text textStyle="xs" color="fg.muted">{props.label}</Text>
+      <Text textStyle="xs" color="fg.muted">
+        {props.label}
+      </Text>
     </HStack>
   );
 }
@@ -40,7 +40,9 @@ export function SchedulePreferenceLegend() {
       gap="3"
       flexWrap="wrap"
     >
-      <Text textStyle="xs" fontWeight="semibold">Cell legend</Text>
+      <Text textStyle="xs" fontWeight="semibold">
+        Cell legend
+      </Text>
       <For each={ITEMS}>
         {(item) => (
           <HStack gap="1">
@@ -52,15 +54,29 @@ export function SchedulePreferenceLegend() {
               style={{ "background-color": item.color }}
               data-preference={item.disposition}
             />
-            <Text textStyle="xs" color="fg.muted">{item.label}</Text>
+            <Text textStyle="xs" color="fg.muted">
+              {item.label}
+            </Text>
           </HStack>
         )}
       </For>
       <HStack gap="1">
-        <Box boxSize="3" borderWidth="1px" borderColor="border" borderRadius="sm" bg="bg.default" display="grid" placeItems="center">
-          <Text textStyle="xs" color="fg.muted" lineHeight="1">—</Text>
+        <Box
+          boxSize="3"
+          borderWidth="1px"
+          borderColor="border"
+          borderRadius="sm"
+          bg="bg.default"
+          display="grid"
+          placeItems="center"
+        >
+          <Text textStyle="xs" color="fg.muted" lineHeight="1">
+            —
+          </Text>
         </Box>
-        <Text textStyle="xs" color="fg.muted">Empty</Text>
+        <Text textStyle="xs" color="fg.muted">
+          Empty
+        </Text>
       </HStack>
       <HStack gap="1" color="fg.muted">
         <LockKeyhole size={12} />
@@ -68,7 +84,9 @@ export function SchedulePreferenceLegend() {
       </HStack>
       <HStack gap="1" color="orange.fg">
         <TriangleAlert size={12} />
-        <Text textStyle="xs" color="fg.muted">Warning</Text>
+        <Text textStyle="xs" color="fg.muted">
+          Warning
+        </Text>
       </HStack>
       <RingKey label="Selected" />
       <RingKey label="Generated change" dashed />

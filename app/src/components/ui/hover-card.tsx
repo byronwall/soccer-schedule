@@ -33,9 +33,7 @@ export const HoverCardDemo = (props: HoverCardDemoProps) => {
       <HStack alignItems="center" gap="6" flexWrap="wrap">
         <Root {...(props.variantProps ?? {})} openDelay={150}>
           <Trigger
-            asChild={(triggerProps) => (
-              <DemoLink {...triggerProps()}>@panda_park</DemoLink>
-            )}
+            asChild={(triggerProps) => <DemoLink {...triggerProps()}>@panda_park</DemoLink>}
           />
           <Positioner>
             <Content gap="3">
@@ -48,18 +46,14 @@ export const HoverCardDemo = (props: HoverCardDemoProps) => {
                 </VStack>
                 <DemoBadge>Pro</DemoBadge>
               </HStack>
-              <DemoText textStyle="sm">
-                Building reusable UI primitives with Panda + Park.
-              </DemoText>
+              <DemoText textStyle="sm">Building reusable UI primitives with Panda + Park.</DemoText>
             </Content>
           </Positioner>
         </Root>
 
         <Root {...(props.variantProps ?? {})} positioning={{ placement: "right" }}>
           <Trigger
-            asChild={(triggerProps) => (
-              <DemoLink {...triggerProps()}>Weekly metrics</DemoLink>
-            )}
+            asChild={(triggerProps) => <DemoLink {...triggerProps()}>Weekly metrics</DemoLink>}
           />
           <Positioner>
             <Content gap="3">
@@ -93,9 +87,7 @@ export const HoverCardDemo = (props: HoverCardDemoProps) => {
           positioning={{ placement: "bottom-start" }}
         >
           <Trigger
-            asChild={(triggerProps) => (
-              <DemoLink {...triggerProps()}>Actions menu</DemoLink>
-            )}
+            asChild={(triggerProps) => <DemoLink {...triggerProps()}>Actions menu</DemoLink>}
           />
           <Positioner>
             <Content gap="2">

@@ -1,32 +1,23 @@
 import { For, Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
-import {
-  Badge,
-  IconButton,
-  Text,
-  Tooltip,
-} from "~/components/ui";
+import { Badge, IconButton, Text, Tooltip } from "~/components/ui";
 import { Sparkles } from "lucide-solid";
-import { POSITIONS, SEGMENTS, type Position, type PositionKey, type SegmentKey } from "~/lib/soccer/fixed-game";
 import {
-  lockStateForAssignments,
-  type LockState,
-} from "~/lib/soccer/schedule-readiness";
+  POSITIONS,
+  SEGMENTS,
+  type Position,
+  type PositionKey,
+  type SegmentKey,
+} from "~/lib/soccer/fixed-game";
+import { lockStateForAssignments, type LockState } from "~/lib/soccer/schedule-readiness";
 import {
   orderSubstitutesForDisplay,
   scheduleCellWarnings,
   scheduleSubstituteWarnings,
   substituteCountForRoster,
 } from "~/lib/soccer/scheduling";
-import type {
-  Player,
-  PlayerPreference,
-  Schedule,
-} from "~/lib/soccer/schemas";
-import {
-  playerPreferenceLookup,
-  positionDisposition,
-} from "~/lib/soccer/player-preferences";
+import type { Player, PlayerPreference, Schedule } from "~/lib/soccer/schemas";
+import { playerPreferenceLookup, positionDisposition } from "~/lib/soccer/player-preferences";
 import { setScheduleDragSelectionState } from "~/lib/soccer/schedule-drag-selection";
 import { Box, Grid, HStack, VStack } from "styled-system/jsx";
 import { PlayerAssignmentCell, SubstituteCell } from "./ScheduleGridCells";
@@ -61,7 +52,9 @@ const cellKey = (segmentKey: SegmentKey, rowKey: string) => `${segmentKey}:${row
 export function PositionGrid(props: PositionGridProps) {
   const [dragState, setDragState] = createStore<{ source?: DragSource; over?: string }>({});
   const [emphasizedPlayerId, setEmphasizedPlayerId] = createSignal<string>();
-  let pointerDrag: { source: DragSource; startX: number; startY: number; moved: boolean } | undefined;
+  let pointerDrag:
+    | { source: DragSource; startX: number; startY: number; moved: boolean }
+    | undefined;
   let suppressNextClick = false;
   let dragSelectionActive = false;
   const setDragSelectionActive = (active: boolean) => {
@@ -80,7 +73,10 @@ export function PositionGrid(props: PositionGridProps) {
     };
     const handlePointerMove = (event: PointerEvent) => {
       if (!pointerDrag) return;
-      const distance = Math.hypot(event.clientX - pointerDrag.startX, event.clientY - pointerDrag.startY);
+      const distance = Math.hypot(
+        event.clientX - pointerDrag.startX,
+        event.clientY - pointerDrag.startY,
+      );
       if (!pointerDrag.moved && distance < 6) return;
       event.preventDefault();
       if (!pointerDrag.moved) {
@@ -88,9 +84,12 @@ export function PositionGrid(props: PositionGridProps) {
         setDragState({ source: pointerDrag.source, over: undefined });
       }
       const target = dragTargetAt(event.clientX, event.clientY);
-      setDragState("over", target?.segmentKey === pointerDrag.source.segmentKey
-        ? cellKey(target.segmentKey, target.positionKey ?? target.rowKey)
-        : undefined);
+      setDragState(
+        "over",
+        target?.segmentKey === pointerDrag.source.segmentKey
+          ? cellKey(target.segmentKey, target.positionKey ?? target.rowKey)
+          : undefined,
+      );
     };
     const handlePointerUp = (event: PointerEvent) => {
       if (!pointerDrag) return;
@@ -141,14 +140,15 @@ export function PositionGrid(props: PositionGridProps) {
   const substituteCount = () => substituteCountForRoster(props.players.length);
   const isInactive = (player?: Player) => !!player && props.inactivePlayerIds.includes(player.id);
   const warnings = createMemo(() => scheduleCellWarnings(props.schedule.assignments));
-  const preferences = createMemo(() =>
-    playerPreferenceLookup(props.preferences));
-  const substituteWarnings = createMemo(() => scheduleSubstituteWarnings(
-    props.schedule.assignments,
-    props.players
-      .filter((player) => !props.inactivePlayerIds.includes(player.id))
-      .map((player) => player.id),
-  ));
+  const preferences = createMemo(() => playerPreferenceLookup(props.preferences));
+  const substituteWarnings = createMemo(() =>
+    scheduleSubstituteWarnings(
+      props.schedule.assignments,
+      props.players
+        .filter((player) => !props.inactivePlayerIds.includes(player.id))
+        .map((player) => player.id),
+    ),
+  );
   const cellWarnings = (segmentKey: SegmentKey, positionKey: PositionKey) =>
     warnings()
       .filter((warning) => warning.segmentKey === segmentKey && warning.positionKey === positionKey)
@@ -159,15 +159,11 @@ export function PositionGrid(props: PositionGridProps) {
       .map((warning) => warning.message);
   const positionLockState = (positionKey: PositionKey): LockState =>
     lockStateForAssignments(
-      props.schedule.assignments.filter(
-        (item) => item.positionKey === positionKey,
-      ),
+      props.schedule.assignments.filter((item) => item.positionKey === positionKey),
     );
   const segmentLockState = (segmentKey: SegmentKey): LockState =>
     lockStateForAssignments(
-      props.schedule.assignments.filter(
-        (item) => item.segmentKey === segmentKey,
-      ),
+      props.schedule.assignments.filter((item) => item.segmentKey === segmentKey),
     );
 
   const beginPointerDrag = (event: PointerEvent, source: DragSource) => {
@@ -179,13 +175,22 @@ export function PositionGrid(props: PositionGridProps) {
   const finishDrop = (target: DragSource & { rowKey: string }, sourceOverride?: DragSource) => {
     const source = sourceOverride ?? dragState.source;
     cancelDrag();
-    if (!source || source.segmentKey !== target.segmentKey || source.playerId === target.playerId) return;
+    if (!source || source.segmentKey !== target.segmentKey || source.playerId === target.playerId)
+      return;
     if (target.positionKey) {
-      props.onSwap({ segmentKey: target.segmentKey, positionKey: target.positionKey, playerId: source.playerId });
+      props.onSwap({
+        segmentKey: target.segmentKey,
+        positionKey: target.positionKey,
+        playerId: source.playerId,
+      });
       return;
     }
     if (source.positionKey) {
-      props.onSwap({ segmentKey: source.segmentKey, positionKey: source.positionKey, playerId: target.playerId });
+      props.onSwap({
+        segmentKey: source.segmentKey,
+        positionKey: source.positionKey,
+        playerId: target.playerId,
+      });
     }
   };
 
@@ -199,38 +204,39 @@ export function PositionGrid(props: PositionGridProps) {
 
   const emphasizeFromPointer = (event: PointerEvent) => {
     const target = event.target;
-    const cell = target instanceof Element
-      ? target.closest<HTMLElement>("[data-player-id]")
-      : undefined;
+    const cell =
+      target instanceof Element ? target.closest<HTMLElement>("[data-player-id]") : undefined;
     setEmphasizedPlayerId(cell?.dataset.playerId);
   };
 
   return (
     <Box
-        minW="760px"
-        bg="bg.default"
-        borderWidth="1px"
-        borderColor="border"
-        borderRadius="l3"
-        overflow="hidden"
-        onPointerMove={emphasizeFromPointer}
-        onPointerLeave={() => setEmphasizedPlayerId()}
-      >
+      minW="760px"
+      bg="bg.default"
+      borderWidth="1px"
+      borderColor="border"
+      borderRadius="l3"
+      overflow="hidden"
+      onPointerMove={emphasizeFromPointer}
+      onPointerLeave={() => setEmphasizedPlayerId()}
+    >
       <Grid gridTemplateColumns="128px repeat(8, minmax(0, 1fr))" gap="0" bg="bg.muted">
-        <Box px="2" py="1.5" fontWeight="semibold" fontSize="sm">Position</Box>
+        <Box px="2" py="1.5" fontWeight="semibold" fontSize="sm">
+          Position
+        </Box>
         <For each={SEGMENTS}>
           {(segment) => (
             <VStack px="1" py="0.5" justifyContent="center" gap="0">
-              <Text textStyle="xs" fontWeight="semibold">{segment.label}</Text>
+              <Text textStyle="xs" fontWeight="semibold">
+                {segment.label}
+              </Text>
               <HStack gap="0">
                 <ScheduleGroupLockButton
                   label={`${segment.label} segment`}
                   state={segmentLockState(segment.key)}
                   disabled={
                     !props.editable ||
-                    !props.schedule.assignments.some(
-                      (item) => item.segmentKey === segment.key,
-                    )
+                    !props.schedule.assignments.some((item) => item.segmentKey === segment.key)
                   }
                   onLock={() => props.onLockSegment(segment.key)}
                 />
@@ -238,9 +244,7 @@ export function PositionGrid(props: PositionGridProps) {
                   label={`${segment.label} assignments`}
                   disabled={
                     !props.editable ||
-                    !props.schedule.assignments.some(
-                      (item) => item.segmentKey === segment.key,
-                    )
+                    !props.schedule.assignments.some((item) => item.segmentKey === segment.key)
                   }
                   onClear={() => props.onClearSegment(segment.key)}
                 />
@@ -253,15 +257,15 @@ export function PositionGrid(props: PositionGridProps) {
                     overflowPadding: 12,
                   }}
                 >
-                <IconButton
-                  size="2xs"
-                  variant="plain"
-                  disabled={!props.editable}
-                  aria-label={`Regenerate ${segment.label} segment`}
-                  onClick={() => props.onGenerateSegment(segment.key)}
-                >
-                  <Sparkles size={14} />
-                </IconButton>
+                  <IconButton
+                    size="2xs"
+                    variant="plain"
+                    disabled={!props.editable}
+                    aria-label={`Regenerate ${segment.label} segment`}
+                    onClick={() => props.onGenerateSegment(segment.key)}
+                  >
+                    <Sparkles size={14} />
+                  </IconButton>
                 </Tooltip>
               </HStack>
             </VStack>
@@ -270,11 +274,18 @@ export function PositionGrid(props: PositionGridProps) {
       </Grid>
       <For each={props.positions}>
         {(position) => (
-          <Grid gridTemplateColumns="128px repeat(8, minmax(0, 1fr))" gap="0" borderTopWidth="1px" borderColor="border">
+          <Grid
+            gridTemplateColumns="128px repeat(8, minmax(0, 1fr))"
+            gap="0"
+            borderTopWidth="1px"
+            borderColor="border"
+          >
             <VStack px="1.5" py="0.5" gap="0" alignItems="start" justifyContent="center">
               <HStack gap="1" minW="0" width="full">
-                  <Badge size="sm">{position.short}</Badge>
-                  <Text textStyle="xs" fontWeight="medium" whiteSpace="nowrap">{position.label}</Text>
+                <Badge size="sm">{position.short}</Badge>
+                <Text textStyle="xs" fontWeight="medium" whiteSpace="nowrap">
+                  {position.label}
+                </Text>
               </HStack>
               <HStack gap="0" flexShrink="0">
                 <ScheduleGroupLockButton
@@ -282,9 +293,7 @@ export function PositionGrid(props: PositionGridProps) {
                   state={positionLockState(position.key)}
                   disabled={
                     !props.editable ||
-                    !props.schedule.assignments.some(
-                      (item) => item.positionKey === position.key,
-                    )
+                    !props.schedule.assignments.some((item) => item.positionKey === position.key)
                   }
                   onLock={() => props.onLockPosition(position.key)}
                 />
@@ -292,9 +301,7 @@ export function PositionGrid(props: PositionGridProps) {
                   label={`${position.label} assignments`}
                   disabled={
                     !props.editable ||
-                    !props.schedule.assignments.some(
-                      (item) => item.positionKey === position.key,
-                    )
+                    !props.schedule.assignments.some((item) => item.positionKey === position.key)
                   }
                   onClear={() => props.onClearPosition(position.key)}
                 />
@@ -336,28 +343,41 @@ export function PositionGrid(props: PositionGridProps) {
                     ]}
                     editable={props.editable}
                     emphasized={emphasizedPlayerId() === assignedPlayer()?.id}
-                    dragging={dragState.source?.playerId === assignedPlayer()?.id && dragState.source?.segmentKey === segment.key}
-                    validTarget={!!dragState.source && dragState.source.segmentKey === segment.key && dragState.source.playerId !== assignedPlayer()?.id && !assignedPlayerInactive()}
+                    dragging={
+                      dragState.source?.playerId === assignedPlayer()?.id &&
+                      dragState.source?.segmentKey === segment.key
+                    }
+                    validTarget={
+                      !!dragState.source &&
+                      dragState.source.segmentKey === segment.key &&
+                      dragState.source.playerId !== assignedPlayer()?.id &&
+                      !assignedPlayerInactive()
+                    }
                     dropTarget={dragState.over === key}
                     changed={props.changedCellIds.includes(key)}
                     selected={
                       props.selected?.segmentKey === segment.key &&
                       props.selected.positionKey === position.key
                     }
-                    preference={assignedPlayer()
-                      ? positionDisposition(
-                          preferences(),
-                          assignedPlayer()!.id,
-                          position.key,
-                        )
-                      : "neutral"}
+                    preference={
+                      assignedPlayer()
+                        ? positionDisposition(preferences(), assignedPlayer()!.id, position.key)
+                        : "neutral"
+                    }
                     segmentKey={segment.key}
                     rowKey={position.key}
                     onEmphasisChange={setEmphasizedPlayerId}
-                    onClick={() => activateFieldCell({ segmentKey: segment.key, positionKey: position.key })}
+                    onClick={() =>
+                      activateFieldCell({ segmentKey: segment.key, positionKey: position.key })
+                    }
                     onPointerDown={(event) => {
                       const currentPlayer = assignedPlayer();
-                      if (currentPlayer && !assignedPlayerInactive()) beginPointerDrag(event, { segmentKey: segment.key, positionKey: position.key, playerId: currentPlayer.id });
+                      if (currentPlayer && !assignedPlayerInactive())
+                        beginPointerDrag(event, {
+                          segmentKey: segment.key,
+                          positionKey: position.key,
+                          playerId: currentPlayer.id,
+                        });
                     }}
                   />
                 );
@@ -367,16 +387,33 @@ export function PositionGrid(props: PositionGridProps) {
         )}
       </For>
       <Show when={substituteCount() > 0}>
-        <Grid gridTemplateColumns="128px repeat(8, minmax(0, 1fr))" gap="0" borderTopWidth="2px" borderColor="border" bg="bg.subtle">
-          <Box px="2" py="1" fontWeight="semibold" fontSize="xs" color="fg.muted">Substitutes</Box>
+        <Grid
+          gridTemplateColumns="128px repeat(8, minmax(0, 1fr))"
+          gap="0"
+          borderTopWidth="2px"
+          borderColor="border"
+          bg="bg.subtle"
+        >
+          <Box px="2" py="1" fontWeight="semibold" fontSize="xs" color="fg.muted">
+            Substitutes
+          </Box>
           <For each={SEGMENTS}>{() => <Box />}</For>
         </Grid>
         <For each={Array.from({ length: substituteCount() })}>
           {(_, substituteIndex) => (
-            <Grid gridTemplateColumns="128px repeat(8, minmax(0, 1fr))" gap="0" borderTopWidth="1px" borderColor="border">
+            <Grid
+              gridTemplateColumns="128px repeat(8, minmax(0, 1fr))"
+              gap="0"
+              borderTopWidth="1px"
+              borderColor="border"
+            >
               <HStack px="1.5" py="0.5" gap="1">
-                <Badge size="sm" colorPalette="gray">SUB</Badge>
-                <Text textStyle="xs" color="fg.muted">Sub {substituteIndex() + 1}</Text>
+                <Badge size="sm" colorPalette="gray">
+                  SUB
+                </Badge>
+                <Text textStyle="xs" color="fg.muted">
+                  Sub {substituteIndex() + 1}
+                </Text>
               </HStack>
               <For each={SEGMENTS}>
                 {(segment) => {
@@ -393,15 +430,27 @@ export function PositionGrid(props: PositionGridProps) {
                       ]}
                       editable={props.editable}
                       emphasized={emphasizedPlayerId() === substitute()?.id}
-                      dragging={dragState.source?.playerId === substitute()?.id && dragState.source?.segmentKey === segment.key}
-                      validTarget={!!dragState.source && dragState.source.segmentKey === segment.key && dragState.source.playerId !== substitute()?.id && !substituteInactive()}
+                      dragging={
+                        dragState.source?.playerId === substitute()?.id &&
+                        dragState.source?.segmentKey === segment.key
+                      }
+                      validTarget={
+                        !!dragState.source &&
+                        dragState.source.segmentKey === segment.key &&
+                        dragState.source.playerId !== substitute()?.id &&
+                        !substituteInactive()
+                      }
                       dropTarget={dragState.over === key()}
                       changed={false}
                       segmentKey={segment.key}
                       rowKey={`sub-${substituteIndex()}`}
                       onPointerDown={(event) => {
                         const currentPlayer = substitute();
-                        if (currentPlayer && !substituteInactive()) beginPointerDrag(event, { segmentKey: segment.key, playerId: currentPlayer.id });
+                        if (currentPlayer && !substituteInactive())
+                          beginPointerDrag(event, {
+                            segmentKey: segment.key,
+                            playerId: currentPlayer.id,
+                          });
                       }}
                     />
                   );
@@ -416,9 +465,11 @@ export function PositionGrid(props: PositionGridProps) {
 }
 
 const dragTargetAt = (x: number, y: number) => {
-  const element = document.elementFromPoint(x, y)?.closest<HTMLElement>(
-    "[data-segment][data-slot][data-player-id]:not([data-drag-disabled='true'])",
-  );
+  const element = document
+    .elementFromPoint(x, y)
+    ?.closest<HTMLElement>(
+      "[data-segment][data-slot][data-player-id]:not([data-drag-disabled='true'])",
+    );
   const segmentKey = SEGMENTS.find((segment) => segment.key === element?.dataset.segment)?.key;
   const playerId = element?.dataset.playerId;
   const rowKey = element?.dataset.slot;

@@ -24,9 +24,10 @@ const migrateLegacyLiveGames = (liveGames: LegacyLiveState[]) =>
   }));
 
 export const migrateSoccerStore = (input: unknown): SoccerStore => {
-  const version = input && typeof input === "object" && "schemaVersion" in input
-    ? (input as { schemaVersion?: unknown }).schemaVersion
-    : undefined;
+  const version =
+    input && typeof input === "object" && "schemaVersion" in input
+      ? (input as { schemaVersion?: unknown }).schemaVersion
+      : undefined;
   if (version === 6) return soccerStoreSchema.parse(input);
   if (version === 5) {
     const previous = soccerStoreV5Schema.parse(input);
@@ -62,7 +63,8 @@ export const migrateSoccerStore = (input: unknown): SoccerStore => {
     playerPreferences: {
       schemaVersion: 1,
       entries: previous.players.map((player) =>
-        createDefaultPlayerPreference(player.id, player.updatedAt)),
+        createDefaultPlayerPreference(player.id, player.updatedAt),
+      ),
     },
   });
 };

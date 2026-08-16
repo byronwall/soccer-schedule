@@ -41,12 +41,7 @@ export * as ToggleGroup from "./toggle-group";
 export { WrapWhen } from "./WrapWhen";
 export { AbsoluteCenter, type AbsoluteCenterProps } from "./absolute-center";
 export { Badge, type BadgeProps } from "./badge";
-export {
-  Button,
-  ButtonGroup,
-  type ButtonGroupProps,
-  type ButtonProps,
-} from "./button";
+export { Button, ButtonGroup, type ButtonGroupProps, type ButtonProps } from "./button";
 export { ClearButton, type ClearButtonProps } from "./clear-button";
 export { CloseButton, type CloseButtonProps } from "./close-button";
 export { Code, type CodeProps } from "./code";

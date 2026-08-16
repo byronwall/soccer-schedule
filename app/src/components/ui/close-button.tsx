@@ -8,12 +8,7 @@ export const CloseButton = (props: CloseButtonProps) => {
   const [local, rest] = splitProps(props, ["children"]);
 
   return (
-    <IconButton
-      variant="plain"
-      colorPalette="gray"
-      aria-label="Close"
-      {...rest}
-    >
+    <IconButton variant="plain" colorPalette="gray" aria-label="Close" {...rest}>
       {local.children ?? <XIcon />}
     </IconButton>
   );

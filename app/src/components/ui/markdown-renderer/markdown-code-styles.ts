@@ -82,8 +82,7 @@ export const markdownCodeStyles = {
     left: 0,
     right: 0,
     height: "40px",
-    background:
-      "linear-gradient(to bottom, transparent 0%, token(colors.bg.subtle) 100%)",
+    background: "linear-gradient(to bottom, transparent 0%, token(colors.bg.subtle) 100%)",
     pointerEvents: "none",
   }),
   expandButton: css({
@@ -113,8 +112,7 @@ export const markdownCodeStyles = {
   blockCode: css({
     "--md-code-line-digits": "2",
     "--md-code-line-gap": "0.5rem",
-    "--md-code-line-column":
-      "calc(var(--md-code-line-digits) * 0.72ch + 0.85rem)",
+    "--md-code-line-column": "calc(var(--md-code-line-digits) * 0.72ch + 0.85rem)",
     fontFamily: "mono",
     fontSize: "sm",
     lineHeight: "relaxed",

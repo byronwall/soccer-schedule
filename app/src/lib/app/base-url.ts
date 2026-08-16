@@ -5,13 +5,9 @@ const normalizeBaseUrl = (value: string | undefined) => {
 };
 
 export const getConfiguredAppBaseUrl = () =>
-  normalizeBaseUrl(process.env.SERVICE_URL_APP) ??
-  normalizeBaseUrl(process.env.APP_BASE_URL);
+  normalizeBaseUrl(process.env.SERVICE_URL_APP) ?? normalizeBaseUrl(process.env.APP_BASE_URL);
 
-export const getAppBaseUrl = (
-  request?: Request,
-  fallback = "http://localhost:3000",
-) =>
+export const getAppBaseUrl = (request?: Request, fallback = "http://localhost:3000") =>
   getConfiguredAppBaseUrl() ??
   (request ? normalizeBaseUrl(new URL(request.url).origin) : undefined) ??
   normalizeBaseUrl(fallback) ??

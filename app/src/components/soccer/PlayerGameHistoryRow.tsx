@@ -4,10 +4,7 @@ import { For, Show } from "solid-js";
 import { Badge, Button, Text } from "~/components/ui";
 import { resolvePositions, type PositionLabels } from "~/lib/soccer/fixed-game";
 import type { PlayerGameSummary } from "~/lib/soccer/player-profile";
-import {
-  formatExactDuration,
-  formatGameClock,
-} from "~/lib/soccer/post-game-history";
+import { formatExactDuration, formatGameClock } from "~/lib/soccer/post-game-history";
 import { Box, Flex, Grid, HStack, VStack } from "styled-system/jsx";
 
 const gameDateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -57,12 +54,7 @@ export function PlayerGameHistoryRow(props: {
   };
 
   return (
-    <Box
-      as="li"
-      borderTopWidth="1px"
-      borderColor="border"
-      _first={{ borderTopWidth: "0" }}
-    >
+    <Box as="li" borderTopWidth="1px" borderColor="border" _first={{ borderTopWidth: "0" }}>
       <Grid
         gridTemplateColumns={{
           base: "1fr",
@@ -74,9 +66,7 @@ export function PlayerGameHistoryRow(props: {
         py="4"
       >
         <VStack alignItems="start" gap="1">
-          <Text fontWeight="semibold">
-            vs. {props.summary.game.opponentName}
-          </Text>
+          <Text fontWeight="semibold">vs. {props.summary.game.opponentName}</Text>
           <HStack gap="3" flexWrap="wrap" color="fg.muted">
             <Text textStyle="sm">
               {gameDateFormatter.format(new Date(props.summary.game.startsAt))}
@@ -128,15 +118,9 @@ export function PlayerGameHistoryRow(props: {
                 fallback={
                   <HStack gap="2" alignItems="start">
                     <Badge
-                      colorPalette={
-                        props.summary.actualStatus === "incomplete"
-                          ? "orange"
-                          : "gray"
-                      }
+                      colorPalette={props.summary.actualStatus === "incomplete" ? "orange" : "gray"}
                     >
-                      {props.summary.actualStatus === "incomplete"
-                        ? "Incomplete"
-                        : "Unavailable"}
+                      {props.summary.actualStatus === "incomplete" ? "Incomplete" : "Unavailable"}
                     </Badge>
                     <Text textStyle="sm" color="fg.muted">
                       {actualStatusText(props.summary)}
@@ -150,8 +134,7 @@ export function PlayerGameHistoryRow(props: {
                       <For each={actualPositions()}>
                         {(position) => (
                           <Badge colorPalette="grass" variant="subtle">
-                            {position.short} ·{" "}
-                            {formatExactDuration(position.seconds)}
+                            {position.short} · {formatExactDuration(position.seconds)}
                           </Badge>
                         )}
                       </For>
@@ -164,10 +147,7 @@ export function PlayerGameHistoryRow(props: {
                         <For each={actual().goals}>
                           {(goal) => (
                             <Badge colorPalette="green">
-                              Goal · Q{goal.quarter}{" "}
-                              {formatGameClock(
-                                goal.elapsedGameClockSeconds,
-                              )}
+                              Goal · Q{goal.quarter} {formatGameClock(goal.elapsedGameClockSeconds)}
                             </Badge>
                           )}
                         </For>
@@ -184,17 +164,11 @@ export function PlayerGameHistoryRow(props: {
           <VStack alignItems={{ base: "start", md: "end" }} gap="0">
             <Show
               when={props.summary.actual}
-              fallback={
-                <Text fontWeight="bold">
-                  {props.summary.minutes} planned min
-                </Text>
-              }
+              fallback={<Text fontWeight="bold">{props.summary.minutes} planned min</Text>}
             >
               {(actual) => (
                 <>
-                  <Text fontWeight="bold">
-                    {formatExactDuration(actual().fieldSeconds)} actual
-                  </Text>
+                  <Text fontWeight="bold">{formatExactDuration(actual().fieldSeconds)} actual</Text>
                   <Text textStyle="xs" color="fg.muted">
                     {props.summary.minutes} min planned
                   </Text>

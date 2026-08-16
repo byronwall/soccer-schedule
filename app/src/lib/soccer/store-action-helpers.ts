@@ -29,10 +29,7 @@ export const requireSchedule = (store: SoccerStore, id: unknown) => {
 };
 
 export const assertRevision = (revision: number, payload: ActionPayload) => {
-  if (
-    payload.expectedRevision !== undefined &&
-    Number(payload.expectedRevision) !== revision
-  ) {
+  if (payload.expectedRevision !== undefined && Number(payload.expectedRevision) !== revision) {
     throw new Error(
       "Version conflict: this schedule changed on another device. Refresh and reapply your edit.",
     );
@@ -55,8 +52,7 @@ export const playersAvailableForGame = (store: SoccerStore, gameId: string) => {
 export const markScheduleStale = (store: SoccerStore, gameId: string, stamp: string) => {
   const editable = store.schedules.find(
     (schedule) =>
-      schedule.gameId === gameId &&
-      (schedule.status === "draft" || schedule.status === "stale"),
+      schedule.gameId === gameId && (schedule.status === "draft" || schedule.status === "stale"),
   );
   if (editable) {
     if (editable.assignments.length === SCHEDULE_CELL_COUNT) {

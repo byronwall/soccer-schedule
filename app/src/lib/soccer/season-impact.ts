@@ -1,23 +1,8 @@
-import {
-  POSITIONS,
-  SEGMENT_SECONDS,
-  type PositionGroup,
-} from "./fixed-game";
+import { POSITIONS, SEGMENT_SECONDS, type PositionGroup } from "./fixed-game";
 import { deriveActualGameSummary } from "./post-game-history";
-import type {
-  Assignment,
-  Game,
-  LiveState,
-  Player,
-  Schedule,
-} from "./schemas";
+import type { Assignment, Game, LiveState, Player, Schedule } from "./schemas";
 
-export const SEASON_ROLE_GROUPS = [
-  "goalkeeper",
-  "defense",
-  "midfield",
-  "forward",
-] as const;
+export const SEASON_ROLE_GROUPS = ["goalkeeper", "defense", "midfield", "forward"] as const;
 
 export type SeasonRoleTotals = Record<PositionGroup, number>;
 
@@ -45,10 +30,7 @@ const emptyTotals = (): SeasonRoleTotals => ({
 const positionGroup = (positionKey: Assignment["positionKey"]) =>
   POSITIONS.find((position) => position.key === positionKey)?.group;
 
-const addAssignments = (
-  totals: Map<string, SeasonRoleTotals>,
-  assignments: Assignment[],
-) => {
+const addAssignments = (totals: Map<string, SeasonRoleTotals>, assignments: Assignment[]) => {
   for (const assignment of assignments) {
     const group = positionGroup(assignment.positionKey);
     if (!group) continue;
@@ -57,18 +39,17 @@ const addAssignments = (
   }
 };
 
-const latestPublishedSchedule = (
-  schedules: Schedule[],
-  gameId: string,
-) => schedules
-  .filter((schedule) =>
-    schedule.gameId === gameId &&
-    !!schedule.publishedAt &&
-    (schedule.status === "published" || schedule.status === "superseded"))
-  .sort((left, right) =>
-    (right.publishedAt ?? right.updatedAt).localeCompare(
-      left.publishedAt ?? left.updatedAt,
-    ))[0];
+const latestPublishedSchedule = (schedules: Schedule[], gameId: string) =>
+  schedules
+    .filter(
+      (schedule) =>
+        schedule.gameId === gameId &&
+        !!schedule.publishedAt &&
+        (schedule.status === "published" || schedule.status === "superseded"),
+    )
+    .sort((left, right) =>
+      (right.publishedAt ?? right.updatedAt).localeCompare(left.publishedAt ?? left.updatedAt),
+    )[0];
 
 export const buildSeasonImpact = (options: {
   currentGame: Game;
@@ -78,18 +59,17 @@ export const buildSeasonImpact = (options: {
   liveGames: LiveState[];
   players: Player[];
 }): SeasonImpact => {
-  const before = new Map(
-    options.players.map((player) => [player.id, emptyTotals()]),
-  );
+  const before = new Map(options.players.map((player) => [player.id, emptyTotals()]));
   let actualGameCount = 0;
   let plannedGameCount = 0;
   const earlierGames = options.games
-    .filter((game) =>
-      game.id !== options.currentGame.id &&
-      game.startsAt < options.currentGame.startsAt)
-    .sort((left, right) =>
-      left.startsAt.localeCompare(right.startsAt) ||
-      left.id.localeCompare(right.id));
+    .filter(
+      (game) => game.id !== options.currentGame.id && game.startsAt < options.currentGame.startsAt,
+    )
+    .sort(
+      (left, right) =>
+        left.startsAt.localeCompare(right.startsAt) || left.id.localeCompare(right.id),
+    );
 
   for (const game of earlierGames) {
     const published = latestPublishedSchedule(options.schedules, game.id);
@@ -114,9 +94,7 @@ export const buildSeasonImpact = (options: {
     }
   }
 
-  const draft = new Map(
-    options.players.map((player) => [player.id, emptyTotals()]),
-  );
+  const draft = new Map(options.players.map((player) => [player.id, emptyTotals()]));
   addAssignments(draft, options.currentAssignments);
   return {
     rows: options.players.map((player) => {
@@ -127,10 +105,7 @@ export const buildSeasonImpact = (options: {
         beforeSeconds,
         draftSeconds,
         afterSeconds: Object.fromEntries(
-          SEASON_ROLE_GROUPS.map((group) => [
-            group,
-            beforeSeconds[group] + draftSeconds[group],
-          ]),
+          SEASON_ROLE_GROUPS.map((group) => [group, beforeSeconds[group] + draftSeconds[group]]),
         ) as SeasonRoleTotals,
       };
     }),
@@ -143,10 +118,8 @@ export const buildSeasonImpact = (options: {
 export const totalRoleSeconds = (totals: SeasonRoleTotals) =>
   SEASON_ROLE_GROUPS.reduce((sum, group) => sum + totals[group], 0);
 
-export const rolePercentage = (
-  seconds: number,
-  totalSeconds: number,
-) => totalSeconds === 0 ? 0 : Math.round(seconds / totalSeconds * 100);
+export const rolePercentage = (seconds: number, totalSeconds: number) =>
+  totalSeconds === 0 ? 0 : Math.round((seconds / totalSeconds) * 100);
 
 export const formatPlanningMinutes = (seconds: number) => {
   const minutes = seconds / 60;

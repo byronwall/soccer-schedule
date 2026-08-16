@@ -24,7 +24,10 @@ export const PLAYER_COLORS = [
 export const isPlayerColor = (value: unknown): value is string =>
   typeof value === "string" && /^#[0-9A-F]{6}$/i.test(value);
 
-export const pickPlayerColor = (usedColors: Iterable<string>, randomIndex: (length: number) => number) => {
+export const pickPlayerColor = (
+  usedColors: Iterable<string>,
+  randomIndex: (length: number) => number,
+) => {
   const used = new Set([...usedColors].map((color) => color.toUpperCase()));
   const available = PLAYER_COLORS.filter((color) => !used.has(color));
   const candidates = available.length > 0 ? available : PLAYER_COLORS;

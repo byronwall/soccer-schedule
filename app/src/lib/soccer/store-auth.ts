@@ -1,22 +1,22 @@
-import {
-  createHash,
-  randomBytes,
-  randomUUID,
-  scrypt,
-  timingSafeEqual,
-} from "node:crypto";
+import { createHash, randomBytes, randomUUID, scrypt, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { mutateStore, readStore } from "./store-persistence";
 
 const MASTER_USER_ID = "super-user";
 const PASSWORD_KEY_LENGTH = 64;
-const usernameSchema = z.string().trim().min(1).max(40).regex(/^[a-zA-Z0-9._-]+$/);
+const usernameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(40)
+  .regex(/^[a-zA-Z0-9._-]+$/);
 const displayNameSchema = z.string().trim().min(1).max(60);
 const passwordSchema = z.string().min(1).max(200);
 
 const masterCredentials = () => {
-  const password = process.env.MASTER_PASSWORD
-    || (process.env.NODE_ENV === "development" ? "development-master-password" : undefined);
+  const password =
+    process.env.MASTER_PASSWORD ||
+    (process.env.NODE_ENV === "development" ? "development-master-password" : undefined);
   if (!password) {
     throw new Error("MASTER_PASSWORD must be configured.");
   }
@@ -29,9 +29,9 @@ const masterCredentials = () => {
 };
 
 const credentialVersion = () =>
-  process.env.AUTH_CREDENTIAL_VERSION?.trim()
-  || process.env.COACH_CREDENTIAL_VERSION?.trim()
-  || "1";
+  process.env.AUTH_CREDENTIAL_VERSION?.trim() ||
+  process.env.COACH_CREDENTIAL_VERSION?.trim() ||
+  "1";
 
 const derivePassword = (password: string, salt: string) =>
   new Promise<Buffer>((resolve, reject) => {
@@ -53,19 +53,15 @@ const masterPasswordMatches = (supplied: string, expected: string) => {
   return timingSafeEqual(suppliedHash, expectedHash);
 };
 
-export const hashToken = (token: string) =>
-  createHash("sha256").update(token).digest("hex");
+export const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
-const createSession = async (coach: {
-  id: string;
-  displayName: string;
-  isSuperUser: boolean;
-}) => {
+const createSession = async (coach: { id: string; displayName: string; isSuperUser: boolean }) => {
   const token = randomBytes(32).toString("base64url");
   await mutateStore((store) => {
-    store.sessions = store.sessions.filter((item) =>
-      Date.parse(item.expiresAt) > Date.now()
-      && item.credentialVersion === credentialVersion());
+    store.sessions = store.sessions.filter(
+      (item) =>
+        Date.parse(item.expiresAt) > Date.now() && item.credentialVersion === credentialVersion(),
+    );
     store.sessions.push({
       tokenHash: hashToken(token),
       coachId: coach.id,
@@ -90,7 +86,7 @@ export const loginCoach = async (usernameInput: string, password: string) => {
   }
 
   const user = (await readStore()).users.find((item) => item.username === username);
-  if (!user || !await passwordMatches(password, user.passwordSalt, user.passwordHash)) {
+  if (!user || !(await passwordMatches(password, user.passwordSalt, user.passwordHash))) {
     return null;
   }
   return createSession({
@@ -109,13 +105,16 @@ export const listAuthUsers = async () => {
     createdAt,
     isSuperUser: false as const,
   }));
-  return [{
-    id: master.id,
-    username: master.username,
-    displayName: master.displayName,
-    createdAt: null,
-    isSuperUser: true as const,
-  }, ...users];
+  return [
+    {
+      id: master.id,
+      username: master.username,
+      displayName: master.displayName,
+      createdAt: null,
+      isSuperUser: true as const,
+    },
+    ...users,
+  ];
 };
 
 export const createAuthUser = async (input: {
@@ -144,7 +143,13 @@ export const createAuthUser = async (input: {
       createdAt: new Date().toISOString(),
     };
     store.users.push(user);
-    return { id: user.id, username, displayName, createdAt: user.createdAt, isSuperUser: false as const };
+    return {
+      id: user.id,
+      username,
+      displayName,
+      createdAt: user.createdAt,
+      isSuperUser: false as const,
+    };
   });
 };
 
@@ -160,15 +165,19 @@ export const deleteAuthUser = async (userId: string) => {
 
 export const getCoachForToken = async (token?: string) => {
   if (!token) return null;
-  const session = (await readStore()).sessions.find((item) =>
-    item.tokenHash === hashToken(token)
-    && item.credentialVersion === credentialVersion()
-    && Date.parse(item.expiresAt) > Date.now());
-  return session ? {
-    id: session.coachId,
-    displayName: session.coachDisplayName,
-    isSuperUser: session.isSuperUser,
-  } : null;
+  const session = (await readStore()).sessions.find(
+    (item) =>
+      item.tokenHash === hashToken(token) &&
+      item.credentialVersion === credentialVersion() &&
+      Date.parse(item.expiresAt) > Date.now(),
+  );
+  return session
+    ? {
+        id: session.coachId,
+        displayName: session.coachDisplayName,
+        isSuperUser: session.isSuperUser,
+      }
+    : null;
 };
 
 export const logoutToken = async (token?: string) => {

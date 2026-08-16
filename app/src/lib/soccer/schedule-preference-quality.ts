@@ -1,9 +1,5 @@
 import type { PositionKey } from "./fixed-game";
-import {
-  favorsExtraTime,
-  playerPreferenceLookup,
-  positionDisposition,
-} from "./player-preferences";
+import { favorsExtraTime, playerPreferenceLookup, positionDisposition } from "./player-preferences";
 import type { Assignment, PlayerPreference } from "./schemas";
 
 export type RelaxedPositionAvoid = {
@@ -38,11 +34,7 @@ export const scoreSchedulePreferences = (
   for (const assignment of assignments) {
     if (!eligible.has(assignment.playerId)) continue;
     counts.set(assignment.playerId, (counts.get(assignment.playerId) ?? 0) + 1);
-    const disposition = positionDisposition(
-      lookup,
-      assignment.playerId,
-      assignment.positionKey,
-    );
+    const disposition = positionDisposition(lookup, assignment.playerId, assignment.positionKey);
     if (disposition === "prefer") preferredAssignmentCount += 1;
     if (disposition === "avoid") {
       const key = `${assignment.playerId}:${assignment.positionKey}`;
@@ -50,23 +42,16 @@ export const scoreSchedulePreferences = (
     }
   }
   const segmentCounts = [...counts.values()];
-  const maximumSegments = segmentCounts.length > 0
-    ? Math.max(...segmentCounts)
-    : 0;
-  const minimumSegments = segmentCounts.length > 0
-    ? Math.min(...segmentCounts)
-    : 0;
+  const maximumSegments = segmentCounts.length > 0 ? Math.max(...segmentCounts) : 0;
+  const minimumSegments = segmentCounts.length > 0 ? Math.min(...segmentCounts) : 0;
   const hasUnequalTotals = maximumSegments > minimumSegments;
   const favoredExtraMisses = hasUnequalTotals
     ? eligibleIds.reduce(
-      (total, playerId) =>
-        total + (
-          favorsExtraTime(lookup, playerId)
-            ? maximumSegments - (counts.get(playerId) ?? 0)
-            : 0
-        ),
-      0,
-    )
+        (total, playerId) =>
+          total +
+          (favorsExtraTime(lookup, playerId) ? maximumSegments - (counts.get(playerId) ?? 0) : 0),
+        0,
+      )
     : 0;
   const relaxedAvoids = [...avoidCounts.entries()].map(([key, segments]) => {
     const separator = key.lastIndexOf(":");
@@ -77,30 +62,26 @@ export const scoreSchedulePreferences = (
     };
   });
   const unmetPreferences = preferences.flatMap((preference) =>
-    Object.entries(preference.positionDispositions).flatMap(
-      ([positionKey, disposition]) => {
-        if (disposition !== "prefer" || !eligible.has(preference.playerId)) {
-          return [];
-        }
-        const met = assignments.some(
-          (assignment) =>
-            assignment.playerId === preference.playerId &&
-            assignment.positionKey === positionKey,
-        );
-        return met
-          ? []
-          : [{
+    Object.entries(preference.positionDispositions).flatMap(([positionKey, disposition]) => {
+      if (disposition !== "prefer" || !eligible.has(preference.playerId)) {
+        return [];
+      }
+      const met = assignments.some(
+        (assignment) =>
+          assignment.playerId === preference.playerId && assignment.positionKey === positionKey,
+      );
+      return met
+        ? []
+        : [
+            {
               playerId: preference.playerId,
               positionKey: positionKey as PositionKey,
-            }];
-      },
-    ),
+            },
+          ];
+    }),
   );
   return {
-    avoidAssignmentCount: relaxedAvoids.reduce(
-      (total, exception) => total + exception.segments,
-      0,
-    ),
+    avoidAssignmentCount: relaxedAvoids.reduce((total, exception) => total + exception.segments, 0),
     favoredExtraMisses,
     preferredAssignmentCount,
     relaxedAvoids,

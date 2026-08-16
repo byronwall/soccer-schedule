@@ -1,12 +1,5 @@
 import type { Accessor } from "solid-js";
-import {
-  For,
-  Show,
-  createMemo,
-  createSignal,
-  onMount,
-  type ComponentProps,
-} from "solid-js";
+import { For, Show, createMemo, createSignal, onMount, type ComponentProps } from "solid-js";
 import type { SelectRootProps } from "@ark-ui/solid/select";
 import { Portal } from "solid-js/web";
 import { css } from "styled-system/css";
@@ -45,16 +38,13 @@ export function SimpleSelect(props: SimpleSelectProps) {
     Select.createListCollection<SimpleSelectItem>({ items: props.items }),
   );
 
-  const positioning: Accessor<
-    SelectRootProps<SimpleSelectItem>["positioning"]
-  > = () => {
+  const positioning: Accessor<SelectRootProps<SimpleSelectItem>["positioning"]> = () => {
     if (props.positioning) return props.positioning;
     if (props.sameWidth === false) return { placement: "bottom-start" };
     return { placement: "bottom-start", sameWidth: true };
   };
 
-  const inlineLabel = () =>
-    props.labelPlacement === "inline" ? props.label : undefined;
+  const inlineLabel = () => (props.labelPlacement === "inline" ? props.label : undefined);
 
   const renderControl = () => (
     <Select.Control>
@@ -80,9 +70,7 @@ export function SimpleSelect(props: SimpleSelectProps) {
         fallback={
           <>
             <Show when={props.label}>
-              {(label) => (
-                <Select.Label {...props.labelProps}>{label()}</Select.Label>
-              )}
+              {(label) => <Select.Label {...props.labelProps}>{label()}</Select.Label>}
             </Show>
             {renderControl()}
           </>

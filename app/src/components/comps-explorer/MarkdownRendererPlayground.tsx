@@ -88,8 +88,8 @@ export const MarkdownRendererPlayground = () => {
         Markdown Renderer
       </Box>
       <Box textStyle="sm" color="fg.muted">
-        Reference usage of <code>MarkdownRenderer</code> with a broad markdown
-        sample, including 10-line and 100-line code blocks.
+        Reference usage of <code>MarkdownRenderer</code> with a broad markdown sample, including
+        10-line and 100-line code blocks.
       </Box>
       <Box
         borderWidth="1px"

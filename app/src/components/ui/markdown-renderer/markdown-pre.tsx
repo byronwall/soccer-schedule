@@ -1,10 +1,4 @@
-import {
-  Match,
-  Switch,
-  onMount,
-  splitProps,
-  type JSX,
-} from "solid-js";
+import { Match, Switch, onMount, splitProps, type JSX } from "solid-js";
 import { createStore } from "solid-js/store";
 import { looksLikeMermaid } from "./markdown-code-utils";
 import { MarkdownCodeBlock } from "./markdown-code-block";
@@ -40,10 +34,8 @@ export function MarkdownPre(preProps: MarkdownPreProps) {
       explicitLanguage && explicitLanguage.trim().length > 0
         ? explicitLanguage
         : parseLanguage(codeElement?.className, preRef.className);
-    const rawText =
-      codeElement?.getAttribute("data-md-raw") ?? preRef.textContent ?? "";
-    const nextMode =
-      language === "mermaid" || looksLikeMermaid(rawText) ? "mermaid" : "code";
+    const rawText = codeElement?.getAttribute("data-md-raw") ?? preRef.textContent ?? "";
+    const nextMode = language === "mermaid" || looksLikeMermaid(rawText) ? "mermaid" : "code";
 
     console.log("MarkdownPre:detectedMode", {
       language,
@@ -77,11 +69,7 @@ export function MarkdownPre(preProps: MarkdownPreProps) {
           </MarkdownCodeBlock>
         </Match>
         <Match when={state.mode === "mermaid"}>
-          <MarkdownMermaidBlock
-            {...rest}
-            codeText={state.codeText}
-            isHydrated={state.isHydrated}
-          >
+          <MarkdownMermaidBlock {...rest} codeText={state.codeText} isHydrated={state.isHydrated}>
             {local.children}
           </MarkdownMermaidBlock>
         </Match>

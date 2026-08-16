@@ -2,10 +2,7 @@ import { A, useParams } from "@solidjs/router";
 import { Show } from "solid-js";
 import { CheckCircle2 } from "lucide-solid";
 import { Badge, Button, Card, Text } from "~/components/ui";
-import {
-  LiveGameProvider,
-  useLiveGame,
-} from "~/features/soccer/LiveGameProvider";
+import { LiveGameProvider, useLiveGame } from "~/features/soccer/LiveGameProvider";
 import { Grid, HStack, VStack } from "styled-system/jsx";
 import { LiveEventList } from "./LiveEventList";
 import { LiveGameStatusPanel } from "./LiveGameStatusPanel";
@@ -15,11 +12,9 @@ import { PageHeader } from "./PageHeader";
 
 function TrackerPage() {
   const tracker = useLiveGame();
-  const unavailable = () =>
-    tracker.live()?.actualHistoryStatus === "legacy_unavailable";
+  const unavailable = () => tracker.live()?.actualHistoryStatus === "legacy_unavailable";
   const completed = () => tracker.live()?.status === "completed";
-  const confirmed = () =>
-    tracker.live()?.actualHistoryStatus === "confirmed";
+  const confirmed = () => tracker.live()?.actualHistoryStatus === "confirmed";
   const trustHeading = () => {
     if (confirmed()) return "Actual record confirmed";
     if (unavailable()) return "Actual history unavailable";
@@ -34,9 +29,7 @@ function TrackerPage() {
     }
     return "It will not be used as actual history until you explicitly complete and confirm it.";
   };
-  const started = () =>
-    tracker.live()?.status === "running" ||
-    tracker.live()?.status === "paused";
+  const started = () => tracker.live()?.status === "running" || tracker.live()?.status === "paused";
 
   return (
     <Show when={tracker.game()}>
@@ -66,12 +59,10 @@ function TrackerPage() {
               <Show when={unavailable()}>
                 <Card.Root borderColor="orange.border" borderWidth="1px">
                   <Card.Body>
-                    <Text fontWeight="semibold">
-                      Actual history unavailable
-                    </Text>
+                    <Text fontWeight="semibold">Actual history unavailable</Text>
                     <Text color="fg.muted">
-                      This game used the earlier temporary tracker. Its changes
-                      cannot be reconstructed as trustworthy actual history.
+                      This game used the earlier temporary tracker. Its changes cannot be
+                      reconstructed as trustworthy actual history.
                     </Text>
                   </Card.Body>
                 </Card.Root>
@@ -90,10 +81,7 @@ function TrackerPage() {
                   </HStack>
                 )}
               </Show>
-              <Grid
-                gridTemplateColumns={{ base: "1fr", lg: "320px 1fr" }}
-                gap="4"
-              >
+              <Grid gridTemplateColumns={{ base: "1fr", lg: "320px 1fr" }} gap="4">
                 <LiveGameStatusPanel />
                 <VStack alignItems="stretch" gap="4">
                   <LiveLineupPanel />
@@ -102,23 +90,13 @@ function TrackerPage() {
                     <Card.Body>
                       <VStack alignItems="stretch">
                         <HStack justifyContent="space-between" flexWrap="wrap">
-                          <Text fontWeight="semibold">
-                            {trustHeading()}
-                          </Text>
-                          <Badge
-                            colorPalette={confirmed() ? "green" : "orange"}
-                          >
+                          <Text fontWeight="semibold">{trustHeading()}</Text>
+                          <Badge colorPalette={confirmed() ? "green" : "orange"}>
                             {confirmed() ? "Trusted" : "Not trusted"}
                           </Badge>
                         </HStack>
-                        <Text color="fg.muted">
-                          {trustDescription()}
-                        </Text>
-                        <Show
-                          when={
-                            !completed() && started() && !unavailable()
-                          }
-                        >
+                        <Text color="fg.muted">{trustDescription()}</Text>
+                        <Show when={!completed() && started() && !unavailable()}>
                           <Button
                             colorPalette="orange"
                             disabled={!!tracker.ui.pendingAction}

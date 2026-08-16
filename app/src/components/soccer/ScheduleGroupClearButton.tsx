@@ -7,9 +7,7 @@ type ScheduleGroupClearButtonProps = {
   onClear: () => void;
 };
 
-export function ScheduleGroupClearButton(
-  props: ScheduleGroupClearButtonProps,
-) {
+export function ScheduleGroupClearButton(props: ScheduleGroupClearButtonProps) {
   const actionLabel = () => `Clear all ${props.label}`;
 
   return (

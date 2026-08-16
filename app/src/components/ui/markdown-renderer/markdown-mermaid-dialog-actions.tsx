@@ -1,11 +1,5 @@
 import { Show, splitProps } from "solid-js";
-import {
-  CheckIcon,
-  CopyIcon,
-  DownloadIcon,
-  ZoomInIcon,
-  ZoomOutIcon,
-} from "lucide-solid";
+import { CheckIcon, CopyIcon, DownloadIcon, ZoomInIcon, ZoomOutIcon } from "lucide-solid";
 import { Button } from "~/components/ui/button";
 import { markdownStyles } from "./markdown-styles";
 
@@ -19,9 +13,7 @@ type MarkdownMermaidDialogActionsProps = {
   onZoomIn: () => void;
 };
 
-export function MarkdownMermaidDialogActions(
-  props: MarkdownMermaidDialogActionsProps,
-) {
+export function MarkdownMermaidDialogActions(props: MarkdownMermaidDialogActionsProps) {
   const [local] = splitProps(props, [
     "isCopied",
     "onCopy",

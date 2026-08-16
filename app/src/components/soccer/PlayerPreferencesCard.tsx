@@ -1,15 +1,6 @@
 import { For, createEffect, createSignal, untrack } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
-import {
-  Button,
-  Badge,
-  Card,
-  Field,
-  Heading,
-  SimpleSelect,
-  Text,
-  Textarea,
-} from "~/components/ui";
+import { Button, Badge, Card, Field, Heading, SimpleSelect, Text, Textarea } from "~/components/ui";
 import type { Position } from "~/lib/soccer/fixed-game";
 import {
   applyRoleGroupDisposition,
@@ -60,11 +51,8 @@ type PlayerPreferencesCardProps = {
   onSave: (draft: PreferenceDraft) => Promise<void>;
 };
 
-const draftFromPreference = (
-  preference?: PlayerPreference,
-): PreferenceDraft => ({
-  positionDispositions:
-    preference?.positionDispositions ?? neutralPositionDispositions(),
+const draftFromPreference = (preference?: PlayerPreference): PreferenceDraft => ({
+  positionDispositions: preference?.positionDispositions ?? neutralPositionDispositions(),
   fieldTimePreference: preference?.fieldTimePreference ?? "standard",
   coachNote: preference?.coachNote ?? "",
 });
@@ -73,20 +61,16 @@ export function PlayerPreferencesCard(props: PlayerPreferencesCardProps) {
   const [draft, setDraft] = createStore<PreferenceDraft>(
     untrack(() => draftFromPreference(props.preference)),
   );
-  const [shortcutGroup, setShortcutGroup] =
-    createSignal<PreferenceRoleGroup>("attack");
-  const [shortcutDisposition, setShortcutDisposition] =
-    createSignal<PositionDisposition>("prefer");
+  const [shortcutGroup, setShortcutGroup] = createSignal<PreferenceRoleGroup>("attack");
+  const [shortcutDisposition, setShortcutDisposition] = createSignal<PositionDisposition>("prefer");
   const [pending, setPending] = createSignal(false);
   const [limitError, setLimitError] = createSignal<string>();
   const preferCount = () =>
-    Object.values(draft.positionDispositions).filter(
-      (disposition) => disposition === "prefer",
-    ).length;
+    Object.values(draft.positionDispositions).filter((disposition) => disposition === "prefer")
+      .length;
   const avoidCount = () =>
-    Object.values(draft.positionDispositions).filter(
-      (disposition) => disposition === "avoid",
-    ).length;
+    Object.values(draft.positionDispositions).filter((disposition) => disposition === "avoid")
+      .length;
   const goalkeeperPosition = () =>
     props.positions.find((position) => position.key === "goalkeeper");
   const outfieldPositions = () =>
@@ -107,11 +91,7 @@ export function PlayerPreferencesCard(props: PlayerPreferencesCardProps) {
           setDraft("positionDispositions", reconcile(next));
           setLimitError(positionDispositionLimitError(next));
         } catch (error) {
-          setLimitError(
-            error instanceof Error
-              ? error.message
-              : "Choose at most 2 positions.",
-          );
+          setLimitError(error instanceof Error ? error.message : "Choose at most 2 positions.");
         }
       }}
     />
@@ -121,10 +101,7 @@ export function PlayerPreferencesCard(props: PlayerPreferencesCardProps) {
     props.playerId;
     props.preference?.updatedAt;
     const next = draftFromPreference(props.preference);
-    setDraft(
-      "positionDispositions",
-      reconcile(next.positionDispositions),
-    );
+    setDraft("positionDispositions", reconcile(next.positionDispositions));
     setDraft("fieldTimePreference", next.fieldTimePreference);
     setDraft("coachNote", next.coachNote);
     setLimitError(positionDispositionLimitError(next.positionDispositions));
@@ -140,9 +117,7 @@ export function PlayerPreferencesCard(props: PlayerPreferencesCardProps) {
       setDraft("positionDispositions", reconcile(next));
       setLimitError(positionDispositionLimitError(next));
     } catch (error) {
-      setLimitError(
-        error instanceof Error ? error.message : "Choose at most 2 positions.",
-      );
+      setLimitError(error instanceof Error ? error.message : "Choose at most 2 positions.");
     }
   };
 
@@ -194,7 +169,9 @@ export function PlayerPreferencesCard(props: PlayerPreferencesCardProps) {
             <VStack alignItems="stretch" gap="4">
               <VStack alignItems="stretch" gap="2">
                 <HStack justifyContent="space-between" gap="3" flexWrap="wrap">
-                  <Heading as="h4" textStyle="md">Position fit</Heading>
+                  <Heading as="h4" textStyle="md">
+                    Position fit
+                  </Heading>
                   <HStack gap="2" aria-label="Position preference usage">
                     <Badge variant="subtle" colorPalette="grass">
                       Prefer {preferCount()}/2
@@ -205,7 +182,8 @@ export function PlayerPreferencesCard(props: PlayerPreferencesCardProps) {
                   </HStack>
                 </HStack>
                 <Text textStyle="sm" color="fg.muted" maxW="65ch">
-                  Mark the positions that fit best. Avoid may be relaxed when needed to make a valid schedule.
+                  Mark the positions that fit best. Avoid may be relaxed when needed to make a valid
+                  schedule.
                 </Text>
                 <Text
                   role={limitError() ? "alert" : undefined}
@@ -214,9 +192,7 @@ export function PlayerPreferencesCard(props: PlayerPreferencesCardProps) {
                   minH="5"
                   textStyle="sm"
                   style={{
-                    color: limitError()
-                      ? "var(--colors-red-fg)"
-                      : "var(--colors-fg-muted)",
+                    color: limitError() ? "var(--colors-red-fg)" : "var(--colors-fg-muted)",
                   }}
                 >
                   {limitError()
@@ -228,35 +204,27 @@ export function PlayerPreferencesCard(props: PlayerPreferencesCardProps) {
               <VStack alignItems="stretch" gap="3">
                 <For each={goalkeeperPosition() ? [goalkeeperPosition()!] : []}>
                   {(position) => (
-                    <Box maxW={{ base: "full", sm: "sm" }}>
-                      {positionControl(position)}
-                    </Box>
+                    <Box maxW={{ base: "full", sm: "sm" }}>{positionControl(position)}</Box>
                   )}
                 </For>
                 <Grid
-                gridTemplateColumns={{
-                  base: "1fr",
-                  sm: "repeat(2, minmax(0, 1fr))",
-                }}
-                gap="3"
-              >
-                  <For each={outfieldPositions()}>
-                    {(position) => positionControl(position)}
-                  </For>
+                  gridTemplateColumns={{
+                    base: "1fr",
+                    sm: "repeat(2, minmax(0, 1fr))",
+                  }}
+                  gap="3"
+                >
+                  <For each={outfieldPositions()}>{(position) => positionControl(position)}</For>
                 </Grid>
               </VStack>
             </VStack>
 
-            <Box
-              bg="gray.subtle.bg"
-              borderRadius="l2"
-              borderWidth="1px"
-              borderColor="border"
-              p="4"
-            >
+            <Box bg="gray.subtle.bg" borderRadius="l2" borderWidth="1px" borderColor="border" p="4">
               <VStack alignItems="stretch" gap="3">
                 <VStack alignItems="stretch" gap="1">
-                  <Heading as="h4" textStyle="md">Role-group shortcut</Heading>
+                  <Heading as="h4" textStyle="md">
+                    Role-group shortcut
+                  </Heading>
                   <Text textStyle="sm" color="fg.muted">
                     Set a related group at once, then adjust positions if needed.
                   </Text>
@@ -265,15 +233,13 @@ export function PlayerPreferencesCard(props: PlayerPreferencesCardProps) {
                   label="Role group"
                   items={roleGroupItems}
                   value={shortcutGroup()}
-                  onChange={(value) =>
-                    setShortcutGroup(value as PreferenceRoleGroup)}
+                  onChange={(value) => setShortcutGroup(value as PreferenceRoleGroup)}
                 />
                 <SimpleSelect
                   label="Disposition to apply"
                   items={dispositionItems}
                   value={shortcutDisposition()}
-                  onChange={(value) =>
-                    setShortcutDisposition(value as PositionDisposition)}
+                  onChange={(value) => setShortcutDisposition(value as PositionDisposition)}
                 />
                 <Button variant="outline" alignSelf="start" onClick={applyShortcut}>
                   Apply to group
@@ -285,7 +251,9 @@ export function PlayerPreferencesCard(props: PlayerPreferencesCardProps) {
           <Box borderTopWidth="1px" borderColor="border" pt="6">
             <VStack alignItems="stretch" gap="4">
               <VStack alignItems="stretch" gap="1">
-                <Heading as="h4" textStyle="md">Playing time &amp; coach context</Heading>
+                <Heading as="h4" textStyle="md">
+                  Playing time &amp; coach context
+                </Heading>
                 <Text textStyle="sm" color="fg.muted" maxW="65ch">
                   Set a playing-time preference and add a private note if useful.
                 </Text>
@@ -304,10 +272,8 @@ export function PlayerPreferencesCard(props: PlayerPreferencesCardProps) {
                     items={fieldTimeItems}
                     value={draft.fieldTimePreference}
                     onChange={(value) =>
-                      setDraft(
-                        "fieldTimePreference",
-                        value as FieldTimePreference,
-                      )}
+                      setDraft("fieldTimePreference", value as FieldTimePreference)
+                    }
                   />
                   <Text textStyle="sm" color="fg.muted">
                     Used only to break a tie when schedules are otherwise equally balanced.
@@ -320,8 +286,7 @@ export function PlayerPreferencesCard(props: PlayerPreferencesCardProps) {
                     value={draft.coachNote}
                     maxLength={500}
                     rows={3}
-                    onInput={(event) =>
-                      setDraft("coachNote", event.currentTarget.value)}
+                    onInput={(event) => setDraft("coachNote", event.currentTarget.value)}
                   />
                   <Field.HelperText>
                     Private to coaches and not used to build the schedule.

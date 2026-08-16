@@ -3,30 +3,32 @@ import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { DEFAULT_POSITION_LABELS } from "./fixed-game";
 import { pickPlayerColor } from "./player-colors";
-import {
-  createDefaultPlayerPreference,
-  ensurePlayerPreferences,
-} from "./player-preferences";
+import { createDefaultPlayerPreference, ensurePlayerPreferences } from "./player-preferences";
 import { generateSchedule } from "./scheduling";
 import { soccerStoreSchema, type Game, type Player, type SoccerStore } from "./schemas";
 import { ensureActivePlayerAvailability } from "./store-availability";
 import { migrateSoccerStore } from "./store-migrations";
 
-const appRoot = () => path.basename(process.cwd()) === "app"
-  ? process.cwd()
-  : path.join(process.cwd(), "app");
-const dataRoot = () => process.env.APP_DATA_DIR
-  ? path.resolve(process.env.APP_DATA_DIR)
-  : path.join(appRoot(), "data");
+const appRoot = () =>
+  path.basename(process.cwd()) === "app" ? process.cwd() : path.join(process.cwd(), "app");
+const dataRoot = () =>
+  process.env.APP_DATA_DIR ? path.resolve(process.env.APP_DATA_DIR) : path.join(appRoot(), "data");
 const storePath = () => path.join(dataRoot(), "soccer", "store.json");
 const lockPath = () => path.join(path.dirname(storePath()), "store.lock");
 let queue = Promise.resolve();
 
 const seedPlayers = [
-  ["Avery Bennett", "4"], ["Maya Brooks", "7"], ["Sofia Carter", "9"],
-  ["Nora Diaz", "11"], ["Emma Foster", "13"], ["Zoe Grant", "16"],
-  ["Lily Hughes", "18"], ["Chloe Kim", "21"], ["Riley Morgan", "23"],
-  ["Grace Patel", "27"], ["Harper Reed", "30"],
+  ["Avery Bennett", "4"],
+  ["Maya Brooks", "7"],
+  ["Sofia Carter", "9"],
+  ["Nora Diaz", "11"],
+  ["Emma Foster", "13"],
+  ["Zoe Grant", "16"],
+  ["Lily Hughes", "18"],
+  ["Chloe Kim", "21"],
+  ["Riley Morgan", "23"],
+  ["Grace Patel", "27"],
+  ["Harper Reed", "30"],
 ];
 
 const createSeedStore = (): SoccerStore => {
@@ -65,23 +67,24 @@ const createSeedStore = (): SoccerStore => {
       status: "available",
       updatedAt: stamp,
     })),
-    schedules: [{
-      id: randomUUID(),
-      gameId: game.id,
-      revision: 1,
-      status: "published",
-      assignments,
-      history: [],
-      future: [],
-      generatedAt: stamp,
-      updatedAt: stamp,
-      publishedAt: stamp,
-    }],
+    schedules: [
+      {
+        id: randomUUID(),
+        gameId: game.id,
+        revision: 1,
+        status: "published",
+        assignments,
+        history: [],
+        future: [],
+        generatedAt: stamp,
+        updatedAt: stamp,
+        publishedAt: stamp,
+      },
+    ],
     liveGames: [],
     playerPreferences: {
       schemaVersion: 1,
-      entries: players.map((player) =>
-        createDefaultPlayerPreference(player.id, stamp)),
+      entries: players.map((player) => createDefaultPlayerPreference(player.id, stamp)),
     },
     users: [],
     sessions: [],
@@ -152,6 +155,9 @@ export const mutateStore = async <T>(operation: (store: SoccerStore) => T | Prom
       await release();
     }
   });
-  queue = pending.then(() => undefined, () => undefined);
+  queue = pending.then(
+    () => undefined,
+    () => undefined,
+  );
   return pending;
 };

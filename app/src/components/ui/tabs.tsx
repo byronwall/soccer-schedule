@@ -21,12 +21,7 @@ export interface TabsDemoProps {
 
 export const TabsDemo = (props: TabsDemoProps) => {
   return (
-    <Root
-      {...(props.variantProps ?? {})}
-      defaultValue="one"
-      width="full"
-      maxW="96"
-    >
+    <Root {...(props.variantProps ?? {})} defaultValue="one" width="full" maxW="96">
       <List>
         <Trigger value="one">One</Trigger>
         <Trigger value="two">Two</Trigger>

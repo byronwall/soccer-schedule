@@ -5,11 +5,7 @@ import { useFilter } from "@ark-ui/solid/locale";
 import { CheckIcon, ChevronsUpDownIcon, XIcon } from "lucide-solid";
 import { For, Show } from "solid-js";
 import { Portal } from "solid-js/web";
-import {
-  Box,
-  createStyleContext,
-  type HTMLStyledProps,
-} from "styled-system/jsx";
+import { Box, createStyleContext, type HTMLStyledProps } from "styled-system/jsx";
 import { type ComboboxVariantProps, combobox } from "styled-system/recipes";
 
 const { withProvider, withContext } = createStyleContext(combobox);
@@ -35,10 +31,7 @@ export const IndicatorGroup = withContext(ark.div, "indicatorGroup");
 export const Input = withContext(Combobox.Input, "input");
 export const Item = withContext(Combobox.Item, "item");
 export const ItemGroup = withContext(Combobox.ItemGroup, "itemGroup");
-export const ItemGroupLabel = withContext(
-  Combobox.ItemGroupLabel,
-  "itemGroupLabel",
-);
+export const ItemGroupLabel = withContext(Combobox.ItemGroupLabel, "itemGroupLabel");
 export const ItemText = withContext(Combobox.ItemText, "itemText");
 export const Label = withContext(Combobox.Label, "label");
 export const List = withContext(Combobox.List, "list");
@@ -49,10 +42,7 @@ export const Trigger = withContext(Combobox.Trigger, "trigger", {
 
 export { ComboboxContext as Context } from "@ark-ui/solid/combobox";
 
-const StyledItemIndicator = withContext(
-  Combobox.ItemIndicator,
-  "itemIndicator",
-);
+const StyledItemIndicator = withContext(Combobox.ItemIndicator, "itemIndicator");
 
 export const ItemIndicator = (props: HTMLStyledProps<"div">) => {
   const item = useComboboxItemContext();

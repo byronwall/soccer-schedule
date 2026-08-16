@@ -14,22 +14,17 @@ export function ScheduledGamePlanningDetails(props: { game: Game }) {
     const snapshot = data.snapshot();
     if (!snapshot) return [];
     const activePlayerIds = new Set(
-      snapshot.players
-        .filter((player) => player.active)
-        .map((player) => player.id),
+      snapshot.players.filter((player) => player.active).map((player) => player.id),
     );
     return snapshot.availability.filter(
-      (item) =>
-        item.gameId === props.game.id && activePlayerIds.has(item.playerId),
+      (item) => item.gameId === props.game.id && activePlayerIds.has(item.playerId),
     );
   };
   const count = (status: "unknown" | "available" | "unavailable") =>
     availability().filter((item) => item.status === status).length;
-  const canBuildSchedule = () =>
-    count("unknown") === 0 && count("available") >= 7;
-  const targetMinutes = () => count("available")
-    ? Math.round(TOTAL_ASSIGNMENTS * 7 / count("available"))
-    : 0;
+  const canBuildSchedule = () => count("unknown") === 0 && count("available") >= 7;
+  const targetMinutes = () =>
+    count("available") ? Math.round((TOTAL_ASSIGNMENTS * 7) / count("available")) : 0;
   const runAvailabilityAction = (payload: Record<string, unknown>) => {
     setAllInSaved(false);
     void data.run("setAvailability", payload).catch(() => undefined);
@@ -52,17 +47,13 @@ export function ScheduledGamePlanningDetails(props: { game: Game }) {
       <Card.Root>
         <Card.Header>
           <Card.Title>Player availability</Card.Title>
-          <Card.Description>
-            Resolve every player before generating a schedule.
-          </Card.Description>
+          <Card.Description>Resolve every player before generating a schedule.</Card.Description>
         </Card.Header>
         <Card.Body>
           <VStack gap="2" alignItems="stretch">
             <For each={data.snapshot()?.players.filter((player) => player.active)}>
               {(player) => {
-                const item = () => availability().find(
-                  (entry) => entry.playerId === player.id,
-                );
+                const item = () => availability().find((entry) => entry.playerId === player.id);
                 return (
                   <HStack
                     justifyContent="space-between"
@@ -90,21 +81,23 @@ export function ScheduledGamePlanningDetails(props: { game: Game }) {
                           <Button
                             size="sm"
                             disabled={allInPending()}
-                            variant={item()?.status === status
-                              ? "solid"
-                              : "outline"}
-                            colorPalette={status === "available"
-                              ? "grass"
-                              : status === "unavailable" ? "red" : "gray"}
-                            onClick={() => runAvailabilityAction({
-                              gameId: props.game.id,
-                              playerId: player.id,
-                              status,
-                            })}
+                            variant={item()?.status === status ? "solid" : "outline"}
+                            colorPalette={
+                              status === "available"
+                                ? "grass"
+                                : status === "unavailable"
+                                  ? "red"
+                                  : "gray"
+                            }
+                            onClick={() =>
+                              runAvailabilityAction({
+                                gameId: props.game.id,
+                                playerId: player.id,
+                                status,
+                              })
+                            }
                           >
-                            {status === "available"
-                              ? "In"
-                              : status === "unavailable" ? "Out" : "?"}
+                            {status === "available" ? "In" : status === "unavailable" ? "Out" : "?"}
                           </Button>
                         )}
                       </For>
@@ -119,20 +112,13 @@ export function ScheduledGamePlanningDetails(props: { game: Game }) {
           <HStack justifyContent="space-between" w="full" flexWrap="wrap">
             <VStack alignItems="start" gap="0">
               <Text fontWeight="medium">Everyone available?</Text>
-              <Text
-                textStyle="sm"
-                color={allInSaved() ? "grass.fg" : "fg.muted"}
-              >
+              <Text textStyle="sm" color={allInSaved() ? "grass.fg" : "fg.muted"}>
                 {allInSaved()
                   ? "All active players are in. Adjust anyone above if needed."
                   : "Mark every active roster player In with one action."}
               </Text>
             </VStack>
-            <Button
-              loading={allInPending()}
-              loadingText="Saving…"
-              onClick={() => void markAllIn()}
-            >
+            <Button loading={allInPending()} loadingText="Saving…" onClick={() => void markAllIn()}>
               All in
             </Button>
           </HStack>
@@ -141,7 +127,9 @@ export function ScheduledGamePlanningDetails(props: { game: Game }) {
 
       <VStack gap="4" alignItems="stretch">
         <Card.Root>
-          <Card.Header><Card.Title>Capacity</Card.Title></Card.Header>
+          <Card.Header>
+            <Card.Title>Capacity</Card.Title>
+          </Card.Header>
           <Card.Body>
             <VStack alignItems="stretch" gap="3">
               <HStack justifyContent="space-between">
@@ -167,8 +155,8 @@ export function ScheduledGamePlanningDetails(props: { game: Game }) {
           <Card.Root>
             <Card.Body>
               <Text color="fg.muted">
-                Resolve availability and keep at least seven players available
-                to build the rotation.
+                Resolve availability and keep at least seven players available to build the
+                rotation.
               </Text>
             </Card.Body>
           </Card.Root>

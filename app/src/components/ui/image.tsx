@@ -25,7 +25,5 @@ export const Image = (props: ImageProps) => {
   const [local, rest] = splitProps(props, ["alignment", "fit"]);
   const fit = () => local.fit ?? "cover";
 
-  return (
-    <StyledImage objectFit={fit()} objectPosition={local.alignment} {...rest} />
-  );
+  return <StyledImage objectFit={fit()} objectPosition={local.alignment} {...rest} />;
 };

@@ -1,10 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_POSITION_LABELS, POSITIONS, SEGMENTS } from "./fixed-game";
-import {
-  correctableLiveEvents,
-  reconstructLiveLineup,
-} from "./live-game";
+import { correctableLiveEvents, reconstructLiveLineup } from "./live-game";
 import { liveEventSchema } from "./live-event-schemas";
 import { createDefaultPlayerPreference } from "./player-preferences";
 import { soccerStoreSchema, type SoccerStore } from "./schemas";
@@ -18,17 +15,7 @@ const stampAt = (seconds: number) =>
 
 const createStore = () => {
   const gameId = randomUUID();
-  const names = [
-    "Amelia",
-    "Maya",
-    "Nora",
-    "Violet",
-    "Sofia",
-    "Zoe",
-    "Lily",
-    "Chloe",
-    "Riley",
-  ];
+  const names = ["Amelia", "Maya", "Nora", "Violet", "Sofia", "Zoe", "Lily", "Chloe", "Riley"];
   const players = names.map((displayName, index) => ({
     id: randomUUID(),
     displayName,
@@ -44,9 +31,7 @@ const createStore = () => {
       positionKey: position.key,
       playerId:
         players[
-          segment.quarter === 1
-            ? positionIndex
-            : (positionIndex + segmentIndex) % players.length
+          segment.quarter === 1 ? positionIndex : (positionIndex + segmentIndex) % players.length
         ].id,
       source: "generated" as const,
       locked: false,
@@ -58,38 +43,41 @@ const createStore = () => {
     seasonName: "Fall 2026",
     positionLabels: DEFAULT_POSITION_LABELS,
     players,
-    games: [{
-      id: gameId,
-      opponentName: "Comets",
-      venueName: "Test Field",
-      startsAt: startStamp,
-      status: "scheduled",
-      createdAt: startStamp,
-      updatedAt: startStamp,
-    }],
+    games: [
+      {
+        id: gameId,
+        opponentName: "Comets",
+        venueName: "Test Field",
+        startsAt: startStamp,
+        status: "scheduled",
+        createdAt: startStamp,
+        updatedAt: startStamp,
+      },
+    ],
     availability: players.map((player) => ({
       gameId,
       playerId: player.id,
       status: "available",
       updatedAt: startStamp,
     })),
-    schedules: [{
-      id: randomUUID(),
-      gameId,
-      revision: 1,
-      status: "published",
-      assignments,
-      history: [],
-      future: [],
-      generatedAt: startStamp,
-      updatedAt: startStamp,
-      publishedAt: startStamp,
-    }],
+    schedules: [
+      {
+        id: randomUUID(),
+        gameId,
+        revision: 1,
+        status: "published",
+        assignments,
+        history: [],
+        future: [],
+        generatedAt: startStamp,
+        updatedAt: startStamp,
+        publishedAt: startStamp,
+      },
+    ],
     liveGames: [],
     playerPreferences: {
       schemaVersion: 1,
-      entries: players.map((player) =>
-        createDefaultPlayerPreference(player.id, startStamp)),
+      entries: players.map((player) => createDefaultPlayerPreference(player.id, startStamp)),
     },
     users: [],
     sessions: [],
@@ -109,8 +97,7 @@ const run = (
     action,
     {
       gameId,
-      expectedRevision:
-        store.liveGames.find((live) => live.gameId === gameId)?.revision ?? 0,
+      expectedRevision: store.liveGames.find((live) => live.gameId === gameId)?.revision ?? 0,
       ...payload,
     },
     stamp,
@@ -132,21 +119,21 @@ describe("minimal live-game event ledger", () => {
       accumulatedQuarterSeconds: 180,
       actualHistoryStatus: "incomplete",
     });
-    expect(live.events.map((event) => [
-      event.type,
-      event.elapsedGameClockSeconds,
-    ])).toEqual([
+    expect(live.events.map((event) => [event.type, event.elapsedGameClockSeconds])).toEqual([
       ["game_started", 0],
       ["game_paused", 180],
       ["game_resumed", 180],
     ]);
-    expect(live.events.every((event) =>
-      liveEventSchema.safeParse(event).success &&
-      event.actor.displayName === "Coach Stephen" &&
-      event.quarter === 1 &&
-      event.id.length > 0 &&
-      event.serverTimestamp.length > 0
-    )).toBe(true);
+    expect(
+      live.events.every(
+        (event) =>
+          liveEventSchema.safeParse(event).success &&
+          event.actor.displayName === "Coach Stephen" &&
+          event.quarter === 1 &&
+          event.id.length > 0 &&
+          event.serverTimestamp.length > 0,
+      ),
+    ).toBe(true);
   });
 
   it("reconstructs substitutions and an atomic field-position swap after serialization", () => {
@@ -163,14 +150,8 @@ describe("minimal live-game event ledger", () => {
       playerId: players[7].id,
     });
     const live = store.liveGames[0];
-    const reconstructed = reconstructLiveLineup(
-      published,
-      live,
-      stampAt(600),
-    );
-    const refreshed = soccerStoreSchema.parse(
-      JSON.parse(JSON.stringify(store)),
-    );
+    const reconstructed = reconstructLiveLineup(published, live, stampAt(600));
+    const refreshed = soccerStoreSchema.parse(JSON.parse(JSON.stringify(store)));
     const refreshedLineup = reconstructLiveLineup(
       refreshed.schedules[0],
       refreshed.liveGames[0],
@@ -193,13 +174,7 @@ describe("minimal live-game event ledger", () => {
     const { store, gameId, players } = createStore();
     run(store, "liveStart", gameId, startStamp);
     expect(() =>
-      applyLiveAction(
-        store,
-        "livePause",
-        { gameId, expectedRevision: 0 },
-        stampAt(10),
-        actor,
-      ),
+      applyLiveAction(store, "livePause", { gameId, expectedRevision: 0 }, stampAt(10), actor),
     ).toThrow(/Version conflict/);
     expect(() =>
       run(store, "liveSubstitute", gameId, stampAt(20), {
@@ -261,9 +236,7 @@ describe("minimal live-game event ledger", () => {
     const live = store.liveGames[0];
     const lineup = reconstructLiveLineup(published, live, stampAt(840));
     const q2Goalkeeper = published.assignments.find(
-      (assignment) =>
-        assignment.segmentKey === "q2a" &&
-        assignment.positionKey === "goalkeeper",
+      (assignment) => assignment.segmentKey === "q2a" && assignment.positionKey === "goalkeeper",
     )?.playerId;
 
     expect(live).toMatchObject({
@@ -283,25 +256,20 @@ describe("minimal live-game event ledger", () => {
     const { store, gameId, players } = createStore();
     const published = store.schedules[0];
     run(store, "liveStart", gameId, startStamp);
-    const substitution = run(
-      store,
-      "liveSubstitute",
-      gameId,
-      stampAt(420),
-      { positionKey: "leftMidfield", playerId: players[7].id },
+    const substitution = run(store, "liveSubstitute", gameId, stampAt(420), {
+      positionKey: "leftMidfield",
+      playerId: players[7].id,
+    });
+    expect(reconstructLiveLineup(published, store.liveGames[0], stampAt(500)).leftMidfield).toBe(
+      players[7].id,
     );
-    expect(
-      reconstructLiveLineup(published, store.liveGames[0], stampAt(500))
-        .leftMidfield,
-    ).toBe(players[7].id);
 
     run(store, "liveVoidEvent", gameId, stampAt(430), {
       targetEventId: substitution.id,
     });
-    expect(
-      reconstructLiveLineup(published, store.liveGames[0], stampAt(500))
-        .leftMidfield,
-    ).toBe(players[3].id);
+    expect(reconstructLiveLineup(published, store.liveGames[0], stampAt(500)).leftMidfield).toBe(
+      players[3].id,
+    );
     expect(correctableLiveEvents(store.liveGames[0].events)).toHaveLength(0);
 
     run(store, "liveSubstitute", gameId, stampAt(440), {
@@ -309,13 +277,10 @@ describe("minimal live-game event ledger", () => {
       playerId: players[7].id,
     });
     run(store, "liveResetLineup", gameId, stampAt(450));
-    expect(
-      reconstructLiveLineup(published, store.liveGames[0], stampAt(500))
-        .leftMidfield,
-    ).toBe(players[3].id);
-    expect(store.liveGames[0].events.at(-1)?.type).toBe(
-      "lineup_reset_to_published_plan",
+    expect(reconstructLiveLineup(published, store.liveGames[0], stampAt(500)).leftMidfield).toBe(
+      players[3].id,
     );
+    expect(store.liveGames[0].events.at(-1)?.type).toBe("lineup_reset_to_published_plan");
   });
 
   it("reconstructs the full Violet acceptance sequence and correction without changing the plan", () => {
@@ -328,13 +293,10 @@ describe("minimal live-game event ledger", () => {
       firstPositionKey: "leftMidfield",
       secondPositionKey: "rightForward",
     });
-    const mistakenExit = run(
-      store,
-      "liveSubstitute",
-      gameId,
-      stampAt(420),
-      { positionKey: "rightForward", playerId: players[7].id },
-    );
+    const mistakenExit = run(store, "liveSubstitute", gameId, stampAt(420), {
+      positionKey: "rightForward",
+      playerId: players[7].id,
+    });
     run(store, "liveSubstitute", gameId, stampAt(600), {
       positionKey: "rightDefense",
       playerId: violet.id,
@@ -344,18 +306,13 @@ describe("minimal live-game event ledger", () => {
       submissionId: randomUUID(),
     });
 
-    expect(
-      reconstructLiveLineup(published, store.liveGames[0], stampAt(720))
-        .rightDefense,
-    ).toBe(violet.id);
+    expect(reconstructLiveLineup(published, store.liveGames[0], stampAt(720)).rightDefense).toBe(
+      violet.id,
+    );
     run(store, "liveVoidEvent", gameId, stampAt(730), {
       targetEventId: mistakenExit.id,
     });
-    const corrected = reconstructLiveLineup(
-      published,
-      store.liveGames[0],
-      stampAt(730),
-    );
+    const corrected = reconstructLiveLineup(published, store.liveGames[0], stampAt(730));
     expect(corrected.rightDefense).toBe(violet.id);
     expect(new Set(Object.values(corrected)).size).toBe(7);
     expect(published.assignments).toEqual(publishedBefore);
@@ -371,12 +328,12 @@ describe("minimal live-game event ledger", () => {
       status: "completed",
       actualHistoryStatus: "confirmed",
     });
-    expect(store.liveGames[0].events.slice(-2).map((event) => event.type))
-      .toEqual(["game_completed", "actual_record_confirmed"]);
+    expect(store.liveGames[0].events.slice(-2).map((event) => event.type)).toEqual([
+      "game_completed",
+      "actual_record_confirmed",
+    ]);
     expect(store.games[0].status).toBe("completed");
-    expect(() =>
-      run(store, "liveStart", gameId, stampAt(841)),
-    ).toThrow(/completed/);
+    expect(() => run(store, "liveStart", gameId, stampAt(841))).toThrow(/completed/);
   });
 
   it("migrates old transient live state as explicitly unavailable actual history", () => {
@@ -385,19 +342,26 @@ describe("minimal live-game event ledger", () => {
       ...store,
       schemaVersion: 4,
       defensiveContinuityDefault: "goalkeeper-and-defense",
-      games: store.games.map((game) => ({ ...game, defensiveContinuityOverride: "goalkeeper-only" })),
-      liveGames: [{
-        gameId,
-        revision: 3,
-        status: "paused",
-        quarter: 2,
-        accumulatedQuarterSeconds: 120,
-        overrides: [{
-          positionKey: "leftMidfield",
-          replacementPlayerId: players[7].id,
-        }],
-        updatedAt: stampAt(120),
-      }],
+      games: store.games.map((game) => ({
+        ...game,
+        defensiveContinuityOverride: "goalkeeper-only",
+      })),
+      liveGames: [
+        {
+          gameId,
+          revision: 3,
+          status: "paused",
+          quarter: 2,
+          accumulatedQuarterSeconds: 120,
+          overrides: [
+            {
+              positionKey: "leftMidfield",
+              replacementPlayerId: players[7].id,
+            },
+          ],
+          updatedAt: stampAt(120),
+        },
+      ],
     };
     const migrated = migrateSoccerStore(legacy);
 
@@ -409,13 +373,7 @@ describe("minimal live-game event ledger", () => {
       actualHistoryStatus: "legacy_unavailable",
     });
     expect(() =>
-      applyLiveAction(
-        migrated,
-        "liveStart",
-        { gameId, expectedRevision: 3 },
-        stampAt(130),
-        actor,
-      ),
+      applyLiveAction(migrated, "liveStart", { gameId, expectedRevision: 3 }, stampAt(130), actor),
     ).toThrow(/unavailable/);
   });
 });

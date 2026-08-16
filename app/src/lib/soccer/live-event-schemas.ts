@@ -105,10 +105,12 @@ export const legacyLiveStateSchema = z.object({
   quarter: z.number().int().min(1).max(4),
   accumulatedQuarterSeconds: z.number().int().min(0).max(840),
   runningSince: timestampSchema.optional(),
-  overrides: z.array(z.object({
-    positionKey: positionKeySchema,
-    replacementPlayerId: idSchema,
-  })),
+  overrides: z.array(
+    z.object({
+      positionKey: positionKeySchema,
+      replacementPlayerId: idSchema,
+    }),
+  ),
   updatedAt: timestampSchema,
 });
 

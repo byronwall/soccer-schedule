@@ -1,18 +1,5 @@
-import {
-  Show,
-  createSignal,
-  onCleanup,
-  onMount,
-  splitProps,
-  type JSX,
-} from "solid-js";
-import {
-  CheckIcon,
-  CopyIcon,
-  DownloadIcon,
-  ExpandIcon,
-  XIcon,
-} from "lucide-solid";
+import { Show, createSignal, onCleanup, onMount, splitProps, type JSX } from "solid-js";
+import { CheckIcon, CopyIcon, DownloadIcon, ExpandIcon, XIcon } from "lucide-solid";
 import * as Drawer from "~/components/ui/drawer";
 import { Button } from "~/components/ui/button";
 import { HighlightedLineNumberedCode } from "./highlighted-line-numbered-code";
@@ -43,12 +30,7 @@ const fileExtensions: Record<string, string> = {
 };
 
 export function MarkdownCodeBlock(props: MarkdownCodeBlockProps) {
-  const [local, rest] = splitProps(props, [
-    "children",
-    "codeText",
-    "codeLanguage",
-    "isHydrated",
-  ]);
+  const [local, rest] = splitProps(props, ["children", "codeText", "codeLanguage", "isHydrated"]);
   const [isCollapsed, setIsCollapsed] = createSignal(true);
   const [needsCollapse, setNeedsCollapse] = createSignal(false);
   const [isCopied, setIsCopied] = createSignal(false);
@@ -172,15 +154,8 @@ export function MarkdownCodeBlock(props: MarkdownCodeBlockProps) {
               <div class={markdownStyles.codeDrawerHeaderTop}>
                 <Drawer.Title>Code Viewer</Drawer.Title>
                 <div class={markdownStyles.codeDrawerHeaderActions}>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleDrawerCopy}
-                  >
-                    <Show
-                      when={isDrawerCopied()}
-                      fallback={<CopyIcon size={14} />}
-                    >
+                  <Button size="sm" variant="outline" onClick={handleDrawerCopy}>
+                    <Show when={isDrawerCopied()} fallback={<CopyIcon size={14} />}>
                       <CheckIcon size={14} />
                     </Show>
                     {isDrawerCopied() ? "Copied" : "Copy"}

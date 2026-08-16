@@ -1,10 +1,5 @@
 import { POSITIONS, SEGMENTS, SEGMENT_SECONDS, type PositionKey } from "./fixed-game";
-import type {
-  Assignment,
-  DefensiveContinuityPolicy,
-  Player,
-  PlayerPreference,
-} from "./schemas";
+import type { Assignment, DefensiveContinuityPolicy, Player, PlayerPreference } from "./schemas";
 import {
   scheduleContinuityExceptions,
   scheduleExperienceWarnings,
@@ -28,11 +23,18 @@ export {
 } from "./schedule-position-repeats";
 
 export type ScheduleQuality = {
-  valid: boolean; hardViolations: string[]; minuteSpread: number;
-  midfieldExceptions: number; goalkeeperExceptions: number; goalkeeperOveruse: number;
-  substituteOveruse: number; crossQuarterPositionRepeats: CrossQuarterPositionRepeat[];
-  avoidAssignmentCount: number; favoredExtraMisses: number;
-  preferredAssignmentCount: number; relaxedAvoids: RelaxedPositionAvoid[];
+  valid: boolean;
+  hardViolations: string[];
+  minuteSpread: number;
+  midfieldExceptions: number;
+  goalkeeperExceptions: number;
+  goalkeeperOveruse: number;
+  substituteOveruse: number;
+  crossQuarterPositionRepeats: CrossQuarterPositionRepeat[];
+  avoidAssignmentCount: number;
+  favoredExtraMisses: number;
+  preferredAssignmentCount: number;
+  relaxedAvoids: RelaxedPositionAvoid[];
   unmetPreferences: UnmetPositionPreference[];
   continuityExceptions: ContinuityException[];
   experienceWarnings: ExperienceCoverageWarning[];
@@ -43,7 +45,11 @@ export type ScheduleCellWarning = {
   segmentKey: Assignment["segmentKey"];
   positionKey: Assignment["positionKey"];
   playerId: Assignment["playerId"];
-  kind: "midfield-repeat" | "goalkeeper-change" | "goalkeeper-overuse" | "cross-quarter-position-repeat";
+  kind:
+    | "midfield-repeat"
+    | "goalkeeper-change"
+    | "goalkeeper-overuse"
+    | "cross-quarter-position-repeat";
   message: string;
 };
 
@@ -59,9 +65,10 @@ export const substituteCountForRoster = (rosterCount: number) =>
 
 export const orderSubstitutesForDisplay = (players: Player[], inactivePlayerIds: string[]) => {
   const inactiveIds = new Set(inactivePlayerIds);
-  return [...players].sort((left, right) =>
-    Number(inactiveIds.has(left.id)) - Number(inactiveIds.has(right.id)) ||
-    left.displayName.localeCompare(right.displayName),
+  return [...players].sort(
+    (left, right) =>
+      Number(inactiveIds.has(left.id)) - Number(inactiveIds.has(right.id)) ||
+      left.displayName.localeCompare(right.displayName),
   );
 };
 
@@ -72,13 +79,9 @@ export const scheduleSubstituteWarnings = (
   const warnings: ScheduleSubstituteWarning[] = [];
   const substituteSegments = new Map(eligibleIds.map((playerId) => [playerId, 0]));
   for (const segment of SEGMENTS) {
-    const segmentAssignments = assignments.filter(
-      (item) => item.segmentKey === segment.key,
-    );
+    const segmentAssignments = assignments.filter((item) => item.segmentKey === segment.key);
     if (segmentAssignments.length !== POSITIONS.length) continue;
-    const fieldIds = new Set(
-      segmentAssignments.map((item) => item.playerId),
-    );
+    const fieldIds = new Set(segmentAssignments.map((item) => item.playerId));
     for (const playerId of eligibleIds) {
       if (fieldIds.has(playerId)) continue;
       const segmentCount = (substituteSegments.get(playerId) ?? 0) + 1;
@@ -114,12 +117,17 @@ export const scheduleCellWarnings = (assignments: Assignment[]): ScheduleCellWar
         positionKey: assignment.positionKey,
         playerId: assignment.playerId,
         kind: "midfield-repeat",
-        message: "Midfield repeat: this player also played midfield in the first half of the quarter.",
+        message:
+          "Midfield repeat: this player also played midfield in the first half of the quarter.",
       });
     }
     const firstGoalkeeper = first.find((item) => item.positionKey === "goalkeeper");
     const secondGoalkeeper = second.find((item) => item.positionKey === "goalkeeper");
-    if (firstGoalkeeper && secondGoalkeeper && firstGoalkeeper.playerId !== secondGoalkeeper.playerId) {
+    if (
+      firstGoalkeeper &&
+      secondGoalkeeper &&
+      firstGoalkeeper.playerId !== secondGoalkeeper.playerId
+    ) {
       warnings.push({
         segmentKey: secondGoalkeeper.segmentKey,
         positionKey: secondGoalkeeper.positionKey,
@@ -168,14 +176,17 @@ export const validateAssignments = (assignments: Assignment[], eligibleIds: stri
   const eligible = new Set(eligibleIds);
   for (const segment of SEGMENTS) {
     const cells = assignments.filter((item) => item.segmentKey === segment.key);
-    if (cells.length !== POSITIONS.length) errors.push(`${segment.label} does not fill all seven positions.`);
+    if (cells.length !== POSITIONS.length)
+      errors.push(`${segment.label} does not fill all seven positions.`);
     const positionKeys = new Set(cells.map((item) => item.positionKey));
     if (POSITIONS.some((position) => !positionKeys.has(position.key))) {
       errors.push(`${segment.label} does not assign every required position exactly once.`);
     }
     const players = cells.map((item) => item.playerId);
-    if (new Set(players).size !== players.length) errors.push(`${segment.label} assigns a player twice.`);
-    if (cells.some((item) => !eligible.has(item.playerId))) errors.push(`${segment.label} includes an unavailable player.`);
+    if (new Set(players).size !== players.length)
+      errors.push(`${segment.label} assigns a player twice.`);
+    if (cells.some((item) => !eligible.has(item.playerId)))
+      errors.push(`${segment.label} includes an unavailable player.`);
   }
   return errors;
 };
@@ -188,11 +199,19 @@ export const scoreSchedule = (
 ): ScheduleQuality => {
   const counts = new Map(eligibleIds.map((id) => [id, 0]));
   for (const item of assignments) counts.set(item.playerId, (counts.get(item.playerId) ?? 0) + 1);
-  const totals = eligibleIds.map((playerId) => ({ playerId, segments: counts.get(playerId) ?? 0, minutes: (counts.get(playerId) ?? 0) * 7 }));
+  const totals = eligibleIds.map((playerId) => ({
+    playerId,
+    segments: counts.get(playerId) ?? 0,
+    minutes: (counts.get(playerId) ?? 0) * 7,
+  }));
   const segmentCounts = totals.map((item) => item.segments);
   const cellWarnings = scheduleCellWarnings(assignments);
-  const midfieldExceptions = cellWarnings.filter((warning) => warning.kind === "midfield-repeat").length;
-  const goalkeeperExceptions = cellWarnings.filter((warning) => warning.kind === "goalkeeper-change").length;
+  const midfieldExceptions = cellWarnings.filter(
+    (warning) => warning.kind === "midfield-repeat",
+  ).length;
+  const goalkeeperExceptions = cellWarnings.filter(
+    (warning) => warning.kind === "goalkeeper-change",
+  ).length;
   const goalkeeperOveruse = new Set(
     cellWarnings
       .filter((warning) => warning.kind === "goalkeeper-overuse")
@@ -203,26 +222,18 @@ export const scoreSchedule = (
   ).size;
   const hardViolations = validateAssignments(assignments, eligibleIds);
   const crossQuarterPositionRepeats = detectCrossQuarterPositionRepeats(assignments);
-  const preferenceQuality = scoreSchedulePreferences(
-    assignments,
-    eligibleIds,
-    preferences,
-  );
+  const preferenceQuality = scoreSchedulePreferences(assignments, eligibleIds, preferences);
   return {
     valid: hardViolations.length === 0,
     hardViolations,
-    minuteSpread: segmentCounts.length > 0
-      ? (Math.max(...segmentCounts) - Math.min(...segmentCounts)) * 7
-      : 0,
+    minuteSpread:
+      segmentCounts.length > 0 ? (Math.max(...segmentCounts) - Math.min(...segmentCounts)) * 7 : 0,
     midfieldExceptions,
     goalkeeperExceptions,
     goalkeeperOveruse,
     substituteOveruse,
     crossQuarterPositionRepeats,
-    continuityExceptions: scheduleContinuityExceptions(
-      assignments,
-      continuityPolicy,
-    ),
+    continuityExceptions: scheduleContinuityExceptions(assignments, continuityPolicy),
     experienceWarnings: scheduleExperienceWarnings(assignments, eligibleIds),
     ...preferenceQuality,
     totals,
@@ -239,13 +250,10 @@ const selectRepairPlayer = (options: {
   counts: Map<string, number>;
 }) => {
   const { current, suggested, players, eligible, used, reserved, counts } = options;
-  if (current && eligible.has(current.playerId) && !used.has(current.playerId)) return current.playerId;
-  const unreserved = players.filter(
-    (player) => !used.has(player.id) && !reserved.has(player.id),
-  );
-  const minimumCount = Math.min(
-    ...unreserved.map((player) => counts.get(player.id) ?? 0),
-  );
+  if (current && eligible.has(current.playerId) && !used.has(current.playerId))
+    return current.playerId;
+  const unreserved = players.filter((player) => !used.has(player.id) && !reserved.has(player.id));
+  const minimumCount = Math.min(...unreserved.map((player) => counts.get(player.id) ?? 0));
   if (
     suggested &&
     !used.has(suggested) &&
@@ -255,12 +263,10 @@ const selectRepairPlayer = (options: {
     return suggested;
   }
 
-  const lowestCount = unreserved
-    .sort(
-      (left, right) =>
-        (counts.get(left.id) ?? 0) - (counts.get(right.id) ?? 0) ||
-        left.id.localeCompare(right.id),
-    )[0];
+  const lowestCount = unreserved.sort(
+    (left, right) =>
+      (counts.get(left.id) ?? 0) - (counts.get(right.id) ?? 0) || left.id.localeCompare(right.id),
+  )[0];
   return lowestCount?.id ?? players.find((player) => !used.has(player.id))?.id;
 };
 
@@ -285,7 +291,9 @@ const repairSegment = (options: {
       (item) => item.segmentKey === segment.key && item.positionKey === position.key,
     );
     if (current?.locked && (!eligible.has(current.playerId) || used.has(current.playerId))) {
-      throw new Error(`Locked ${segment.label} ${position.label} assignment is no longer eligible.`);
+      throw new Error(
+        `Locked ${segment.label} ${position.label} assignment is no longer eligible.`,
+      );
     }
     const suggested = generated.find(
       (item) => item.segmentKey === segment.key && item.positionKey === position.key,
@@ -334,9 +342,18 @@ export const repairSchedule = (
   );
 };
 
-export const replaceAssignment = (assignments: Assignment[], segmentKey: Assignment["segmentKey"], positionKey: PositionKey, playerId: string) => {
-  const target = assignments.find((item) => item.segmentKey === segmentKey && item.positionKey === positionKey);
-  const existing = assignments.find((item) => item.segmentKey === segmentKey && item.playerId === playerId);
+export const replaceAssignment = (
+  assignments: Assignment[],
+  segmentKey: Assignment["segmentKey"],
+  positionKey: PositionKey,
+  playerId: string,
+) => {
+  const target = assignments.find(
+    (item) => item.segmentKey === segmentKey && item.positionKey === positionKey,
+  );
+  const existing = assignments.find(
+    (item) => item.segmentKey === segmentKey && item.playerId === playerId,
+  );
   if (!target) {
     return [
       ...assignments,
@@ -363,5 +380,9 @@ export const replaceAssignment = (assignments: Assignment[], segmentKey: Assignm
   });
 };
 
-export const elapsedQuarterSeconds = (runningSince: string | undefined, accumulated: number) => Math.min(840, accumulated + (runningSince ? Math.floor((Date.now() - Date.parse(runningSince)) / 1000) : 0));
+export const elapsedQuarterSeconds = (runningSince: string | undefined, accumulated: number) =>
+  Math.min(
+    840,
+    accumulated + (runningSince ? Math.floor((Date.now() - Date.parse(runningSince)) / 1000) : 0),
+  );
 export const plannedMinutes = (count: number) => Math.round((count * SEGMENT_SECONDS) / 60);

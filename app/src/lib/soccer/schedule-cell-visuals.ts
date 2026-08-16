@@ -51,9 +51,7 @@ export const assignmentCellVisualStyle = (
     emphasized,
     playerColor,
   }),
-  outline: changed && !dropTarget && !selected
-    ? "2px dashed var(--colors-blue-9)"
-    : undefined,
+  outline: changed && !dropTarget && !selected ? "2px dashed var(--colors-blue-9)" : undefined,
   "outline-offset": changed ? "-3px" : undefined,
   opacity: dragging ? 0.5 : 1,
   filter: "none",

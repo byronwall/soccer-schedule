@@ -3,7 +3,13 @@ export const POSITIONS = [
   { key: "leftDefense", label: "Left Defense", short: "LD", group: "defense", color: "#4773A8" },
   { key: "rightDefense", label: "Right Defense", short: "RD", group: "defense", color: "#3F7885" },
   { key: "leftMidfield", label: "Left Midfield", short: "LM", group: "midfield", color: "#3F7A73" },
-  { key: "rightMidfield", label: "Right Midfield", short: "RM", group: "midfield", color: "#657A3D" },
+  {
+    key: "rightMidfield",
+    label: "Right Midfield",
+    short: "RM",
+    group: "midfield",
+    color: "#657A3D",
+  },
   { key: "leftForward", label: "Left Forward", short: "LF", group: "forward", color: "#9A6A3A" },
   { key: "rightForward", label: "Right Forward", short: "RF", group: "forward", color: "#A94F4F" },
 ] as const;

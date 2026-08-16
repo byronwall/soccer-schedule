@@ -44,17 +44,11 @@ export interface ClipboardDemoProps {
 
 export const ClipboardDemo = (props: ClipboardDemoProps) => {
   return (
-    <Root
-      {...(props.variantProps ?? {})}
-      value="https://park-ui.com"
-      width="72"
-    >
+    <Root {...(props.variantProps ?? {})} value="https://park-ui.com" width="72">
       <Label>Copy URL</Label>
       <Control>
         <DemoInput />
-        <Trigger
-          asChild={(props) => <DemoButton {...props()}>Copy</DemoButton>}
-        />
+        <Trigger asChild={(props) => <DemoButton {...props()}>Copy</DemoButton>} />
       </Control>
     </Root>
   );

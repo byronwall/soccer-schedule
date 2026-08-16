@@ -1,14 +1,25 @@
-
-import { Portal } from 'solid-js/web';
-import { Box, VStack } from 'styled-system/jsx';
-import { Button as DemoButton } from './button';
-import { CloseButton } from './close-button';
-import * as Dialog from './dialog';
-import * as Field from './field';
-import { Input } from './input';
-import { Textarea } from './textarea';
-import { Arrow, Body, CloseTrigger, Content, Description, Footer, Header, Positioner, Root, Title, Trigger } from './popover';
-import { PopoverBasePanelContent } from './popover.demo.content';
+import { Portal } from "solid-js/web";
+import { Box, VStack } from "styled-system/jsx";
+import { Button as DemoButton } from "./button";
+import { CloseButton } from "./close-button";
+import * as Dialog from "./dialog";
+import * as Field from "./field";
+import { Input } from "./input";
+import { Textarea } from "./textarea";
+import {
+  Arrow,
+  Body,
+  CloseTrigger,
+  Content,
+  Description,
+  Footer,
+  Header,
+  Positioner,
+  Root,
+  Title,
+  Trigger,
+} from "./popover";
+import { PopoverBasePanelContent } from "./popover.demo.content";
 
 type PopoverVariantProps = Record<string, string>;
 
@@ -18,7 +29,9 @@ export const PopoverSecondaryDemoSections = (props: { variantProps?: PopoverVari
   return (
     <>
       <VStack as="section" alignItems="start" gap="2" minW="72" flex="1">
-        <Box as="h3" fontWeight="semibold">Nested</Box>
+        <Box as="h3" fontWeight="semibold">
+          Nested
+        </Box>
         <Box textStyle="xs" color="fg.muted">
           Demonstrates a popover opened from inside another popover.
         </Box>
@@ -63,9 +76,7 @@ export const PopoverSecondaryDemoSections = (props: { variantProps?: PopoverVari
                     </Positioner>
                   </Root>
                 </Footer>
-                <CloseTrigger
-                  asChild={(triggerProps) => <CloseButton {...triggerProps()} />}
-                />
+                <CloseTrigger asChild={(triggerProps) => <CloseButton {...triggerProps()} />} />
               </Content>
             </Positioner>
           </Portal>
@@ -73,7 +84,9 @@ export const PopoverSecondaryDemoSections = (props: { variantProps?: PopoverVari
       </VStack>
 
       <VStack as="section" alignItems="start" gap="2" minW="72" flex="1">
-        <Box as="h3" fontWeight="semibold">Form</Box>
+        <Box as="h3" fontWeight="semibold">
+          Form
+        </Box>
         <Box textStyle="xs" color="fg.muted">
           Shows form fields and footer actions rendered inside popover content.
         </Box>
@@ -106,9 +119,7 @@ export const PopoverSecondaryDemoSections = (props: { variantProps?: PopoverVari
                 <Footer>
                   <DemoButton width="full">Save</DemoButton>
                 </Footer>
-                <CloseTrigger
-                  asChild={(triggerProps) => <CloseButton {...triggerProps()} />}
-                />
+                <CloseTrigger asChild={(triggerProps) => <CloseButton {...triggerProps()} />} />
               </Content>
             </Positioner>
           </Portal>
@@ -116,14 +127,13 @@ export const PopoverSecondaryDemoSections = (props: { variantProps?: PopoverVari
       </VStack>
 
       <VStack as="section" alignItems="start" gap="2" minW="72" flex="1">
-        <Box as="h3" fontWeight="semibold">Initial Focus</Box>
+        <Box as="h3" fontWeight="semibold">
+          Initial Focus
+        </Box>
         <Box textStyle="xs" color="fg.muted">
           Sets `initialFocusEl` so focus lands on the textarea when opened.
         </Box>
-        <Root
-          {...variantProps()}
-          initialFocusEl={() => initialFocusTextarea ?? null}
-        >
+        <Root {...variantProps()} initialFocusEl={() => initialFocusTextarea ?? null}>
           <Trigger
             asChild={(triggerProps) => (
               <DemoButton variant="outline" style={{ width: "auto" }} {...triggerProps()}>
@@ -146,18 +156,13 @@ export const PopoverSecondaryDemoSections = (props: { variantProps?: PopoverVari
                   </Field.Root>
                   <Field.Root>
                     <Field.Label>Description</Field.Label>
-                    <Textarea
-                      ref={initialFocusTextarea}
-                      placeholder="Describe the issue"
-                    />
+                    <Textarea ref={initialFocusTextarea} placeholder="Describe the issue" />
                   </Field.Root>
                 </Body>
                 <Footer>
                   <DemoButton width="full">Save</DemoButton>
                 </Footer>
-                <CloseTrigger
-                  asChild={(triggerProps) => <CloseButton {...triggerProps()} />}
-                />
+                <CloseTrigger asChild={(triggerProps) => <CloseButton {...triggerProps()} />} />
               </Content>
             </Positioner>
           </Portal>
@@ -165,7 +170,9 @@ export const PopoverSecondaryDemoSections = (props: { variantProps?: PopoverVari
       </VStack>
 
       <VStack as="section" alignItems="start" gap="2" minW="72" flex="1">
-        <Box as="h3" fontWeight="semibold">Custom Background</Box>
+        <Box as="h3" fontWeight="semibold">
+          Custom Background
+        </Box>
         <Box textStyle="xs" color="fg.muted">
           Applies `--popover-bg` to customize content and arrow background.
         </Box>
@@ -188,7 +195,9 @@ export const PopoverSecondaryDemoSections = (props: { variantProps?: PopoverVari
       </VStack>
 
       <VStack as="section" alignItems="start" gap="2" minW="72" flex="1">
-        <Box as="h3" fontWeight="semibold">Within Dialog</Box>
+        <Box as="h3" fontWeight="semibold">
+          Within Dialog
+        </Box>
         <Box textStyle="xs" color="fg.muted">
           Uses popover inside dialog with fixed strategy and detached hiding.
         </Box>
@@ -221,9 +230,7 @@ export const PopoverSecondaryDemoSections = (props: { variantProps?: PopoverVari
                       </DemoButton>
                     )}
                   />
-                  <Root
-                    positioning={{ strategy: "fixed", hideWhenDetached: true }}
-                  >
+                  <Root positioning={{ strategy: "fixed", hideWhenDetached: true }}>
                     <Trigger
                       asChild={(triggerProps) => (
                         <DemoButton style={{ width: "auto" }} {...triggerProps()}>
@@ -232,7 +239,9 @@ export const PopoverSecondaryDemoSections = (props: { variantProps?: PopoverVari
                       )}
                     />
                     <Positioner>
-                      <Content><PopoverBasePanelContent /></Content>
+                      <Content>
+                        <PopoverBasePanelContent />
+                      </Content>
                     </Positioner>
                   </Root>
                 </Dialog.Footer>

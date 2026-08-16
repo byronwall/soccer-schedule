@@ -136,4 +136,3 @@ Reason:
 - Reconciled wrapper dependencies compile against starter aliases/exports.
 - Dev scripts/config for type-check and tests are in place.
 - Agent + skills + docs are discoverable from repo root.
-

@@ -19,7 +19,9 @@ export const ConsoleLogCaptureTopControls = () => {
       <Input
         size="xs"
         value={panel.state.filters.searchQuery}
-        onInput={(event) => panel.actions.setSearchQuery((event.currentTarget as HTMLInputElement).value)}
+        onInput={(event) =>
+          panel.actions.setSearchQuery((event.currentTarget as HTMLInputElement).value)
+        }
         placeholder="Search visible logs..."
         fontFamily="mono"
         autocomplete="off"
@@ -38,7 +40,9 @@ export const ConsoleLogCaptureTopControls = () => {
         <Input
           size="xs"
           value={panel.state.limits.maxKeepInput}
-          onInput={(event) => panel.actions.setMaxKeepInput((event.currentTarget as HTMLInputElement).value)}
+          onInput={(event) =>
+            panel.actions.setMaxKeepInput((event.currentTarget as HTMLInputElement).value)
+          }
           onBlur={panel.actions.applyMaxKeep}
           onKeyDown={(event) => {
             if (event.key !== "Enter") return;
@@ -61,7 +65,9 @@ export const ConsoleLogCaptureTopControls = () => {
         <Input
           size="xs"
           value={panel.state.limits.rowLimitInput}
-          onInput={(event) => panel.actions.setRowLimitInput((event.currentTarget as HTMLInputElement).value)}
+          onInput={(event) =>
+            panel.actions.setRowLimitInput((event.currentTarget as HTMLInputElement).value)
+          }
           onBlur={panel.actions.normalizeRowLimitInput}
           onKeyDown={(event) => {
             if (event.key !== "Enter") return;
@@ -100,11 +106,7 @@ export const ConsoleLogCaptureTopControls = () => {
       <Tooltip
         portalled={false}
         contentProps={tooltipContentProps}
-        content={
-          panel.captureEnabled()
-            ? "Disable console capture"
-            : "Enable console capture"
-        }
+        content={panel.captureEnabled() ? "Disable console capture" : "Enable console capture"}
         showArrow
       >
         <Button
@@ -140,12 +142,7 @@ export const ConsoleLogCaptureTopControls = () => {
         content="Emit mixed test logs for previewing rendering"
         showArrow
       >
-        <Button
-          size="xs"
-          variant="outline"
-          onClick={panel.actions.emitTestLogs}
-          fontFamily="mono"
-        >
+        <Button size="xs" variant="outline" onClick={panel.actions.emitTestLogs} fontFamily="mono">
           Test Logs
         </Button>
       </Tooltip>
@@ -155,9 +152,7 @@ export const ConsoleLogCaptureTopControls = () => {
           portalled={false}
           contentProps={tooltipContentProps}
           content={
-            panel.copiedPrefixes()
-              ? "Copied visible prefixes"
-              : "Copy visible prefixes with counts"
+            panel.copiedPrefixes() ? "Copied visible prefixes" : "Copy visible prefixes with counts"
           }
           showArrow
         >
@@ -168,10 +163,7 @@ export const ConsoleLogCaptureTopControls = () => {
             onClick={panel.actions.copyVisiblePrefixes}
             disabled={panel.visiblePrefixCounts().length === 0}
           >
-            <Show
-              when={panel.copiedPrefixes()}
-              fallback={<ListIcon size={12} />}
-            >
+            <Show when={panel.copiedPrefixes()} fallback={<ListIcon size={12} />}>
               <CheckIcon size={12} />
             </Show>
           </IconButton>
@@ -197,11 +189,7 @@ export const ConsoleLogCaptureTopControls = () => {
         <Tooltip
           portalled={false}
           contentProps={tooltipContentProps}
-          content={
-            panel.copiedVisible()
-              ? "Copied visible logs"
-              : "Copy visible logs JSON"
-          }
+          content={panel.copiedVisible() ? "Copied visible logs" : "Copy visible logs JSON"}
           showArrow
         >
           <IconButton
@@ -211,10 +199,7 @@ export const ConsoleLogCaptureTopControls = () => {
             onClick={panel.actions.copyVisibleLogs}
             disabled={visibleActionsDisabled()}
           >
-            <Show
-              when={panel.copiedVisible()}
-              fallback={<CopyIcon size={12} />}
-            >
+            <Show when={panel.copiedVisible()} fallback={<CopyIcon size={12} />}>
               <CheckIcon size={12} />
             </Show>
           </IconButton>

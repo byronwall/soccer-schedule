@@ -99,20 +99,10 @@ export function ErrorOverlayPlayground() {
           </Text>
         </Stack>
 
-        <Box
-          borderWidth="1px"
-          borderColor="border"
-          borderRadius="l2"
-          p="3"
-          bg="bg.subtle"
-        >
+        <Box borderWidth="1px" borderColor="border" borderRadius="l2" p="3" bg="bg.subtle">
           <Text textStyle="sm" color="fg.muted">
-            Routes:
-            {" "}
-            <Code>window.error</Code>
-            ,{" "}
-            <Code>window.unhandledrejection</Code>
-            , and ErrorBoundary fallback.
+            Routes: <Code>window.error</Code>, <Code>window.unhandledrejection</Code>, and
+            ErrorBoundary fallback.
           </Text>
         </Box>
 

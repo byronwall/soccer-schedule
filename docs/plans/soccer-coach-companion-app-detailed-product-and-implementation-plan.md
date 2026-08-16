@@ -129,15 +129,15 @@ A coach can mark attendance, generate a fair and structurally valid lineup for t
 
 The exact labels are fixed and stored in code:
 
-| Key | Display label | Group | Mid-quarter rotation target | Quarter continuity target |
-| --- | --- | --- | --- | --- |
-| `goalkeeper` | Goalkeeper | Goalkeeper | No | Yes |
-| `leftDefense` | Left Defense | Defense | No | No |
-| `rightDefense` | Right Defense | Defense | No | No |
-| `leftMidfield` | Left Midfield | Midfield | Yes | No |
-| `rightMidfield` | Right Midfield | Midfield | Yes | No |
-| `leftForward` | Left Forward | Forward | No | No |
-| `rightForward` | Right Forward | Forward | No | No |
+| Key             | Display label  | Group      | Mid-quarter rotation target | Quarter continuity target |
+| --------------- | -------------- | ---------- | --------------------------- | ------------------------- |
+| `goalkeeper`    | Goalkeeper     | Goalkeeper | No                          | Yes                       |
+| `leftDefense`   | Left Defense   | Defense    | No                          | No                        |
+| `rightDefense`  | Right Defense  | Defense    | No                          | No                        |
+| `leftMidfield`  | Left Midfield  | Midfield   | Yes                         | No                        |
+| `rightMidfield` | Right Midfield | Midfield   | Yes                         | No                        |
+| `leftForward`   | Left Forward   | Forward    | No                          | No                        |
+| `rightForward`  | Right Forward  | Forward    | No                          | No                        |
 
 Put these values in `app/src/lib/soccer/fixed-game.ts` as readonly literal arrays. Derive `SegmentKey`, `PositionKey`, and `PositionGroup` from the arrays instead of maintaining duplicate unions.
 
@@ -222,16 +222,16 @@ Live actions apply as semantic server commands to the latest stored state. There
 
 ## Information architecture and routes
 
-| URL | Route file | Access | Purpose |
-| --- | --- | --- | --- |
-| `/login` | `app/src/routes/login.tsx` | Public | Named coach + environment password login. |
-| `/` | `app/src/routes/index.tsx` | Coach | Single-team dashboard with next game, schedule status, planned season totals, and recent games. Replace all starter identity. |
-| `/roster` | `app/src/routes/roster.tsx` | Coach | Add/edit/deactivate players for the current season. |
-| `/games/new` | `app/src/routes/games/new.tsx` | Coach | Create a game using the fixed game model. |
-| `/games/:gameId` | `app/src/routes/games/[gameId]/index.tsx` | Coach | Game logistics, availability, capacity, and schedule status. |
-| `/games/:gameId/schedule` | `app/src/routes/games/[gameId]/schedule.tsx` | Coach | Generate, edit, validate, publish, and review planned totals. |
-| `/games/:gameId/live` | `app/src/routes/games/[gameId]/live.tsx` | Coach | Shared clock, current/next lineup, bench, and temporary overrides. |
-| `/games/:gameId/print` | `app/src/routes/games/[gameId]/print.tsx` | Coach | Print-only schedule with minimal chrome. |
+| URL                       | Route file                                   | Access | Purpose                                                                                                                       |
+| ------------------------- | -------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `/login`                  | `app/src/routes/login.tsx`                   | Public | Named coach + environment password login.                                                                                     |
+| `/`                       | `app/src/routes/index.tsx`                   | Coach  | Single-team dashboard with next game, schedule status, planned season totals, and recent games. Replace all starter identity. |
+| `/roster`                 | `app/src/routes/roster.tsx`                  | Coach  | Add/edit/deactivate players for the current season.                                                                           |
+| `/games/new`              | `app/src/routes/games/new.tsx`               | Coach  | Create a game using the fixed game model.                                                                                     |
+| `/games/:gameId`          | `app/src/routes/games/[gameId]/index.tsx`    | Coach  | Game logistics, availability, capacity, and schedule status.                                                                  |
+| `/games/:gameId/schedule` | `app/src/routes/games/[gameId]/schedule.tsx` | Coach  | Generate, edit, validate, publish, and review planned totals.                                                                 |
+| `/games/:gameId/live`     | `app/src/routes/games/[gameId]/live.tsx`     | Coach  | Shared clock, current/next lineup, bench, and temporary overrides.                                                            |
+| `/games/:gameId/print`    | `app/src/routes/games/[gameId]/print.tsx`    | Coach  | Print-only schedule with minimal chrome.                                                                                      |
 
 Keep `/api/auth/logout`. Replace or retire the public magic-link request/consume flow so it is not exposed as a parallel login mechanism. Prefer SolidStart `query` + `createResource` for reads and typed server actions for writes. No new public JSON API is required.
 
@@ -383,11 +383,7 @@ Enforce uniqueness for `(scheduleId, segmentKey, positionKey)` and `(scheduleId,
 type ScheduleQuality = {
   valid: boolean;
   hardViolations: Array<{
-    code:
-      | "unfilled_position"
-      | "duplicate_player"
-      | "unavailable_player"
-      | "inactive_player";
+    code: "unfilled_position" | "duplicate_player" | "unavailable_player" | "inactive_player";
     message: string;
     segmentKey?: SegmentKey;
     positionKey?: PositionKey;
@@ -723,22 +719,22 @@ No component should imply actual-time tracking. Use language such as `Temporary 
 
 ## User-facing states and recovery
 
-| Situation | Expected experience |
-| --- | --- |
-| Missing/invalid credential configuration | Server fails startup with a clear configuration error; no secrets included. |
-| Wrong password | Generic login failure without identifying which credential field was wrong. |
-| Expired/revoked session | Redirect to login and preserve a safe internal return path. |
-| Empty roster | Guided add-player state; new game scheduling is disabled. |
-| Unknown availability | Generation disabled with remaining names and `Mark remaining available`. |
-| Fewer than seven available | Explain the seven-position minimum and block generation. |
-| Generation cannot satisfy locks | Identify conflicting locked cells and offer unlock actions. |
-| Preference exception | Generate valid schedule, name the exception, and allow publish after review. |
-| Availability changed | Mark schedule stale and offer repair/regenerate. |
-| Concurrent schedule save | Preserve local state, show newer revision, and require reload/reapply. |
-| No published schedule | Live and print routes direct coach to publish a valid draft. |
-| Live poll fails | Keep the last snapshot visible, label it stale, and offer retry; no offline-write queue. |
-| Simultaneous live commands | Server serializes commands; reject only commands invalidated by the newer state. |
-| Refresh during a running quarter | Restore server snapshot and derive current countdown from server timestamps. |
+| Situation                                | Expected experience                                                                      |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Missing/invalid credential configuration | Server fails startup with a clear configuration error; no secrets included.              |
+| Wrong password                           | Generic login failure without identifying which credential field was wrong.              |
+| Expired/revoked session                  | Redirect to login and preserve a safe internal return path.                              |
+| Empty roster                             | Guided add-player state; new game scheduling is disabled.                                |
+| Unknown availability                     | Generation disabled with remaining names and `Mark remaining available`.                 |
+| Fewer than seven available               | Explain the seven-position minimum and block generation.                                 |
+| Generation cannot satisfy locks          | Identify conflicting locked cells and offer unlock actions.                              |
+| Preference exception                     | Generate valid schedule, name the exception, and allow publish after review.             |
+| Availability changed                     | Mark schedule stale and offer repair/regenerate.                                         |
+| Concurrent schedule save                 | Preserve local state, show newer revision, and require reload/reapply.                   |
+| No published schedule                    | Live and print routes direct coach to publish a valid draft.                             |
+| Live poll fails                          | Keep the last snapshot visible, label it stale, and offer retry; no offline-write queue. |
+| Simultaneous live commands               | Server serializes commands; reject only commands invalidated by the newer state.         |
+| Refresh during a running quarter         | Restore server snapshot and derive current countdown from server timestamps.             |
 
 ## Security and privacy baseline
 

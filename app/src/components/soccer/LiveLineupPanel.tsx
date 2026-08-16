@@ -5,30 +5,22 @@ import { Grid, HStack, VStack } from "styled-system/jsx";
 
 export function LiveLineupPanel() {
   const tracker = useLiveGame();
-  const started = () =>
-    tracker.live()?.status === "running" ||
-    tracker.live()?.status === "paused";
-  const unavailable = () =>
-    tracker.live()?.actualHistoryStatus === "legacy_unavailable";
+  const started = () => tracker.live()?.status === "running" || tracker.live()?.status === "paused";
+  const unavailable = () => tracker.live()?.actualHistoryStatus === "legacy_unavailable";
 
   return (
     <Card.Root>
       <Card.Header>
         <Card.Title>Current lineup</Card.Title>
         <Card.Description>
-          Tap a position to choose a bench replacement or swap with another
-          field position.
+          Tap a position to choose a bench replacement or swap with another field position.
         </Card.Description>
       </Card.Header>
       <Card.Body>
-        <Grid
-          gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }}
-          gap="3"
-        >
+        <Grid gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap="3">
           <For each={tracker.data.positions()}>
             {(position) => {
-              const assigned = () =>
-                tracker.player(tracker.lineup()[position.key]);
+              const assigned = () => tracker.player(tracker.lineup()[position.key]);
               return (
                 <Button
                   variant="outline"
@@ -49,8 +41,7 @@ export function LiveLineupPanel() {
                         {position.label}
                       </Text>
                       <Text fontWeight="semibold">
-                        #{assigned()?.jerseyNumber ?? "—"}{" "}
-                        {assigned()?.displayName}
+                        #{assigned()?.jerseyNumber ?? "—"} {assigned()?.displayName}
                       </Text>
                     </VStack>
                   </HStack>

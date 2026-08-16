@@ -22,15 +22,16 @@ const schedule = (q1bOffset = 0, laterOffset = 0): Schedule => ({
     POSITIONS.map((position, positionIndex) => ({
       segmentKey: segment.key,
       positionKey: position.key,
-      playerId: ids[
-        (
-          positionIndex +
-          (segment.key === "q1b" ? q1bOffset : segment.quarter > 1 ? laterOffset : 0)
-        ) % ids.length
-      ],
+      playerId:
+        ids[
+          (positionIndex +
+            (segment.key === "q1b" ? q1bOffset : segment.quarter > 1 ? laterOffset : 0)) %
+            ids.length
+        ],
       source: "generated" as const,
       locked: false,
-    }))),
+    })),
+  ),
   history: [],
   future: [],
   generatedAt: stamp,
@@ -44,17 +45,16 @@ const event = (
   quarter: number,
   elapsedGameClockSeconds: number,
   payload: Record<string, unknown> = {},
-) => ({
-  id: `30000000-0000-4000-8000-${String(++eventNumber).padStart(12, "0")}`,
-  serverTimestamp: new Date(
-    new Date(stamp).getTime() + eventNumber * 1000,
-  ).toISOString(),
-  quarter,
-  elapsedGameClockSeconds,
-  actor,
-  type,
-  payload,
-}) as LiveEvent;
+) =>
+  ({
+    id: `30000000-0000-4000-8000-${String(++eventNumber).padStart(12, "0")}`,
+    serverTimestamp: new Date(new Date(stamp).getTime() + eventNumber * 1000).toISOString(),
+    quarter,
+    elapsedGameClockSeconds,
+    actor,
+    type,
+    payload,
+  }) as LiveEvent;
 
 const confirmedLive = (events: LiveEvent[], quarter = 1) => {
   eventNumber = Math.max(eventNumber, events.length);
@@ -65,28 +65,24 @@ const confirmedLive = (events: LiveEvent[], quarter = 1) => {
     status: "completed",
     quarter,
     accumulatedQuarterSeconds:
-      events.findLast((item) => item.type === "game_completed")
-        ?.elapsedGameClockSeconds ?? 0,
+      events.findLast((item) => item.type === "game_completed")?.elapsedGameClockSeconds ?? 0,
     events,
     actualHistoryStatus: "confirmed",
     updatedAt: stamp,
   });
 };
 
-const closeLedger = (
-  preceding: LiveEvent[],
-  quarter: number,
-  seconds: number,
-) => confirmedLive([
-  ...preceding,
-  event("game_completed", quarter, seconds),
-  event("actual_record_confirmed", quarter, seconds),
-], quarter);
+const closeLedger = (preceding: LiveEvent[], quarter: number, seconds: number) =>
+  confirmedLive(
+    [
+      ...preceding,
+      event("game_completed", quarter, seconds),
+      event("actual_record_confirmed", quarter, seconds),
+    ],
+    quarter,
+  );
 
-const playerSummary = (
-  result: ReturnType<typeof deriveActualGameSummary>,
-  playerId: string,
-) => {
+const playerSummary = (result: ReturnType<typeof deriveActualGameSummary>, playerId: string) => {
   if (result.status !== "confirmed") {
     throw new Error("Expected confirmed actual summary.");
   }
@@ -96,11 +92,11 @@ const playerSummary = (
 describe("post-game actual history", () => {
   it("uses game-clock time across pause and resume without counting wall-clock delay", () => {
     eventNumber = 0;
-    const live = closeLedger([
-      event("game_started", 1, 0),
-      event("game_paused", 1, 180),
-      event("game_resumed", 1, 180),
-    ], 1, 600);
+    const live = closeLedger(
+      [event("game_started", 1, 0), event("game_paused", 1, 180), event("game_resumed", 1, 180)],
+      1,
+      600,
+    );
     const result = deriveActualGameSummary({
       schedule: schedule(),
       live,
@@ -137,14 +133,18 @@ describe("post-game actual history", () => {
     eventNumber = 0;
     const result = deriveActualGameSummary({
       schedule: schedule(0, 2),
-      live: closeLedger([
-        event("game_started", 1, 0),
-        event("quarter_advanced", 1, 720, {
-          fromQuarter: 1,
-          toQuarter: 2,
-        }),
-        event("game_started", 2, 0),
-      ], 2, 300),
+      live: closeLedger(
+        [
+          event("game_started", 1, 0),
+          event("quarter_advanced", 1, 720, {
+            fromQuarter: 1,
+            toQuarter: 2,
+          }),
+          event("game_started", 2, 0),
+        ],
+        2,
+        300,
+      ),
       availablePlayerIds: ids,
     });
 
@@ -165,20 +165,24 @@ describe("post-game actual history", () => {
     eventNumber = 0;
     const result = deriveActualGameSummary({
       schedule: schedule(),
-      live: closeLedger([
-        event("game_started", 1, 0),
-        event("field_players_swapped", 1, 180, {
-          firstPositionKey: "leftMidfield",
-          secondPositionKey: "rightForward",
-          firstPlayerId: ids[3],
-          secondPlayerId: ids[6],
-        }),
-        event("bench_replaced_field_player", 1, 180, {
-          positionKey: "rightForward",
-          outgoingPlayerId: ids[3],
-          incomingPlayerId: ids[7],
-        }),
-      ], 1, 600),
+      live: closeLedger(
+        [
+          event("game_started", 1, 0),
+          event("field_players_swapped", 1, 180, {
+            firstPositionKey: "leftMidfield",
+            secondPositionKey: "rightForward",
+            firstPlayerId: ids[3],
+            secondPlayerId: ids[6],
+          }),
+          event("bench_replaced_field_player", 1, 180, {
+            positionKey: "rightForward",
+            outgoingPlayerId: ids[3],
+            incomingPlayerId: ids[7],
+          }),
+        ],
+        1,
+        600,
+      ),
       availablePlayerIds: ids,
     });
 
@@ -201,11 +205,15 @@ describe("post-game actual history", () => {
     });
     const resetResult = deriveActualGameSummary({
       schedule: schedule(),
-      live: closeLedger([
-        event("game_started", 1, 0),
-        substitution,
-        event("lineup_reset_to_published_plan", 1, 200),
-      ], 1, 300),
+      live: closeLedger(
+        [
+          event("game_started", 1, 0),
+          substitution,
+          event("lineup_reset_to_published_plan", 1, 200),
+        ],
+        1,
+        300,
+      ),
       availablePlayerIds: ids,
     });
     expect(playerSummary(resetResult, ids[3])).toMatchObject({
@@ -215,14 +223,18 @@ describe("post-game actual history", () => {
 
     const voidedResult = deriveActualGameSummary({
       schedule: schedule(),
-      live: closeLedger([
-        event("game_started", 1, 0),
-        substitution,
-        event("event_voided", 1, 250, {
-          targetEventId: substitution.id,
-          reason: "Correction",
-        }),
-      ], 1, 300),
+      live: closeLedger(
+        [
+          event("game_started", 1, 0),
+          substitution,
+          event("event_voided", 1, 250, {
+            targetEventId: substitution.id,
+            reason: "Correction",
+          }),
+        ],
+        1,
+        300,
+      ),
       availablePlayerIds: ids,
     });
     expect(playerSummary(voidedResult, ids[3])).toMatchObject({
@@ -237,29 +249,31 @@ describe("post-game actual history", () => {
     const repeatedSubmission = "40000000-0000-4000-8000-000000000001";
     const result = deriveActualGameSummary({
       schedule: schedule(),
-      live: closeLedger([
-        event("game_started", 1, 0),
-        event("own_team_goal_scored", 1, 300, {
-          playerId: ids[3],
-          submissionId: repeatedSubmission,
-        }),
-        event("own_team_goal_scored", 1, 300, {
-          playerId: ids[3],
-          submissionId: repeatedSubmission,
-        }),
-        event("own_team_goal_scored", 1, 360, {
-          playerId: ids[3],
-          submissionId: "40000000-0000-4000-8000-000000000002",
-        }),
-      ], 1, 600),
+      live: closeLedger(
+        [
+          event("game_started", 1, 0),
+          event("own_team_goal_scored", 1, 300, {
+            playerId: ids[3],
+            submissionId: repeatedSubmission,
+          }),
+          event("own_team_goal_scored", 1, 300, {
+            playerId: ids[3],
+            submissionId: repeatedSubmission,
+          }),
+          event("own_team_goal_scored", 1, 360, {
+            playerId: ids[3],
+            submissionId: "40000000-0000-4000-8000-000000000002",
+          }),
+        ],
+        1,
+        600,
+      ),
       availablePlayerIds: ids,
     });
 
     expect(playerSummary(result, ids[3])?.goals).toHaveLength(2);
     expect(
-      playerSummary(result, ids[3])?.goals.map(
-        (goal) => goal.elapsedGameClockSeconds,
-      ),
+      playerSummary(result, ids[3])?.goals.map((goal) => goal.elapsedGameClockSeconds),
     ).toEqual([300, 360]);
   });
 
@@ -272,36 +286,39 @@ describe("post-game actual history", () => {
       status: "paused",
       quarter: 1,
       accumulatedQuarterSeconds: 300,
-      events: [
-        event("game_started", 1, 0),
-        event("game_paused", 1, 300),
-      ],
+      events: [event("game_started", 1, 0), event("game_paused", 1, 300)],
       actualHistoryStatus: "incomplete",
       updatedAt: stamp,
     });
-    expect(deriveActualGameSummary({
-      schedule: schedule(),
-      live: incomplete,
-      availablePlayerIds: ids,
-    })).toEqual({ status: "incomplete", reason: "not-confirmed" });
+    expect(
+      deriveActualGameSummary({
+        schedule: schedule(),
+        live: incomplete,
+        availablePlayerIds: ids,
+      }),
+    ).toEqual({ status: "incomplete", reason: "not-confirmed" });
 
     const invalid = liveStateSchema.parse({
       ...incomplete,
       status: "completed",
       actualHistoryStatus: "confirmed",
     });
-    expect(deriveActualGameSummary({
-      schedule: schedule(),
-      live: invalid,
-      availablePlayerIds: ids,
-    })).toEqual({ status: "unavailable", reason: "invalid-confirmation" });
+    expect(
+      deriveActualGameSummary({
+        schedule: schedule(),
+        live: invalid,
+        availablePlayerIds: ids,
+      }),
+    ).toEqual({ status: "unavailable", reason: "invalid-confirmation" });
   });
 
   it("keeps missing and legacy records visibly unavailable", () => {
-    expect(deriveActualGameSummary({
-      schedule: schedule(),
-      availablePlayerIds: ids,
-    })).toEqual({ status: "unavailable", reason: "not-recorded" });
+    expect(
+      deriveActualGameSummary({
+        schedule: schedule(),
+        availablePlayerIds: ids,
+      }),
+    ).toEqual({ status: "unavailable", reason: "not-recorded" });
 
     const legacy = liveStateSchema.parse({
       schemaVersion: 1,
@@ -314,11 +331,13 @@ describe("post-game actual history", () => {
       actualHistoryStatus: "legacy_unavailable",
       updatedAt: stamp,
     });
-    expect(deriveActualGameSummary({
-      schedule: schedule(),
-      live: legacy,
-      availablePlayerIds: ids,
-    })).toEqual({ status: "unavailable", reason: "legacy" });
+    expect(
+      deriveActualGameSummary({
+        schedule: schedule(),
+        live: legacy,
+        availablePlayerIds: ids,
+      }),
+    ).toEqual({ status: "unavailable", reason: "legacy" });
   });
 
   it("derives the full Violet acceptance scenario exactly", () => {
@@ -326,29 +345,33 @@ describe("post-game actual history", () => {
     const violet = ids[3];
     const result = deriveActualGameSummary({
       schedule: schedule(),
-      live: closeLedger([
-        event("game_started", 1, 0),
-        event("field_players_swapped", 1, 180, {
-          firstPositionKey: "leftMidfield",
-          secondPositionKey: "rightForward",
-          firstPlayerId: violet,
-          secondPlayerId: ids[6],
-        }),
-        event("bench_replaced_field_player", 1, 420, {
-          positionKey: "rightForward",
-          outgoingPlayerId: violet,
-          incomingPlayerId: ids[7],
-        }),
-        event("bench_replaced_field_player", 1, 600, {
-          positionKey: "rightDefense",
-          outgoingPlayerId: ids[2],
-          incomingPlayerId: violet,
-        }),
-        event("own_team_goal_scored", 1, 720, {
-          playerId: violet,
-          submissionId: "40000000-0000-4000-8000-000000000003",
-        }),
-      ], 1, 840),
+      live: closeLedger(
+        [
+          event("game_started", 1, 0),
+          event("field_players_swapped", 1, 180, {
+            firstPositionKey: "leftMidfield",
+            secondPositionKey: "rightForward",
+            firstPlayerId: violet,
+            secondPlayerId: ids[6],
+          }),
+          event("bench_replaced_field_player", 1, 420, {
+            positionKey: "rightForward",
+            outgoingPlayerId: violet,
+            incomingPlayerId: ids[7],
+          }),
+          event("bench_replaced_field_player", 1, 600, {
+            positionKey: "rightDefense",
+            outgoingPlayerId: ids[2],
+            incomingPlayerId: violet,
+          }),
+          event("own_team_goal_scored", 1, 720, {
+            playerId: violet,
+            submissionId: "40000000-0000-4000-8000-000000000003",
+          }),
+        ],
+        1,
+        840,
+      ),
       availablePlayerIds: ids,
     });
 

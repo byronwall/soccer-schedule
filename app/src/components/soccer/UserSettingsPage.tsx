@@ -2,16 +2,7 @@ import { Trash2, UserPlus } from "lucide-solid";
 import { For, Show, createResource, createSignal, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
 import { z } from "zod";
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  ConfirmDialog,
-  Field,
-  Input,
-  Text,
-} from "~/components/ui";
+import { Alert, Badge, Button, Card, ConfirmDialog, Field, Input, Text } from "~/components/ui";
 import { Box, Grid, HStack, VStack } from "styled-system/jsx";
 import { PageHeader } from "./PageHeader";
 
@@ -95,9 +86,9 @@ export function UserSettingsPage() {
   };
 
   const valid = () =>
-    draft.username.trim().length > 0
-    && draft.displayName.trim().length > 0
-    && draft.password.length > 0;
+    draft.username.trim().length > 0 &&
+    draft.displayName.trim().length > 0 &&
+    draft.password.length > 0;
 
   return (
     <>
@@ -117,23 +108,40 @@ export function UserSettingsPage() {
           </Alert.Root>
         )}
       </Show>
-      <Grid gridTemplateColumns={{ base: "1fr", lg: "minmax(0, 1fr) minmax(20rem, 26rem)" }} gap="6" alignItems="start">
+      <Grid
+        gridTemplateColumns={{ base: "1fr", lg: "minmax(0, 1fr) minmax(20rem, 26rem)" }}
+        gap="6"
+        alignItems="start"
+      >
         <Card.Root>
           <Card.Header>
             <Card.Title>People with access</Card.Title>
-            <Card.Description>The master user is configured by the server and cannot be removed here.</Card.Description>
+            <Card.Description>
+              The master user is configured by the server and cannot be removed here.
+            </Card.Description>
           </Card.Header>
           <Card.Body>
             <VStack alignItems="stretch" gap="3">
               <For each={users.latest ?? []}>
                 {(user) => (
-                  <HStack justifyContent="space-between" gap="4" p="3" borderWidth="1px" borderColor="border" borderRadius="l2">
+                  <HStack
+                    justifyContent="space-between"
+                    gap="4"
+                    p="3"
+                    borderWidth="1px"
+                    borderColor="border"
+                    borderRadius="l2"
+                  >
                     <Box minW="0">
                       <HStack gap="2">
                         <Text fontWeight="semibold">{user.displayName}</Text>
-                        <Show when={user.isSuperUser}><Badge colorPalette="grass">Super user</Badge></Show>
+                        <Show when={user.isSuperUser}>
+                          <Badge colorPalette="grass">Super user</Badge>
+                        </Show>
                       </HStack>
-                      <Text textStyle="sm" color="fg.muted">@{user.username}</Text>
+                      <Text textStyle="sm" color="fg.muted">
+                        @{user.username}
+                      </Text>
                     </Box>
                     <Show when={!user.isSuperUser}>
                       <Button variant="plain" size="sm" onClick={() => setDeleteTarget(user)}>
@@ -163,7 +171,9 @@ export function UserSettingsPage() {
                   autocomplete="off"
                   onInput={(event) => setDraft("username", event.currentTarget.value)}
                 />
-                <Field.HelperText>Letters, numbers, periods, underscores, and hyphens.</Field.HelperText>
+                <Field.HelperText>
+                  Letters, numbers, periods, underscores, and hyphens.
+                </Field.HelperText>
               </Field.Root>
               <Field.Root required>
                 <Field.Label>Display name</Field.Label>

@@ -13,8 +13,4 @@ export {
   toLineWrappedHighlightedHtml,
   toLineWrappedPlainTextHtml,
 } from "./markdown-code-utils";
-export {
-  normalizeCodeText,
-  parseLanguage,
-  toHeadingId,
-} from "./markdown-utils";
+export { normalizeCodeText, parseLanguage, toHeadingId } from "./markdown-utils";

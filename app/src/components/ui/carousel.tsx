@@ -1,6 +1,11 @@
 import { Carousel, useCarouselContext } from "@ark-ui/solid/carousel";
 import { type ComponentProps, For, createMemo, createSignal } from "solid-js";
-import { Box as DemoBox, HStack as DemoHStack, VStack as DemoVStack, createStyleContext } from "styled-system/jsx";
+import {
+  Box as DemoBox,
+  HStack as DemoHStack,
+  VStack as DemoVStack,
+  createStyleContext,
+} from "styled-system/jsx";
 import { carousel } from "styled-system/recipes";
 import { Button as DemoButton } from "./button";
 
@@ -20,10 +25,7 @@ export const Root = withProvider(Carousel.Root, "root", {
   defaultProps: () => ({ spacing: "16px" }),
 });
 export const RootProvider = withProvider(Carousel.RootProvider, "root");
-export const AutoplayTrigger = withContext(
-  Carousel.AutoplayTrigger,
-  "autoplayTrigger",
-);
+export const AutoplayTrigger = withContext(Carousel.AutoplayTrigger, "autoplayTrigger");
 export const Control = withContext(Carousel.Control, "control");
 export const Indicator = withContext(Carousel.Indicator, "indicator");
 export const Item = withContext(Carousel.Item, "item");
@@ -31,20 +33,13 @@ export const ItemGroup = withContext(Carousel.ItemGroup, "itemGroup");
 export const NextTrigger = withContext(Carousel.NextTrigger, "nextTrigger");
 export const PrevTrigger = withContext(Carousel.PrevTrigger, "prevTrigger");
 
-const StyledIndicatorGroup = withContext(
-  Carousel.IndicatorGroup,
-  "indicatorGroup",
-);
-export const IndicatorGroup = (
-  props: ComponentProps<typeof StyledIndicatorGroup>,
-) => {
+const StyledIndicatorGroup = withContext(Carousel.IndicatorGroup, "indicatorGroup");
+export const IndicatorGroup = (props: ComponentProps<typeof StyledIndicatorGroup>) => {
   const carousel = useCarouselContext();
 
   return (
     <StyledIndicatorGroup {...props}>
-      <For each={carousel().pageSnapPoints}>
-        {(_, index) => <Indicator index={index()} />}
-      </For>
+      <For each={carousel().pageSnapPoints}>{(_, index) => <Indicator index={index()} />}</For>
     </StyledIndicatorGroup>
   );
 };
@@ -61,11 +56,7 @@ const JumpToSlideTrigger = () => {
   const carousel = useCarouselContext();
 
   return (
-    <DemoButton
-      size="2xs"
-      variant="outline"
-      onClick={() => carousel().scrollToIndex(3)}
-    >
+    <DemoButton size="2xs" variant="outline" onClick={() => carousel().scrollToIndex(3)}>
       Jump to Slide 4
     </DemoButton>
   );

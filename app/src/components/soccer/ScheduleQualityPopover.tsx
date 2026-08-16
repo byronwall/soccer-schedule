@@ -1,11 +1,5 @@
 import { For, Match, Show, Switch, createMemo, createSignal } from "solid-js";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  CircleHelp,
-  CircleMinus,
-  ShieldCheck,
-} from "lucide-solid";
+import { AlertTriangle, CheckCircle2, CircleHelp, CircleMinus, ShieldCheck } from "lucide-solid";
 import {
   Badge,
   Button,
@@ -45,11 +39,13 @@ export function ScheduleQualityPopover(props: {
   playerName: (playerId: string) => string;
 }) {
   const [open, setOpen] = createSignal(false);
-  const rules = createMemo(() => buildScheduleQualityReport({
-    quality: props.quality,
-    assignments: props.assignments,
-    eligibleIds: props.eligibleIds,
-  }));
+  const rules = createMemo(() =>
+    buildScheduleQualityReport({
+      quality: props.quality,
+      assignments: props.assignments,
+      eligibleIds: props.eligibleIds,
+    }),
+  );
   const errors = () => rules().filter((rule) => rule.status === "fail").length;
   const warnings = () => rules().filter((rule) => rule.status === "warning").length;
   return (
@@ -88,12 +84,7 @@ export function ScheduleQualityPopover(props: {
         <Box flex="1" minH="0" overflowX="hidden" overflowY="auto" px="3" pb="3">
           <VStack alignItems="stretch" gap="1.5">
             <For each={rules()}>
-              {(rule) => (
-                <QualityRuleRow
-                  rule={rule}
-                  playerName={props.playerName}
-                />
-              )}
+              {(rule) => <QualityRuleRow rule={rule} playerName={props.playerName} />}
             </For>
           </VStack>
         </Box>
@@ -157,9 +148,7 @@ function QualityRuleRow(props: {
         >
           <Popover.Body>
             <Popover.Title>{props.rule.label}</Popover.Title>
-            <Popover.Description>
-              {props.rule.help}
-            </Popover.Description>
+            <Popover.Description>{props.rule.help}</Popover.Description>
           </Popover.Body>
         </SimplePopover>
       </HStack>
@@ -181,16 +170,17 @@ function QualityRuleRow(props: {
 function QualityStatusIcon(props: { status: QualityRuleStatus }) {
   return (
     <Switch fallback={<AlertTriangle size={15} />}>
-      <Match when={props.status === "pass"}><CheckCircle2 size={15} /></Match>
-      <Match when={props.status === "not-assessable"}><CircleMinus size={15} /></Match>
+      <Match when={props.status === "pass"}>
+        <CheckCircle2 size={15} />
+      </Match>
+      <Match when={props.status === "not-assessable"}>
+        <CircleMinus size={15} />
+      </Match>
     </Switch>
   );
 }
 
-const formatDetail = (
-  value: string,
-  playerName: (playerId: string) => string,
-) => value.replace(
-  /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
-  (playerId) => playerName(playerId),
-);
+const formatDetail = (value: string, playerName: (playerId: string) => string) =>
+  value.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, (playerId) =>
+    playerName(playerId),
+  );

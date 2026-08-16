@@ -68,9 +68,7 @@ export interface DemoComponentProps {
   variantProps?: Record<string, string>;
 }
 
-export const DEMO_COMPONENTS: Partial<
-  Record<string, Component<DemoComponentProps>>
-> = {
+export const DEMO_COMPONENTS: Partial<Record<string, Component<DemoComponentProps>>> = {
   absoluteCenter: AbsoluteCenterDemo,
   accordion: AccordionDemo,
   alert: AlertDemo,

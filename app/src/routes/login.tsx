@@ -7,7 +7,12 @@ export default function LoginRoute() {
   return (
     <Show
       when={import.meta.env.DEV}
-      fallback={<><Title>Sign in · Coach Companion</Title><LoginPage /></>}
+      fallback={
+        <>
+          <Title>Sign in · Coach Companion</Title>
+          <LoginPage />
+        </>
+      }
     >
       <Navigate href="/" />
     </Show>

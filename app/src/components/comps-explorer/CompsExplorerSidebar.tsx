@@ -105,9 +105,7 @@ const LAYOUT_AND_UTILITIES_KEYS = new Set([
   "splitter",
 ]);
 
-const categorizeComponents = (
-  links: ExplorerComponentLink[],
-): ComponentCategory[] => {
+const categorizeComponents = (links: ExplorerComponentLink[]): ComponentCategory[] => {
   const byCategory: ComponentCategory[] = [
     { label: "Forms & Input", items: [] },
     { label: "Navigation & Selection", items: [] },
@@ -193,12 +191,7 @@ export const CompsExplorerSidebar = (props: CompsExplorerSidebarProps) => {
       zIndex="10"
     >
       <VStack alignItems="stretch" gap="2">
-        <Button
-          variant="outline"
-          size="sm"
-          width="full"
-          onClick={() => navigate("/")}
-        >
+        <Button variant="outline" size="sm" width="full" onClick={() => navigate("/")}>
           Back Home
         </Button>
 
@@ -209,41 +202,31 @@ export const CompsExplorerSidebar = (props: CompsExplorerSidebarProps) => {
           <HStack alignItems="flex-start" gap="1.5" flexWrap="wrap">
             <A
               href={compsExplorerPath(DESIGN_SYSTEM_COLORS_KEY)}
-              class={navLinkClass(
-                props.selectedComponent === DESIGN_SYSTEM_COLORS_KEY,
-              )}
+              class={navLinkClass(props.selectedComponent === DESIGN_SYSTEM_COLORS_KEY)}
             >
               Colors
             </A>
             <A
               href={compsExplorerPath(DESIGN_SYSTEM_LAYOUT_KEY)}
-              class={navLinkClass(
-                props.selectedComponent === DESIGN_SYSTEM_LAYOUT_KEY,
-              )}
+              class={navLinkClass(props.selectedComponent === DESIGN_SYSTEM_LAYOUT_KEY)}
             >
               Layout
             </A>
             <A
               href={compsExplorerPath(DESIGN_SYSTEM_TYPOGRAPHY_KEY)}
-              class={navLinkClass(
-                props.selectedComponent === DESIGN_SYSTEM_TYPOGRAPHY_KEY,
-              )}
+              class={navLinkClass(props.selectedComponent === DESIGN_SYSTEM_TYPOGRAPHY_KEY)}
             >
               Typography
             </A>
             <A
               href={compsExplorerPath(DESIGN_SYSTEM_MOTION_KEY)}
-              class={navLinkClass(
-                props.selectedComponent === DESIGN_SYSTEM_MOTION_KEY,
-              )}
+              class={navLinkClass(props.selectedComponent === DESIGN_SYSTEM_MOTION_KEY)}
             >
               Motion
             </A>
             <A
               href={compsExplorerPath(DESIGN_SYSTEM_EFFECTS_KEY)}
-              class={navLinkClass(
-                props.selectedComponent === DESIGN_SYSTEM_EFFECTS_KEY,
-              )}
+              class={navLinkClass(props.selectedComponent === DESIGN_SYSTEM_EFFECTS_KEY)}
             >
               Effects
             </A>
@@ -268,9 +251,7 @@ export const CompsExplorerSidebar = (props: CompsExplorerSidebarProps) => {
                           href={compsExplorerPath(component.key)}
                           class={navLinkClass(
                             props.selectedComponent === component.key,
-                            component.key === ERROR_OVERLAY_COMPONENT_KEY
-                              ? "red"
-                              : "blue",
+                            component.key === ERROR_OVERLAY_COMPONENT_KEY ? "red" : "blue",
                           )}
                         >
                           {component.label}

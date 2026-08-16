@@ -1,8 +1,7 @@
-
-import { createSignal } from 'solid-js';
-import { HStack } from 'styled-system/jsx';
-import { PopoverPrimaryDemoSections } from './popover.demo.primary';
-import { PopoverSecondaryDemoSections } from './popover.demo.secondary';
+import { createSignal } from "solid-js";
+import { HStack } from "styled-system/jsx";
+import { PopoverPrimaryDemoSections } from "./popover.demo.primary";
+import { PopoverSecondaryDemoSections } from "./popover.demo.secondary";
 
 export interface PopoverDemoProps {
   variantProps?: Record<string, string>;

@@ -95,37 +95,39 @@ function recordOutput(stream, chunk, destination) {
 }
 
 function writeCurrentManifest() {
-  writing = writing.catch(() => undefined).then(() => {
-    const updatedAt = new Date().toISOString();
-    return writeManifestAtomic(
-      manifestPath,
-      createRunningManifest({
-        app: appName,
-        status,
-        url: detectedUrl,
-        startedAt,
-        updatedAt,
-        repoRoot,
-        appRoot,
-        command,
-        processDetails: {
-          wrapperPid: process.pid,
-          serverPid: child?.pid ?? null,
-          node: process.version,
-          platform: platform(),
-          release: release(),
-          hostname: hostname(),
-        },
-        environment: {
-          NODE_ENV: process.env.NODE_ENV ?? null,
-          BASE_PATH: process.env.BASE_PATH ?? null,
-          SERVER_BASE_URL: process.env.SERVER_BASE_URL ?? null,
-          APP_DATA_DIR: process.env.APP_DATA_DIR ?? null,
-        },
-        recentOutput,
-      }),
-    );
-  });
+  writing = writing
+    .catch(() => undefined)
+    .then(() => {
+      const updatedAt = new Date().toISOString();
+      return writeManifestAtomic(
+        manifestPath,
+        createRunningManifest({
+          app: appName,
+          status,
+          url: detectedUrl,
+          startedAt,
+          updatedAt,
+          repoRoot,
+          appRoot,
+          command,
+          processDetails: {
+            wrapperPid: process.pid,
+            serverPid: child?.pid ?? null,
+            node: process.version,
+            platform: platform(),
+            release: release(),
+            hostname: hostname(),
+          },
+          environment: {
+            NODE_ENV: process.env.NODE_ENV ?? null,
+            BASE_PATH: process.env.BASE_PATH ?? null,
+            SERVER_BASE_URL: process.env.SERVER_BASE_URL ?? null,
+            APP_DATA_DIR: process.env.APP_DATA_DIR ?? null,
+          },
+          recentOutput,
+        }),
+      );
+    });
   return writing;
 }
 
@@ -205,21 +207,23 @@ async function finalize(finalStatus, exitCode, exitSignal, processCode) {
   clearInterval(heartbeat);
   clearTimeout(forceKillTimer);
   const stoppedAt = new Date();
-  writing = writing.catch(() => undefined).then(() =>
-    writeManifestAtomic(
-      manifestPath,
-      createInactiveManifest({
-        app: appName,
-        status: finalStatus,
-        stoppedAt,
-        updatedAt: stoppedAt.toISOString(),
-        repoRoot,
-        appRoot,
-        exitCode,
-        exitSignal,
-      }),
-    ),
-  );
+  writing = writing
+    .catch(() => undefined)
+    .then(() =>
+      writeManifestAtomic(
+        manifestPath,
+        createInactiveManifest({
+          app: appName,
+          status: finalStatus,
+          stoppedAt,
+          updatedAt: stoppedAt.toISOString(),
+          repoRoot,
+          appRoot,
+          exitCode,
+          exitSignal,
+        }),
+      ),
+    );
   await writing;
   await rm(serverLockPath, { recursive: true, force: true });
   process.exit(processCode);

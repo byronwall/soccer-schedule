@@ -1,18 +1,19 @@
 import { z } from "zod";
 import { DEFAULT_POSITION_LABELS, POSITIONS, SEGMENTS } from "./fixed-game";
-import {
-  legacyLiveStateSchema,
-  liveStateSchema,
-  type LiveState,
-} from "./live-event-schemas";
+import { legacyLiveStateSchema, liveStateSchema, type LiveState } from "./live-event-schemas";
 
 export { liveStateSchema } from "./live-event-schemas";
 
 const id = z.string().uuid();
 const timestamp = z.string().datetime();
 export const playerSchema = z.object({
-  id, displayName: z.string().trim().min(1).max(60), jerseyNumber: z.string().trim().max(8).optional(),
-  color: z.string().regex(/^#[0-9A-F]{6}$/i), active: z.boolean(), createdAt: timestamp, updatedAt: timestamp,
+  id,
+  displayName: z.string().trim().min(1).max(60),
+  jerseyNumber: z.string().trim().max(8).optional(),
+  color: z.string().regex(/^#[0-9A-F]{6}$/i),
+  active: z.boolean(),
+  createdAt: timestamp,
+  updatedAt: timestamp,
 });
 export const gameStatusSchema = z.enum(["scheduled", "completed", "canceled"]);
 export const defensiveContinuityPolicySchema = z.enum([
@@ -20,28 +21,45 @@ export const defensiveContinuityPolicySchema = z.enum([
   "goalkeeper-and-defense",
 ]);
 const legacyGameSchema = z.object({
-  id, opponentName: z.string().trim().min(1).max(80), venueName: z.string().trim().min(1).max(100),
-  venueAddress: z.string().trim().max(160).optional(), startsAt: timestamp, arrivalAt: timestamp.optional(),
+  id,
+  opponentName: z.string().trim().min(1).max(80),
+  venueName: z.string().trim().min(1).max(100),
+  venueAddress: z.string().trim().max(160).optional(),
+  startsAt: timestamp,
+  arrivalAt: timestamp.optional(),
   status: gameStatusSchema,
   defensiveContinuityOverride: defensiveContinuityPolicySchema.optional(),
-  createdAt: timestamp, updatedAt: timestamp,
+  createdAt: timestamp,
+  updatedAt: timestamp,
 });
 export const gameSchema = legacyGameSchema.omit({
   defensiveContinuityOverride: true,
 });
 export const availabilityStatusSchema = z.enum(["unknown", "available", "unavailable"]);
 export const availabilitySchema = z.object({
-  gameId: id, playerId: id, status: availabilityStatusSchema, updatedAt: timestamp,
+  gameId: id,
+  playerId: id,
+  status: availabilityStatusSchema,
+  updatedAt: timestamp,
 });
 export const assignmentSchema = z.object({
   segmentKey: z.enum(SEGMENTS.map((item) => item.key)),
-  positionKey: z.enum(POSITIONS.map((item) => item.key)), playerId: id,
-  source: z.enum(["generated", "manual"]), locked: z.boolean(),
+  positionKey: z.enum(POSITIONS.map((item) => item.key)),
+  playerId: id,
+  source: z.enum(["generated", "manual"]),
+  locked: z.boolean(),
 });
 export const scheduleSchema = z.object({
-  id, gameId: id, revision: z.number().int().positive(), status: z.enum(["draft", "published", "stale", "superseded"]),
-  assignments: z.array(assignmentSchema).max(56), history: z.array(z.array(assignmentSchema).max(56)).default([]), future: z.array(z.array(assignmentSchema).max(56)).default([]),
-  generatedAt: timestamp, updatedAt: timestamp, publishedAt: timestamp.optional(),
+  id,
+  gameId: id,
+  revision: z.number().int().positive(),
+  status: z.enum(["draft", "published", "stale", "superseded"]),
+  assignments: z.array(assignmentSchema).max(56),
+  history: z.array(z.array(assignmentSchema).max(56)).default([]),
+  future: z.array(z.array(assignmentSchema).max(56)).default([]),
+  generatedAt: timestamp,
+  updatedAt: timestamp,
+  publishedAt: timestamp.optional(),
 });
 export const authUserSchema = z.object({
   id,
@@ -78,10 +96,7 @@ export const positionDispositionsSchema = z.object({
   leftForward: positionDispositionSchema,
   rightForward: positionDispositionSchema,
 });
-export const fieldTimePreferenceSchema = z.enum([
-  "standard",
-  "favor-extra-when-needed",
-]);
+export const fieldTimePreferenceSchema = z.enum(["standard", "favor-extra-when-needed"]);
 export const playerPreferenceSchema = z.object({
   playerId: id,
   positionDispositions: positionDispositionsSchema,
@@ -94,9 +109,14 @@ export const playerPreferencesSchema = z.object({
   entries: z.array(playerPreferenceSchema),
 });
 const legacySoccerStoreFields = {
-  teamDisplayName: z.string(), seasonName: z.string(), players: z.array(playerSchema), games: z.array(legacyGameSchema),
+  teamDisplayName: z.string(),
+  seasonName: z.string(),
+  players: z.array(playerSchema),
+  games: z.array(legacyGameSchema),
   positionLabels: positionLabelsSchema.default(() => ({ ...DEFAULT_POSITION_LABELS })),
-  availability: z.array(availabilitySchema), schedules: z.array(scheduleSchema), liveGames: z.array(legacyLiveStateSchema),
+  availability: z.array(availabilitySchema),
+  schedules: z.array(scheduleSchema),
+  liveGames: z.array(legacyLiveStateSchema),
   users: z.array(authUserSchema).default([]),
   sessions: z.array(sessionSchema),
 };
@@ -141,8 +161,6 @@ export type PositionDisposition = z.infer<typeof positionDispositionSchema>;
 export type PositionDispositions = z.infer<typeof positionDispositionsSchema>;
 export type FieldTimePreference = z.infer<typeof fieldTimePreferenceSchema>;
 export type PlayerPreference = z.infer<typeof playerPreferenceSchema>;
-export type DefensiveContinuityPolicy = z.infer<
-  typeof defensiveContinuityPolicySchema
->;
+export type DefensiveContinuityPolicy = z.infer<typeof defensiveContinuityPolicySchema>;
 export type AuthUser = z.infer<typeof authUserSchema>;
 export type SoccerStore = z.infer<typeof soccerStoreSchema>;

@@ -13,12 +13,15 @@ const quarterBySegment = new Map(SEGMENTS.map((segment) => [segment.key, segment
 export const detectCrossQuarterPositionRepeats = (
   assignments: Assignment[],
 ): CrossQuarterPositionRepeat[] => {
-  const occurrences = new Map<string, {
-    playerId: string;
-    positionKey: PositionKey;
-    quarterNumbers: Set<number>;
-    segmentKeys: SegmentKey[];
-  }>();
+  const occurrences = new Map<
+    string,
+    {
+      playerId: string;
+      positionKey: PositionKey;
+      quarterNumbers: Set<number>;
+      segmentKeys: SegmentKey[];
+    }
+  >();
 
   for (const assignment of assignments) {
     const quarter = quarterBySegment.get(assignment.segmentKey);
@@ -43,10 +46,11 @@ export const detectCrossQuarterPositionRepeats = (
       quarterNumbers: [...occurrence.quarterNumbers].sort((left, right) => left - right),
       segmentKeys: occurrence.segmentKeys,
     }))
-    .sort((left, right) =>
-      left.playerId.localeCompare(right.playerId) ||
-      POSITIONS.findIndex((position) => position.key === left.positionKey) -
-        POSITIONS.findIndex((position) => position.key === right.positionKey),
+    .sort(
+      (left, right) =>
+        left.playerId.localeCompare(right.playerId) ||
+        POSITIONS.findIndex((position) => position.key === left.positionKey) -
+          POSITIONS.findIndex((position) => position.key === right.positionKey),
     );
 };
 

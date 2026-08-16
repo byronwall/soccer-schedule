@@ -31,29 +31,28 @@ describe("serialized live-game persistence", () => {
           expectedRevision: 1,
           playerId: scorer.id,
           submissionId,
-        })),
+        }),
+      ),
     );
 
     expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
     expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
-    const fulfilledIndex = results.findIndex(
-      (result) => result.status === "fulfilled",
+    const fulfilledIndex = results.findIndex((result) => result.status === "fulfilled");
+    const refreshed = (await getSnapshot()).liveGames.find((live) => live.gameId === game.id);
+    expect(refreshed?.events.filter((event) => event.type === "own_team_goal_scored")).toHaveLength(
+      1,
     );
-    const refreshed = (await getSnapshot()).liveGames.find(
-      (live) => live.gameId === game.id,
-    );
-    expect(refreshed?.events.filter(
-      (event) => event.type === "own_team_goal_scored",
-    )).toHaveLength(1);
 
-    await expect(applySoccerAction("liveRecordGoal", {
-      gameId: game.id,
-      expectedRevision: 1,
-      playerId: scorer.id,
-      submissionId: submissionIds[fulfilledIndex],
-    })).resolves.toMatchObject({ type: "own_team_goal_scored" });
-    expect((await getSnapshot()).liveGames.find(
-      (live) => live.gameId === game.id,
-    )?.revision).toBe(2);
+    await expect(
+      applySoccerAction("liveRecordGoal", {
+        gameId: game.id,
+        expectedRevision: 1,
+        playerId: scorer.id,
+        submissionId: submissionIds[fulfilledIndex],
+      }),
+    ).resolves.toMatchObject({ type: "own_team_goal_scored" });
+    expect((await getSnapshot()).liveGames.find((live) => live.gameId === game.id)?.revision).toBe(
+      2,
+    );
   });
 });

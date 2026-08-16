@@ -15,9 +15,7 @@ type ConsoleLogCapturePanelShellProps = {
   width?: string;
 };
 
-export const ConsoleLogCapturePanelShell = (
-  props: ConsoleLogCapturePanelShellProps,
-) => {
+export const ConsoleLogCapturePanelShell = (props: ConsoleLogCapturePanelShellProps) => {
   const shouldCloseOnEsc = () => props.closeOnEsc !== false;
 
   createEffect(() => {

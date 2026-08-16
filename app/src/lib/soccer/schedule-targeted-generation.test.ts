@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { POSITIONS, SEGMENTS } from "./fixed-game";
-import {
-  createDefaultPlayerPreference,
-  neutralPositionDispositions,
-} from "./player-preferences";
+import { createDefaultPlayerPreference, neutralPositionDispositions } from "./player-preferences";
 import { generateSchedule } from "./schedule-generator";
 import {
   generateScheduleTarget,
@@ -28,16 +25,11 @@ const players = (count = 11): Player[] =>
     updatedAt: stamp,
   }));
 
-const cell = (assignment: Assignment) =>
-  `${assignment.segmentKey}:${assignment.positionKey}`;
+const cell = (assignment: Assignment) => `${assignment.segmentKey}:${assignment.positionKey}`;
 
-const expectLocksPreserved = (
-  before: Assignment[],
-  after: Assignment[],
-) => {
+const expectLocksPreserved = (before: Assignment[], after: Assignment[]) => {
   for (const locked of before.filter((assignment) => assignment.locked)) {
-    expect(after.find((assignment) => cell(assignment) === cell(locked)))
-      .toEqual(locked);
+    expect(after.find((assignment) => cell(assignment) === cell(locked))).toEqual(locked);
   }
 };
 
@@ -45,10 +37,12 @@ describe("targeted schedule generation", () => {
   it("fills a partial draft while preserving four manually locked goalkeeper cells", () => {
     const roster = players();
     const source = generateSchedule(roster, { seed: "locked-goalkeepers" });
-    const current = source.filter((assignment) =>
-      assignment.positionKey === "goalkeeper" &&
-      assignment.segmentKey.endsWith("a")
-    ).map((assignment) => ({ ...assignment, locked: true }));
+    const current = source
+      .filter(
+        (assignment) =>
+          assignment.positionKey === "goalkeeper" && assignment.segmentKey.endsWith("a"),
+      )
+      .map((assignment) => ({ ...assignment, locked: true }));
 
     const generated = generateScheduleTarget({
       players: roster,
@@ -58,19 +52,24 @@ describe("targeted schedule generation", () => {
 
     expect(generated.result.changed).toBe(true);
     expect(generated.assignments).toHaveLength(56);
-    expect(validateAssignments(
-      generated.assignments,
-      roster.map((player) => player.id),
-    )).toEqual([]);
+    expect(
+      validateAssignments(
+        generated.assignments,
+        roster.map((player) => player.id),
+      ),
+    ).toEqual([]);
     expectLocksPreserved(current, generated.assignments);
   });
 
   it("extends locked first-half goalkeeper assignments through the adjacent segment", () => {
     const roster = players();
     const source = generateSchedule(roster, { seed: "locked-goalkeeper-continuity" });
-    const current = source.filter((assignment) =>
-      assignment.positionKey === "goalkeeper" && assignment.segmentKey.endsWith("a")
-    ).map((assignment) => ({ ...assignment, locked: true }));
+    const current = source
+      .filter(
+        (assignment) =>
+          assignment.positionKey === "goalkeeper" && assignment.segmentKey.endsWith("a"),
+      )
+      .map((assignment) => ({ ...assignment, locked: true }));
 
     const generated = generateScheduleTarget({
       players: roster,
@@ -80,10 +79,14 @@ describe("targeted schedule generation", () => {
     });
 
     for (const quarter of [1, 2, 3, 4]) {
-      const first = generated.assignments.find((assignment) =>
-        assignment.segmentKey === `q${quarter}a` && assignment.positionKey === "goalkeeper");
-      const second = generated.assignments.find((assignment) =>
-        assignment.segmentKey === `q${quarter}b` && assignment.positionKey === "goalkeeper");
+      const first = generated.assignments.find(
+        (assignment) =>
+          assignment.segmentKey === `q${quarter}a` && assignment.positionKey === "goalkeeper",
+      );
+      const second = generated.assignments.find(
+        (assignment) =>
+          assignment.segmentKey === `q${quarter}b` && assignment.positionKey === "goalkeeper",
+      );
       expect(second?.playerId).toBe(first?.playerId);
     }
   });
@@ -114,29 +117,34 @@ describe("targeted schedule generation", () => {
       preferences,
       target: { kind: "position", positionKey: "goalkeeper" },
     });
-    const goalkeepers = generated.assignments.filter((assignment) =>
-      assignment.positionKey === "goalkeeper");
+    const goalkeepers = generated.assignments.filter(
+      (assignment) => assignment.positionKey === "goalkeeper",
+    );
 
     expect(goalkeepers).toHaveLength(8);
     expect(new Set(goalkeepers.map((assignment) => assignment.playerId)).size).toBe(4);
-    expect(goalkeepers.filter((assignment) => assignment.playerId === preferred.id))
-      .toHaveLength(2);
+    expect(goalkeepers.filter((assignment) => assignment.playerId === preferred.id)).toHaveLength(
+      2,
+    );
     expect(goalkeepers.some((assignment) => assignment.playerId === avoided.id)).toBe(false);
     for (const quarter of [1, 2, 3, 4]) {
-      expect(goalkeepers.find((assignment) => assignment.segmentKey === `q${quarter}a`)?.playerId)
-        .toBe(goalkeepers.find((assignment) => assignment.segmentKey === `q${quarter}b`)?.playerId);
+      expect(
+        goalkeepers.find((assignment) => assignment.segmentKey === `q${quarter}a`)?.playerId,
+      ).toBe(goalkeepers.find((assignment) => assignment.segmentKey === `q${quarter}b`)?.playerId);
     }
   });
 
   it("extends a locked defensive position through its paired segment", () => {
     const roster = players();
-    const current: Assignment[] = [{
-      segmentKey: "q1a",
-      positionKey: "leftDefense",
-      playerId: roster[0].id,
-      source: "manual",
-      locked: true,
-    }];
+    const current: Assignment[] = [
+      {
+        segmentKey: "q1a",
+        positionKey: "leftDefense",
+        playerId: roster[0].id,
+        source: "manual",
+        locked: true,
+      },
+    ];
     const generated = generateScheduleTarget({
       players: roster,
       currentAssignments: current,
@@ -144,8 +152,10 @@ describe("targeted schedule generation", () => {
       continuityPolicy: "goalkeeper-and-defense",
     });
 
-    expect(generated.assignments.find((assignment) =>
-      assignment.segmentKey === "q1b" && assignment.positionKey === "leftDefense")?.playerId,
+    expect(
+      generated.assignments.find(
+        (assignment) => assignment.segmentKey === "q1b" && assignment.positionKey === "leftDefense",
+      )?.playerId,
     ).toBe(roster[0].id);
     expectLocksPreserved(current, generated.assignments);
   });
@@ -175,8 +185,9 @@ describe("targeted schedule generation", () => {
     });
 
     expectLocksPreserved(current, generated.assignments);
-    expect(generated.assignments.filter((assignment) =>
-      assignment.positionKey === "goalkeeper")).toHaveLength(8);
+    expect(
+      generated.assignments.filter((assignment) => assignment.positionKey === "goalkeeper"),
+    ).toHaveLength(8);
     expect(generated.result.afterQuality.goalkeeperChanges).toBe(1);
   });
 
@@ -187,16 +198,15 @@ describe("targeted schedule generation", () => {
       currentAssignments: [],
       target: { kind: "position", positionKey: "leftMidfield" },
     });
-    const midfield = generated.assignments.filter((assignment) =>
-      assignment.positionKey === "leftMidfield");
+    const midfield = generated.assignments.filter(
+      (assignment) => assignment.positionKey === "leftMidfield",
+    );
 
     expect(midfield).toHaveLength(8);
     for (const quarter of [1, 2, 3, 4]) {
-      expect(midfield.find((assignment) =>
-        assignment.segmentKey === `q${quarter}a`)?.playerId).not.toBe(
-        midfield.find((assignment) =>
-          assignment.segmentKey === `q${quarter}b`)?.playerId,
-      );
+      expect(
+        midfield.find((assignment) => assignment.segmentKey === `q${quarter}a`)?.playerId,
+      ).not.toBe(midfield.find((assignment) => assignment.segmentKey === `q${quarter}b`)?.playerId);
     }
     expect(generated.result.afterQuality.midfieldRepeats).toBe(0);
     expect(generated.result.afterQuality.crossQuarterPositionRepeats).toBe(0);
@@ -227,15 +237,17 @@ describe("targeted schedule generation", () => {
       target: { kind: "position", positionKey: "goalkeeper" },
     });
 
-    expect(generated.assignments.some((assignment) =>
-      assignment.playerId === preferred.id)).toBe(false);
+    expect(generated.assignments.some((assignment) => assignment.playerId === preferred.id)).toBe(
+      false,
+    );
     expect(generated.result.afterQuality.goalkeeperOveruse).toBe(0);
   });
 
   it("is deterministic for equal input", () => {
     const roster = players();
-    const current = generateSchedule(roster, { seed: "deterministic-target" })
-      .filter((_, index) => index % 4 !== 0);
+    const current = generateSchedule(roster, { seed: "deterministic-target" }).filter(
+      (_, index) => index % 4 !== 0,
+    );
     const options = {
       players: roster,
       currentAssignments: current,
@@ -245,9 +257,7 @@ describe("targeted schedule generation", () => {
       } as const,
     };
 
-    expect(generateScheduleTarget(options)).toEqual(
-      generateScheduleTarget(options),
-    );
+    expect(generateScheduleTarget(options)).toEqual(generateScheduleTarget(options));
   });
 
   it.each([
@@ -260,9 +270,7 @@ describe("targeted schedule generation", () => {
       const roster = players();
       const complete = generateSchedule(roster, { seed: "partial-targets" });
       const current = complete.filter((assignment, index) =>
-        target.kind === "player"
-          ? assignment.playerId !== target.playerId
-          : index % 3 !== 0
+        target.kind === "player" ? assignment.playerId !== target.playerId : index % 3 !== 0,
       );
       const generated = generateScheduleTarget({
         players: roster,
@@ -307,13 +315,15 @@ describe("targeted schedule generation", () => {
     const fullRoster = players(12);
     const available = fullRoster.slice(0, 11);
     const unavailable = fullRoster[11];
-    const current: Assignment[] = [{
-      segmentKey: "q1a",
-      positionKey: "goalkeeper",
-      playerId: unavailable.id,
-      source: "manual",
-      locked: true,
-    }];
+    const current: Assignment[] = [
+      {
+        segmentKey: "q1a",
+        positionKey: "goalkeeper",
+        playerId: unavailable.id,
+        source: "manual",
+        locked: true,
+      },
+    ];
     const generated = generateScheduleTarget({
       players: available,
       currentAssignments: current,
@@ -329,9 +339,10 @@ describe("targeted schedule generation", () => {
 
   it("does not reshuffle when no higher-priority improvement is possible", () => {
     const roster = players();
-    const current = generateSchedule(roster, { seed: "no-op" }).map(
-      (assignment) => ({ ...assignment, locked: true }),
-    );
+    const current = generateSchedule(roster, { seed: "no-op" }).map((assignment) => ({
+      ...assignment,
+      locked: true,
+    }));
     const generated = generateScheduleTarget({
       players: roster,
       currentAssignments: current,
@@ -360,22 +371,22 @@ describe("targeted schedule generation", () => {
       const [segmentKey, positionKey] = changedId.split(":");
       expect(
         positionKey === "leftMidfield" ||
-        generated.result.changedCellIds.includes(
-          `${segmentKey}:leftMidfield`,
-        ),
+          generated.result.changedCellIds.includes(`${segmentKey}:leftMidfield`),
       ).toBe(true);
     }
   });
 
   it("keeps current-cell validity ahead of filling additional cells", () => {
     const roster = players();
-    const validPartial: Assignment[] = [{
-      segmentKey: "q1a",
-      positionKey: "goalkeeper",
-      playerId: roster[0].id,
-      source: "manual",
-      locked: false,
-    }];
+    const validPartial: Assignment[] = [
+      {
+        segmentKey: "q1a",
+        positionKey: "goalkeeper",
+        playerId: roster[0].id,
+        source: "manual",
+        locked: false,
+      },
+    ];
     const invalidLargerPartial: Assignment[] = [
       ...validPartial,
       {

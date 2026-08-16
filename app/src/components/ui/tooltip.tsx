@@ -54,11 +54,7 @@ export const Tooltip = (props: TooltipProps) => {
   return (
     <Show when={!local.disabled} fallback={local.children}>
       <Root {...rootProps}>
-        <Trigger
-          asChild={(triggerProps) => (
-            <span {...triggerProps()}>{local.children}</span>
-          )}
-        />
+        <Trigger asChild={(triggerProps) => <span {...triggerProps()}>{local.children}</span>} />
         <Show
           when={portalled()}
           fallback={
@@ -117,8 +113,7 @@ const placementGrid: Array<Array<TooltipPlacement | null>> = [
 ];
 
 export const TooltipDemo = (props: TooltipDemoProps) => {
-  const [selectedPlacement, setSelectedPlacement] =
-    createSignal<TooltipPlacement>("top");
+  const [selectedPlacement, setSelectedPlacement] = createSignal<TooltipPlacement>("top");
   const [selectedDelayLabel, setSelectedDelayLabel] =
     createSignal<(typeof tooltipDelayPresets)[number]["label"]>("fast");
   const [showArrow, setShowArrow] = createSignal(true);
@@ -130,9 +125,8 @@ export const TooltipDemo = (props: TooltipDemoProps) => {
 
   const selectedDelayPreset = createMemo(
     () =>
-      tooltipDelayPresets.find(
-        (preset) => preset.label === selectedDelayLabel(),
-      ) ?? tooltipDelayPresets[1],
+      tooltipDelayPresets.find((preset) => preset.label === selectedDelayLabel()) ??
+      tooltipDelayPresets[1],
   );
 
   return (
@@ -158,22 +152,16 @@ export const TooltipDemo = (props: TooltipDemoProps) => {
               {(row) => (
                 <For each={row}>
                   {(placement) => (
-                    <Show
-                      when={placement}
-                      fallback={<Box width="40" height="9" />}
-                    >
+                    <Show when={placement} fallback={<Box width="40" height="9" />}>
                       {(value) => (
                         <Tooltip
                           {...(props.variantProps ?? {})}
                           content={
                             isInteractive() ? (
                               <VStack alignItems="start" gap="1" maxW="56">
-                                <Box fontWeight="semibold">
-                                  {value()} placement
-                                </Box>
+                                <Box fontWeight="semibold">{value()} placement</Box>
                                 <Box textStyle="xs">
-                                  Pointer can move into this content without
-                                  closing immediately.
+                                  Pointer can move into this content without closing immediately.
                                 </Box>
                               </VStack>
                             ) : (
@@ -186,20 +174,14 @@ export const TooltipDemo = (props: TooltipDemoProps) => {
                           portalled={isPortalled()}
                           positioning={{
                             placement: value(),
-                            offset: useOffset()
-                              ? { mainAxis: 10, crossAxis: 10 }
-                              : undefined,
+                            offset: useOffset() ? { mainAxis: 10, crossAxis: 10 } : undefined,
                           }}
                           openDelay={selectedDelayPreset().openDelay}
                           closeDelay={selectedDelayPreset().closeDelay}
                         >
                           <DemoButton
                             size="2xs"
-                            variant={
-                              selectedPlacement() === value()
-                                ? "solid"
-                                : "outline"
-                            }
+                            variant={selectedPlacement() === value() ? "solid" : "outline"}
                             onClick={() => setSelectedPlacement(value())}
                             onMouseEnter={() => setSelectedPlacement(value())}
                             onFocus={() => setSelectedPlacement(value())}
@@ -220,9 +202,7 @@ export const TooltipDemo = (props: TooltipDemoProps) => {
             {(preset) => (
               <DemoButton
                 size="2xs"
-                variant={
-                  selectedDelayLabel() === preset.label ? "solid" : "outline"
-                }
+                variant={selectedDelayLabel() === preset.label ? "solid" : "outline"}
                 onClick={() => setSelectedDelayLabel(preset.label)}
               >
                 {preset.label}

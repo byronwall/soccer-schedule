@@ -135,9 +135,7 @@ const THEME_CATEGORY_CONFIG = [
 const SIZE_REFERENCE_PATTERN = /(?:\{|token\()?\s*sizes\.([a-zA-Z0-9.-]+)/g;
 
 const toSortedList = (values: Iterable<string>) =>
-  Array.from(new Set(values)).sort((a, b) =>
-    a.localeCompare(b, undefined, { numeric: true }),
-  );
+  Array.from(new Set(values)).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
 const collectCssVarsFromComputedStyle = (target: Element) => {
   const styles = getComputedStyle(target);
@@ -148,7 +146,6 @@ const collectCssVarsFromComputedStyle = (target: Element) => {
   }
   return vars;
 };
-
 
 const collectStringValues = (value: unknown, result: string[]) => {
   if (typeof value === "string") {
@@ -183,8 +180,7 @@ const collectTokenReferences = (pattern: RegExp): string[] => {
   return toSortedList(matches);
 };
 
-const getTokenValue = (path: string) =>
-  token(path as Parameters<typeof token>[0], path);
+const getTokenValue = (path: string) => token(path as Parameters<typeof token>[0], path);
 
 const parseCssVarToken = (cssVar: string, prefix: string) =>
   cssVar.replace(prefix, "").replaceAll("\\.", ".");
@@ -237,22 +233,14 @@ const parseAspectRatioValue = (value: string) => {
   if (!match) return Number.NaN;
   const numerator = Number.parseFloat(match[1]);
   const denominator = Number.parseFloat(match[2]);
-  if (
-    !Number.isFinite(numerator) ||
-    !Number.isFinite(denominator) ||
-    denominator === 0
-  ) {
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator === 0) {
     return Number.NaN;
   }
   return numerator / denominator;
 };
 
-const parseThemeNumericValue = (
-  tokenCategory: string,
-  value: string | number,
-) => {
-  if (typeof value === "number")
-    return Number.isFinite(value) ? value : Number.NaN;
+const parseThemeNumericValue = (tokenCategory: string, value: string | number) => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : Number.NaN;
   if (typeof value !== "string") return Number.NaN;
   if (tokenCategory === "aspectRatios") return parseAspectRatioValue(value);
   if (value.includes("var(")) return Number.NaN;
@@ -293,16 +281,10 @@ const sortRoleGroupName = (a: string, b: string) => {
   return a.localeCompare(b, undefined, { numeric: true });
 };
 
-const ROLE_DETAIL_PRIMARY_ORDER = [
-  "bg",
-  "fg",
-  "border",
-  "focus-ring",
-  "focusRing",
-] as const;
+const ROLE_DETAIL_PRIMARY_ORDER = ["bg", "fg", "border", "focus-ring", "focusRing"] as const;
 
 const getRoleGroupKey = (tokenKey: string) => tokenKey.split(".")[0] ?? "misc";
-  const splitNamedRoleKey = (tokenKey: string) => {
+const splitNamedRoleKey = (tokenKey: string) => {
   const [variant, ...rest] = tokenKey.split(".");
   return {
     variant: variant ?? "misc",
@@ -348,15 +330,12 @@ const SWATCH_TOOLTIP_CONTENT_PROPS = {
 
 const colorInfoCache = new Map<string, ResolvedColorInfo | null>();
 const parseRgbChannels = (value: string) => {
-  const match = value.match(
-    /rgba?\(\s*([\d.]+)(?:\s*,\s*|\s+)([\d.]+)(?:\s*,\s*|\s+)([\d.]+)/i,
-  );
+  const match = value.match(/rgba?\(\s*([\d.]+)(?:\s*,\s*|\s+)([\d.]+)(?:\s*,\s*|\s+)([\d.]+)/i);
   if (!match) return null;
   const r = Number.parseFloat(match[1]);
   const g = Number.parseFloat(match[2]);
   const b = Number.parseFloat(match[3]);
-  if (!Number.isFinite(r) || !Number.isFinite(g) || !Number.isFinite(b))
-    return null;
+  if (!Number.isFinite(r) || !Number.isFinite(g) || !Number.isFinite(b)) return null;
   return {
     r: Math.max(0, Math.min(255, Math.round(r))),
     g: Math.max(0, Math.min(255, Math.round(g))),
@@ -433,7 +412,10 @@ const ColorSwatchTooltip = (props: ColorSwatchTooltipProps) => {
     if (typeof navigator === "undefined" || !navigator.clipboard) return;
     await navigator.clipboard.writeText(value);
     setCopiedKey(copyKey);
-    window.setTimeout(() => setCopiedKey((current) => (current === copyKey ? null : current)), 1200);
+    window.setTimeout(
+      () => setCopiedKey((current) => (current === copyKey ? null : current)),
+      1200,
+    );
   };
   const rowClass = css({
     display: "grid",
@@ -474,22 +456,26 @@ const ColorSwatchTooltip = (props: ColorSwatchTooltipProps) => {
 
       <VStack alignItems="stretch" gap="0.5">
         <Box class={rowClass}>
-          <Box textStyle="2xs" color="fg.muted">Name</Box>
+          <Box textStyle="2xs" color="fg.muted">
+            Name
+          </Box>
           <button
             type="button"
             class={copyValueClass}
             onClick={() => void copyValue("name", `colors.${props.item.tokenPath}`)}
           >
-            <Box whiteSpace="nowrap">
-              colors.{props.item.tokenPath}
-            </Box>
+            <Box whiteSpace="nowrap">colors.{props.item.tokenPath}</Box>
             <Show when={copiedKey() === "name"}>
-              <Box as="span" ml="1" color="fg.muted">Copied</Box>
+              <Box as="span" ml="1" color="fg.muted">
+                Copied
+              </Box>
             </Show>
           </button>
         </Box>
         <Box class={rowClass}>
-          <Box textStyle="2xs" color="fg.muted">CSS Var</Box>
+          <Box textStyle="2xs" color="fg.muted">
+            CSS Var
+          </Box>
           <button
             type="button"
             class={copyValueClass}
@@ -497,7 +483,9 @@ const ColorSwatchTooltip = (props: ColorSwatchTooltipProps) => {
           >
             <Box whiteSpace="nowrap">{props.item.cssVar}</Box>
             <Show when={copiedKey() === "var"}>
-              <Box as="span" ml="1" color="fg.muted">Copied</Box>
+              <Box as="span" ml="1" color="fg.muted">
+                Copied
+              </Box>
             </Show>
           </button>
         </Box>
@@ -505,7 +493,9 @@ const ColorSwatchTooltip = (props: ColorSwatchTooltipProps) => {
           {(info) => (
             <>
               <Box class={rowClass}>
-                <Box textStyle="2xs" color="fg.muted">HEX</Box>
+                <Box textStyle="2xs" color="fg.muted">
+                  HEX
+                </Box>
                 <button
                   type="button"
                   class={copyValueClass}
@@ -513,12 +503,16 @@ const ColorSwatchTooltip = (props: ColorSwatchTooltipProps) => {
                 >
                   {info().hex}
                   <Show when={copiedKey() === "hex"}>
-                    <Box as="span" ml="1" color="fg.muted">Copied</Box>
+                    <Box as="span" ml="1" color="fg.muted">
+                      Copied
+                    </Box>
                   </Show>
                 </button>
               </Box>
               <Box class={rowClass}>
-                <Box textStyle="2xs" color="fg.muted">RGB</Box>
+                <Box textStyle="2xs" color="fg.muted">
+                  RGB
+                </Box>
                 <button
                   type="button"
                   class={copyValueClass}
@@ -526,12 +520,16 @@ const ColorSwatchTooltip = (props: ColorSwatchTooltipProps) => {
                 >
                   {info().computedRgb}
                   <Show when={copiedKey() === "rgb"}>
-                    <Box as="span" ml="1" color="fg.muted">Copied</Box>
+                    <Box as="span" ml="1" color="fg.muted">
+                      Copied
+                    </Box>
                   </Show>
                 </button>
               </Box>
               <Box class={rowClass}>
-                <Box textStyle="2xs" color="fg.muted">HSL</Box>
+                <Box textStyle="2xs" color="fg.muted">
+                  HSL
+                </Box>
                 <button
                   type="button"
                   class={copyValueClass}
@@ -539,7 +537,9 @@ const ColorSwatchTooltip = (props: ColorSwatchTooltipProps) => {
                 >
                   {info().hsl}
                   <Show when={copiedKey() === "hsl"}>
-                    <Box as="span" ml="1" color="fg.muted">Copied</Box>
+                    <Box as="span" ml="1" color="fg.muted">
+                      Copied
+                    </Box>
                   </Show>
                 </button>
               </Box>
@@ -551,12 +551,7 @@ const ColorSwatchTooltip = (props: ColorSwatchTooltipProps) => {
   );
 };
 
-export type DesignSystemSection =
-  | "colors"
-  | "layout"
-  | "typography"
-  | "motion"
-  | "effects";
+export type DesignSystemSection = "colors" | "layout" | "typography" | "motion" | "effects";
 
 type DesignSystemOverviewProps = {
   section: DesignSystemSection;
@@ -566,31 +561,21 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
   const [colorCssVars, setColorCssVars] = createSignal<string[]>([]);
   const [sizeCssVars, setSizeCssVars] = createSignal<string[]>([]);
   const [sizeMetrics, setSizeMetrics] = createSignal<SizeMetric[]>([]);
-  const [sizeDisplayUnit, setSizeDisplayUnit] =
-    createSignal<SizeDisplayUnit>("rem");
-  const [semanticMarkdownCopied, setSemanticMarkdownCopied] =
-    createSignal(false);
-  const [typographyCssVars, setTypographyCssVars] =
-    createSignal<TypographyCssVars>({
-      fonts: [],
-      fontSizes: [],
-      fontWeights: [],
-      lineHeights: [],
-      letterSpacings: [],
-    });
-  const [themeCategories, setThemeCategories] = createSignal<ThemeCategory[]>(
-    [],
-  );
+  const [sizeDisplayUnit, setSizeDisplayUnit] = createSignal<SizeDisplayUnit>("rem");
+  const [semanticMarkdownCopied, setSemanticMarkdownCopied] = createSignal(false);
+  const [typographyCssVars, setTypographyCssVars] = createSignal<TypographyCssVars>({
+    fonts: [],
+    fontSizes: [],
+    fontWeights: [],
+    lineHeights: [],
+    letterSpacings: [],
+  });
+  const [themeCategories, setThemeCategories] = createSignal<ThemeCategory[]>([]);
 
   const sizeTokens = createMemo(() => {
-    const generatedSizes = sizeCssVars().map((cssVar) =>
-      parseCssVarToken(cssVar, "--sizes-"),
-    );
+    const generatedSizes = sizeCssVars().map((cssVar) => parseCssVarToken(cssVar, "--sizes-"));
 
-    const candidates = [
-      ...generatedSizes,
-      ...collectTokenReferences(SIZE_REFERENCE_PATTERN),
-    ];
+    const candidates = [...generatedSizes, ...collectTokenReferences(SIZE_REFERENCE_PATTERN)];
 
     return toSortedList(candidates);
   });
@@ -616,12 +601,8 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
       setColorCssVars(nextColorVars);
       setSizeCssVars(nextSizeVars);
       setTypographyCssVars({
-        fonts: toSortedList(
-          allVars.filter((propName) => propName.startsWith("--fonts-")),
-        ),
-        fontSizes: toSortedList(
-          allVars.filter((propName) => propName.startsWith("--font-sizes-")),
-        ),
+        fonts: toSortedList(allVars.filter((propName) => propName.startsWith("--fonts-"))),
+        fontSizes: toSortedList(allVars.filter((propName) => propName.startsWith("--font-sizes-"))),
         fontWeights: toSortedList(
           allVars.filter((propName) => propName.startsWith("--font-weights-")),
         ),
@@ -642,10 +623,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
         const tokens = tokenNames
           .map((tokenName) => {
             const value = getTokenValue(`${config.tokenCategory}.${tokenName}`);
-            const numericValue = parseThemeNumericValue(
-              config.tokenCategory,
-              value,
-            );
+            const numericValue = parseThemeNumericValue(config.tokenCategory, value);
             const isAlias = typeof value === "string" && value.includes("var(");
             return {
               token: tokenName,
@@ -704,10 +682,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
             count: entry.count,
           })),
         });
-        console.info(
-          "[DesignSystemOverview] theme token catalog (detailed)",
-          themeLogEntries,
-        );
+        console.info("[DesignSystemOverview] theme token catalog (detailed)", themeLogEntries);
       }
 
       const resolvedSizeTokens = sizeTokens();
@@ -723,9 +698,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
         measureHost.style.overflow = "hidden";
         document.body.appendChild(measureHost);
 
-        const rootFontSize = Number.parseFloat(
-          getComputedStyle(document.documentElement).fontSize,
-        );
+        const rootFontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
 
         const nextMetrics = resolvedSizeTokens
           .map((sizeToken) => {
@@ -738,16 +711,13 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
             probe.remove();
 
             const parsedPx = Number.parseFloat(computedWidth);
-            const pxValue =
-              textual || !Number.isFinite(parsedPx) ? null : parsedPx;
+            const pxValue = textual || !Number.isFinite(parsedPx) ? null : parsedPx;
             const parsedRem = Number.parseFloat(rawValue);
             const remValue = rawValue.endsWith("rem")
               ? Number.isFinite(parsedRem)
                 ? parsedRem
                 : null
-              : pxValue !== null &&
-                  Number.isFinite(rootFontSize) &&
-                  rootFontSize > 0
+              : pxValue !== null && Number.isFinite(rootFontSize) && rootFontSize > 0
                 ? pxValue / rootFontSize
                 : null;
 
@@ -800,9 +770,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
     });
   });
 
-  const recipeList = createMemo(() =>
-    Object.values(recipes).map((recipe) => recipe as RecipeLike),
-  );
+  const recipeList = createMemo(() => Object.values(recipes).map((recipe) => recipe as RecipeLike));
 
   const recipeColorPalettes = createMemo(() =>
     toSortedList(
@@ -848,12 +816,8 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
       }))
       .sort((a, b) => sortRoleGroupName(a.variant, b.variant));
   });
-  const semanticSettingCount = createMemo(
-    () =>
-      semanticVariantRows().reduce(
-        (total, variantRow) => total + variantRow.details.length,
-        0,
-      ),
+  const semanticSettingCount = createMemo(() =>
+    semanticVariantRows().reduce((total, variantRow) => total + variantRow.details.length, 0),
   );
 
   const paletteGroups = createMemo(() => {
@@ -872,21 +836,13 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
       .map(([palette, items]) => {
         const shades = items
           .filter((item) => isNumericShade(item.key))
-          .sort((a, b) =>
-            a.key.localeCompare(b.key, undefined, { numeric: true }),
-          );
+          .sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }));
         const alphas = items
           .filter((item) => isAlphaShade(item.key))
-          .sort((a, b) =>
-            a.key.localeCompare(b.key, undefined, { numeric: true }),
-          );
+          .sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }));
         const roles = items
-          .filter(
-            (item) => !isNumericShade(item.key) && !isAlphaShade(item.key),
-          )
-          .sort((a, b) =>
-            a.key.localeCompare(b.key, undefined, { numeric: true }),
-          );
+          .filter((item) => !isNumericShade(item.key) && !isAlphaShade(item.key))
+          .sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }));
 
         return { palette, shades, alphas, roles };
       })
@@ -906,7 +862,9 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
       });
   });
   const paletteList = createMemo(() =>
-    paletteGroups().map((group) => group.palette).join(", "),
+    paletteGroups()
+      .map((group) => group.palette)
+      .join(", "),
   );
   const semanticCssMarkdownTable = createMemo(() => {
     const lines = [
@@ -944,9 +902,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
   const semanticPaletteGroups = createMemo(() =>
     paletteGroups().filter((group) => group.roles.length > 0),
   );
-  const namedGridPaletteColumns = createMemo(() =>
-    semanticPaletteGroups().slice(6),
-  );
+  const namedGridPaletteColumns = createMemo(() => semanticPaletteGroups().slice(6));
   const namedGridRoleRows = createMemo(() => {
     const keys = new Set<string>();
     for (const group of namedGridPaletteColumns()) {
@@ -977,10 +933,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
       .sort((a, b) => sortRoleGroupName(a.variant, b.variant));
   });
   const namedGridMaxRoleCount = createMemo(() =>
-    namedGridPaletteColumns().reduce(
-      (max, group) => Math.max(max, group.roles.length),
-      0,
-    ),
+    namedGridPaletteColumns().reduce((max, group) => Math.max(max, group.roles.length), 0),
   );
   const sparseNamedGridPalettes = createMemo(() =>
     namedGridPaletteColumns()
@@ -988,39 +941,26 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
       .map((group) => `${group.palette} (${group.roles.length})`),
   );
 
-  const textualSizes = createMemo(() =>
-    sizeMetrics().filter((metric) => metric.isTextual),
-  );
-  const measuredSizes = createMemo(() =>
-    sizeMetrics().filter((metric) => !metric.isTextual),
-  );
+  const textualSizes = createMemo(() => sizeMetrics().filter((metric) => metric.isTextual));
+  const measuredSizes = createMemo(() => sizeMetrics().filter((metric) => !metric.isTextual));
   const maxMeasuredPx = createMemo(() =>
     measuredSizes().reduce(
-      (max, metric) =>
-        metric.pxValue !== null ? Math.max(max, metric.pxValue) : max,
+      (max, metric) => (metric.pxValue !== null ? Math.max(max, metric.pxValue) : max),
       0,
     ),
   );
 
   const fontFamilyTokens = createMemo(() =>
-    typographyCssVars().fonts.map((cssVar) =>
-      parseCssVarToken(cssVar, "--fonts-"),
-    ),
+    typographyCssVars().fonts.map((cssVar) => parseCssVarToken(cssVar, "--fonts-")),
   );
   const fontSizeTokens = createMemo(() =>
-    typographyCssVars().fontSizes.map((cssVar) =>
-      parseCssVarToken(cssVar, "--font-sizes-"),
-    ),
+    typographyCssVars().fontSizes.map((cssVar) => parseCssVarToken(cssVar, "--font-sizes-")),
   );
   const fontWeightTokens = createMemo(() =>
-    typographyCssVars().fontWeights.map((cssVar) =>
-      parseCssVarToken(cssVar, "--font-weights-"),
-    ),
+    typographyCssVars().fontWeights.map((cssVar) => parseCssVarToken(cssVar, "--font-weights-")),
   );
   const lineHeightTokens = createMemo(() =>
-    typographyCssVars().lineHeights.map((cssVar) =>
-      parseCssVarToken(cssVar, "--line-heights-"),
-    ),
+    typographyCssVars().lineHeights.map((cssVar) => parseCssVarToken(cssVar, "--line-heights-")),
   );
   const letterSpacingTokens = createMemo(() =>
     typographyCssVars().letterSpacings.map((cssVar) =>
@@ -1032,8 +972,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
     [...fontWeightTokens()].sort((a, b) => {
       const aValue = parseNumericTokenValue(getTokenValue(`fontWeights.${a}`));
       const bValue = parseNumericTokenValue(getTokenValue(`fontWeights.${b}`));
-      if (Number.isFinite(aValue) && Number.isFinite(bValue))
-        return aValue - bValue;
+      if (Number.isFinite(aValue) && Number.isFinite(bValue)) return aValue - bValue;
       if (Number.isFinite(aValue)) return -1;
       if (Number.isFinite(bValue)) return 1;
       return a.localeCompare(b, undefined, { numeric: true });
@@ -1044,8 +983,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
     [...fontSizeTokens()].sort((a, b) => {
       const aValue = parseNumericTokenValue(getTokenValue(`fontSizes.${a}`));
       const bValue = parseNumericTokenValue(getTokenValue(`fontSizes.${b}`));
-      if (Number.isFinite(aValue) && Number.isFinite(bValue))
-        return aValue - bValue;
+      if (Number.isFinite(aValue) && Number.isFinite(bValue)) return aValue - bValue;
       if (Number.isFinite(aValue)) return -1;
       if (Number.isFinite(bValue)) return 1;
       return a.localeCompare(b, undefined, { numeric: true });
@@ -1056,8 +994,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
     [...lineHeightTokens()].sort((a, b) => {
       const aValue = parseNumericTokenValue(getTokenValue(`lineHeights.${a}`));
       const bValue = parseNumericTokenValue(getTokenValue(`lineHeights.${b}`));
-      if (Number.isFinite(aValue) && Number.isFinite(bValue))
-        return aValue - bValue;
+      if (Number.isFinite(aValue) && Number.isFinite(bValue)) return aValue - bValue;
       if (Number.isFinite(aValue)) return -1;
       if (Number.isFinite(bValue)) return 1;
       return a.localeCompare(b, undefined, { numeric: true });
@@ -1066,14 +1003,9 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
 
   const sortedLetterSpacingTokens = createMemo(() =>
     [...letterSpacingTokens()].sort((a, b) => {
-      const aValue = parseNumericTokenValue(
-        getTokenValue(`letterSpacings.${a}`),
-      );
-      const bValue = parseNumericTokenValue(
-        getTokenValue(`letterSpacings.${b}`),
-      );
-      if (Number.isFinite(aValue) && Number.isFinite(bValue))
-        return aValue - bValue;
+      const aValue = parseNumericTokenValue(getTokenValue(`letterSpacings.${a}`));
+      const bValue = parseNumericTokenValue(getTokenValue(`letterSpacings.${b}`));
+      if (Number.isFinite(aValue) && Number.isFinite(bValue)) return aValue - bValue;
       if (Number.isFinite(aValue)) return -1;
       if (Number.isFinite(bValue)) return 1;
       return a.localeCompare(b, undefined, { numeric: true });
@@ -1100,22 +1032,13 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
   const layoutTokenCount = createMemo(
     () =>
       sizeMetrics().length +
-      layoutThemeCategories().reduce(
-        (total, category) => total + category.tokens.length,
-        0,
-      ),
+      layoutThemeCategories().reduce((total, category) => total + category.tokens.length, 0),
   );
   const motionTokenCount = createMemo(() =>
-    motionThemeCategories().reduce(
-      (total, category) => total + category.tokens.length,
-      0,
-    ),
+    motionThemeCategories().reduce((total, category) => total + category.tokens.length, 0),
   );
   const effectTokenCount = createMemo(() =>
-    effectThemeCategories().reduce(
-      (total, category) => total + category.tokens.length,
-      0,
-    ),
+    effectThemeCategories().reduce((total, category) => total + category.tokens.length, 0),
   );
 
   return (
@@ -1171,10 +1094,15 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                 <VStack alignItems="stretch" gap="1">
                   <HStack justifyContent="space-between" alignItems="center">
                     <Box textStyle="2xs" color="fg.muted">
-                      Generated from live <Box as="span" fontFamily="mono">--colors-color-palette-*</Box> CSS variables.
-                      Token pattern:
-                      {" "}
-                      <Box as="span" fontFamily="mono">colors.colorPalette.&lt;variant&gt;.&lt;setting&gt;</Box>.
+                      Generated from live{" "}
+                      <Box as="span" fontFamily="mono">
+                        --colors-color-palette-*
+                      </Box>{" "}
+                      CSS variables. Token pattern:{" "}
+                      <Box as="span" fontFamily="mono">
+                        colors.colorPalette.&lt;variant&gt;.&lt;setting&gt;
+                      </Box>
+                      .
                     </Box>
                     <Button
                       size="xs"
@@ -1195,70 +1123,70 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                         stickyHeader
                         style={{ "table-layout": "fixed" }}
                       >
-                  <Table.Head>
-                    <Table.Row>
-                      <Table.Header w="130px">Variant</Table.Header>
-                      <Table.Header w="310px">Available Settings</Table.Header>
-                      <Table.Header w="160px">Token Path</Table.Header>
-                      <Table.Header w="160px">CSS Var</Table.Header>
-                    </Table.Row>
-                  </Table.Head>
-                  <Table.Body>
-                    <Table.Row>
-                      <Table.Cell py="1.5">
-                        <Box textStyle="xs" fontWeight="semibold">
-                          Colors
-                        </Box>
-                      </Table.Cell>
-                      <Table.Cell py="1.5">
-                        <Box textStyle="2xs" fontFamily="mono" whiteSpace="normal">
-                          {paletteList()}
-                        </Box>
-                      </Table.Cell>
-                      <Table.Cell py="1.5">
-                        <Box textStyle="2xs" fontFamily="mono" whiteSpace="normal">
-                          colors.&lt;palette&gt;.&lt;key&gt;
-                        </Box>
-                      </Table.Cell>
-                      <Table.Cell py="1.5">
-                        <Box textStyle="2xs" fontFamily="mono" whiteSpace="normal">
-                          --colors-&lt;palette&gt;-&lt;key&gt;
-                        </Box>
-                      </Table.Cell>
-                    </Table.Row>
-                    <For each={semanticVariantRows()}>
-                      {(row) => (
-                        <Table.Row>
-                          <Table.Cell py="1.5">
-                            <Box textStyle="xs" fontWeight="semibold">
-                              {toTitleCase(row.variant)}
-                            </Box>
-                            <Box textStyle="2xs" color="fg.muted" fontFamily="mono">
-                              {row.variant}
-                            </Box>
-                          </Table.Cell>
-                          <Table.Cell py="1.5">
-                            <Box textStyle="2xs" color="fg.muted" mb="0.5">
-                              {row.details.length} settings
-                            </Box>
-                            <Box textStyle="2xs" fontFamily="mono" whiteSpace="normal">
-                              {row.details.join(", ")}
-                            </Box>
-                          </Table.Cell>
-                          <Table.Cell py="1.5">
-                            <Box textStyle="2xs" fontFamily="mono" whiteSpace="normal">
-                              colors.colorPalette.{row.variant}.&lt;setting&gt;
-                            </Box>
-                          </Table.Cell>
-                          <Table.Cell py="1.5">
-                            <Box textStyle="2xs" fontFamily="mono" whiteSpace="normal">
-                              --colors-color-palette-{row.variant}-&lt;setting&gt;
-                            </Box>
-                          </Table.Cell>
-                        </Table.Row>
-                      )}
-                    </For>
-                  </Table.Body>
+                        <Table.Head>
+                          <Table.Row>
+                            <Table.Header w="130px">Variant</Table.Header>
+                            <Table.Header w="310px">Available Settings</Table.Header>
+                            <Table.Header w="160px">Token Path</Table.Header>
+                            <Table.Header w="160px">CSS Var</Table.Header>
+                          </Table.Row>
+                        </Table.Head>
+                        <Table.Body>
+                          <Table.Row>
+                            <Table.Cell py="1.5">
+                              <Box textStyle="xs" fontWeight="semibold">
+                                Colors
+                              </Box>
+                            </Table.Cell>
+                            <Table.Cell py="1.5">
+                              <Box textStyle="2xs" fontFamily="mono" whiteSpace="normal">
+                                {paletteList()}
+                              </Box>
+                            </Table.Cell>
+                            <Table.Cell py="1.5">
+                              <Box textStyle="2xs" fontFamily="mono" whiteSpace="normal">
+                                colors.&lt;palette&gt;.&lt;key&gt;
+                              </Box>
+                            </Table.Cell>
+                            <Table.Cell py="1.5">
+                              <Box textStyle="2xs" fontFamily="mono" whiteSpace="normal">
+                                --colors-&lt;palette&gt;-&lt;key&gt;
+                              </Box>
+                            </Table.Cell>
+                          </Table.Row>
+                          <For each={semanticVariantRows()}>
+                            {(row) => (
+                              <Table.Row>
+                                <Table.Cell py="1.5">
+                                  <Box textStyle="xs" fontWeight="semibold">
+                                    {toTitleCase(row.variant)}
+                                  </Box>
+                                  <Box textStyle="2xs" color="fg.muted" fontFamily="mono">
+                                    {row.variant}
+                                  </Box>
+                                </Table.Cell>
+                                <Table.Cell py="1.5">
+                                  <Box textStyle="2xs" color="fg.muted" mb="0.5">
+                                    {row.details.length} settings
+                                  </Box>
+                                  <Box textStyle="2xs" fontFamily="mono" whiteSpace="normal">
+                                    {row.details.join(", ")}
+                                  </Box>
+                                </Table.Cell>
+                                <Table.Cell py="1.5">
+                                  <Box textStyle="2xs" fontFamily="mono" whiteSpace="normal">
+                                    colors.colorPalette.{row.variant}.&lt;setting&gt;
+                                  </Box>
+                                </Table.Cell>
+                                <Table.Cell py="1.5">
+                                  <Box textStyle="2xs" fontFamily="mono" whiteSpace="normal">
+                                    --colors-color-palette-{row.variant}-&lt;setting&gt;
+                                  </Box>
+                                </Table.Cell>
+                              </Table.Row>
+                            )}
+                          </For>
+                        </Table.Body>
                       </Table.Root>
                     </Box>
                   </Box>
@@ -1296,8 +1224,8 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                       "& tbody tr > td:nth-child(n+3)": { py: "0.25", px: "0.125" },
                     }}
                   >
-                  <Table.Head>
-                    <Table.Row>
+                    <Table.Head>
+                      <Table.Row>
                         <Table.Header w="112px">Palette</Table.Header>
                         <Table.Header w="56px">Type</Table.Header>
                         <For each={Array.from({ length: 12 }, (_, i) => `${i + 1}`)}>
@@ -1313,22 +1241,18 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                       <For each={twelveStepPalettes()}>
                         {(group) => (
                           <Table.Row id={toColorGroupId(group.palette)}>
-                          <Table.Cell>
-                            <Box
-                              textStyle="2xs"
-                              fontWeight="semibold"
-                              textTransform="capitalize"
-                            >
+                            <Table.Cell>
+                              <Box textStyle="2xs" fontWeight="semibold" textTransform="capitalize">
                                 {group.palette}
                               </Box>
                             </Table.Cell>
-                          <Table.Cell>
-                            <Box textStyle="2xs" color="fg.muted">
-                              {group.primaryKind}
-                            </Box>
-                          </Table.Cell>
-                          <For each={group.primarySteps}>
-                            {(item) => (
+                            <Table.Cell>
+                              <Box textStyle="2xs" color="fg.muted">
+                                {group.primaryKind}
+                              </Box>
+                            </Table.Cell>
+                            <For each={group.primarySteps}>
+                              {(item) => (
                                 <Table.Cell p="0.25" py="0.5" textAlign="center">
                                   <Tooltip
                                     openDelay={120}
@@ -1337,7 +1261,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                                     contentProps={SWATCH_TOOLTIP_CONTENT_PROPS}
                                     content={<ColorSwatchTooltip item={item} />}
                                   >
-                                  <Box
+                                    <Box
                                       h="6"
                                       w="6"
                                       borderRadius="l1"
@@ -1376,8 +1300,8 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
               >
                 <Box overflowX="auto">
                   <Table.Root
-                  variant="surface"
-                  size="md"
+                    variant="surface"
+                    size="md"
                     w="592px"
                     minW="592px"
                     maxW="592px"
@@ -1387,32 +1311,32 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                   >
                     <Table.Head>
                       <Table.Row>
-                      <Table.Header w="78px">Variant</Table.Header>
-                      <Table.Header w="108px">Detail</Table.Header>
-                      <For each={namedGridPaletteColumns()}>
-                        {(group) => (
-                          <Table.Header
+                        <Table.Header w="78px">Variant</Table.Header>
+                        <Table.Header w="108px">Detail</Table.Header>
+                        <For each={namedGridPaletteColumns()}>
+                          {(group) => (
+                            <Table.Header
                               w="22px"
                               px="0.25"
                               textAlign="center"
                               verticalAlign="bottom"
                               h="86px"
-                          >
-                            <Box
-                              as="span"
-                              display="inline-block"
-                              fontSize="xs"
-                              lineHeight="tight"
-                              writingMode="vertical-rl"
-                              transform="rotate(180deg)"
-                              textTransform="capitalize"
-                              whiteSpace="nowrap"
                             >
-                              {group.palette}
-                            </Box>
-                          </Table.Header>
-                        )}
-                      </For>
+                              <Box
+                                as="span"
+                                display="inline-block"
+                                fontSize="xs"
+                                lineHeight="tight"
+                                writingMode="vertical-rl"
+                                transform="rotate(180deg)"
+                                textTransform="capitalize"
+                                whiteSpace="nowrap"
+                              >
+                                {group.palette}
+                              </Box>
+                            </Table.Header>
+                          )}
+                        </For>
                       </Table.Row>
                     </Table.Head>
                     <Table.Body>
@@ -1440,20 +1364,20 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                             <For each={group.rows}>
                               {(row) => (
                                 <Table.Row>
-                                <Table.Cell>
-                                  <Box
-                                    textStyle="2xs"
+                                  <Table.Cell>
+                                    <Box
+                                      textStyle="2xs"
                                       fontWeight="semibold"
                                       textTransform="capitalize"
                                     >
                                       {row.variant}
                                     </Box>
                                   </Table.Cell>
-                                <Table.Cell>
-                                  <Box textStyle="2xs" color="fg.muted" fontFamily="mono">
-                                    {row.detail}
-                                  </Box>
-                                </Table.Cell>
+                                  <Table.Cell>
+                                    <Box textStyle="2xs" color="fg.muted" fontFamily="mono">
+                                      {row.detail}
+                                    </Box>
+                                  </Table.Cell>
                                   <For each={namedGridPaletteColumns()}>
                                     {(paletteGroup) => {
                                       const role = paletteGroup.roles.find(
@@ -1463,9 +1387,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                                         <Table.Cell p="0.125" py="0.25" textAlign="center">
                                           <Show
                                             when={role}
-                                            fallback={
-                                            <Box h="6" w="6" display="inline-block" />
-                                            }
+                                            fallback={<Box h="6" w="6" display="inline-block" />}
                                           >
                                             {(item) => (
                                               <Tooltip
@@ -1473,14 +1395,12 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                                                 closeDelay={80}
                                                 interactive
                                                 contentProps={SWATCH_TOOLTIP_CONTENT_PROPS}
-                                                content={
-                                                  <ColorSwatchTooltip item={item()} />
-                                                }
+                                                content={<ColorSwatchTooltip item={item()} />}
                                               >
                                                 <Box
-                                                h="6"
-                                                w="6"
-                                                display="inline-block"
+                                                  h="6"
+                                                  w="6"
+                                                  display="inline-block"
                                                   borderRadius="l1"
                                                   borderWidth="1px"
                                                   borderColor="border"
@@ -1548,8 +1468,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                 <Box
                   class={css({
                     display: "grid",
-                    gridTemplateColumns:
-                      "repeat(auto-fill, minmax(220px, 1fr))",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
                     gap: "1.5",
                   })}
                 >
@@ -1625,27 +1544,16 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                     >
                       {metric.token}
                     </Box>
-                    <Box
-                      textStyle="2xs"
-                      color="fg.muted"
-                      whiteSpace="nowrap"
-                      fontFamily="mono"
-                    >
+                    <Box textStyle="2xs" color="fg.muted" whiteSpace="nowrap" fontFamily="mono">
                       <Show
                         when={sizeDisplayUnit() === "rem"}
                         fallback={
-                          <Show
-                            when={metric.pxValue !== null}
-                            fallback={metric.rawValue}
-                          >
+                          <Show when={metric.pxValue !== null} fallback={metric.rawValue}>
                             {metric.pxValue?.toFixed(2).replace(/\.?0+$/, "")}px
                           </Show>
                         }
                       >
-                        <Show
-                          when={metric.remValue !== null}
-                          fallback={metric.rawValue}
-                        >
+                        <Show when={metric.remValue !== null} fallback={metric.rawValue}>
                           {metric.remValue?.toFixed(3).replace(/\.?0+$/, "")}rem
                         </Show>
                       </Show>
@@ -1664,17 +1572,12 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                       <Box
                         h="full"
                         bg={
-                          recipeColorPalettes()[
-                            index() % recipeColorPalettes().length
-                          ] ?? "blue.9"
+                          recipeColorPalettes()[index() % recipeColorPalettes().length] ?? "blue.9"
                         }
                         style={{
                           width:
                             metric.pxValue !== null && maxMeasuredPx() > 0
-                              ? `${Math.max(
-                                  2,
-                                  (metric.pxValue / maxMeasuredPx()) * 100,
-                                )}%`
+                              ? `${Math.max(2, (metric.pxValue / maxMeasuredPx()) * 100)}%`
                               : "4px",
                         }}
                       />
@@ -1699,11 +1602,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                 {(category) => (
                   <VStack alignItems="stretch" gap="1">
                     <HStack justifyContent="space-between" alignItems="center">
-                      <Box
-                        textStyle="xs"
-                        color="fg.muted"
-                        fontWeight="semibold"
-                      >
+                      <Box textStyle="xs" color="fg.muted" fontWeight="semibold">
                         {category.label}
                       </Box>
                       <Box textStyle="2xs" color="fg.muted">
@@ -1713,8 +1612,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                     <Box
                       class={css({
                         display: "grid",
-                        gridTemplateColumns:
-                          "repeat(auto-fill, minmax(210px, 1fr))",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))",
                         gap: "1",
                       })}
                     >
@@ -1729,15 +1627,8 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                             borderRadius="l1"
                             bg={item.isAlias ? "bg.subtle" : "transparent"}
                           >
-                            <HStack
-                              justifyContent="space-between"
-                              alignItems="center"
-                            >
-                              <Box
-                                textStyle="2xs"
-                                color="fg.default"
-                                fontFamily="mono"
-                              >
+                            <HStack justifyContent="space-between" alignItems="center">
+                              <Box textStyle="2xs" color="fg.default" fontFamily="mono">
                                 {item.token}
                               </Box>
                               <Show when={item.isAlias}>
@@ -1746,18 +1637,11 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                                 </Box>
                               </Show>
                             </HStack>
-                            <Box
-                              textStyle="2xs"
-                              color="fg.muted"
-                              fontFamily="mono"
-                            >
+                            <Box textStyle="2xs" color="fg.muted" fontFamily="mono">
                               {String(item.value)}
                             </Box>
                             <Show
-                              when={
-                                category.key === "spacing" ||
-                                category.key === "breakpoints"
-                              }
+                              when={category.key === "spacing" || category.key === "breakpoints"}
                             >
                               <Box
                                 h="2"
@@ -1773,10 +1657,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                                   style={{
                                     width:
                                       item.numericValue !== null
-                                        ? `${Math.min(
-                                            100,
-                                            Math.max(2, item.numericValue * 4),
-                                          )}%`
+                                        ? `${Math.min(100, Math.max(2, item.numericValue * 4))}%`
                                         : "4px",
                                   }}
                                 />
@@ -1790,9 +1671,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                                 bg="bg.subtle"
                                 style={{
                                   "border-radius":
-                                    typeof item.value === "string"
-                                      ? item.value
-                                      : `${item.value}px`,
+                                    typeof item.value === "string" ? item.value : `${item.value}px`,
                                 }}
                               />
                             </Show>
@@ -1930,9 +1809,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                     </Box>
                     <Box
                       style={{
-                        "font-weight": getTokenValue(
-                          `fontWeights.${tokenName}`,
-                        ),
+                        "font-weight": getTokenValue(`fontWeights.${tokenName}`),
                       }}
                     >
                       Weight
@@ -1965,9 +1842,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                     <Box
                       textStyle="xs"
                       style={{
-                        "line-height": getTokenValue(
-                          `lineHeights.${tokenName}`,
-                        ),
+                        "line-height": getTokenValue(`lineHeights.${tokenName}`),
                       }}
                     >
                       A line
@@ -2001,9 +1876,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                   <Box
                     textStyle="xs"
                     style={{
-                      "letter-spacing": getTokenValue(
-                        `letterSpacings.${tokenName}`,
-                      ),
+                      "letter-spacing": getTokenValue(`letterSpacings.${tokenName}`),
                     }}
                   >
                     Tracking
@@ -2050,8 +1923,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                 <Box
                   class={css({
                     display: "grid",
-                    gridTemplateColumns:
-                      "repeat(auto-fill, minmax(240px, 1fr))",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
                     gap: "1",
                   })}
                 >
@@ -2065,11 +1937,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                         borderColor="border"
                         borderRadius="l1"
                       >
-                        <Box
-                          textStyle="2xs"
-                          color="fg.default"
-                          fontFamily="mono"
-                        >
+                        <Box textStyle="2xs" color="fg.default" fontFamily="mono">
                           {item.token}
                         </Box>
                         <Box textStyle="2xs" color="fg.muted" fontFamily="mono">
@@ -2090,10 +1958,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                               style={{
                                 width:
                                   item.numericValue !== null
-                                    ? `${Math.min(
-                                        100,
-                                        Math.max(4, item.numericValue / 4),
-                                      )}%`
+                                    ? `${Math.min(100, Math.max(4, item.numericValue / 4))}%`
                                     : "8px",
                               }}
                             />
@@ -2110,10 +1975,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                               borderColor="border"
                               borderRadius="l1"
                               style={{
-                                animation:
-                                  typeof item.value === "string"
-                                    ? item.value
-                                    : undefined,
+                                animation: typeof item.value === "string" ? item.value : undefined,
                               }}
                             >
                               animate
@@ -2162,8 +2024,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                 <Box
                   class={css({
                     display: "grid",
-                    gridTemplateColumns:
-                      "repeat(auto-fill, minmax(220px, 1fr))",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
                     gap: "1",
                   })}
                 >
@@ -2178,15 +2039,8 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                         borderRadius="l1"
                         bg={item.isAlias ? "bg.subtle" : "transparent"}
                       >
-                        <HStack
-                          justifyContent="space-between"
-                          alignItems="center"
-                        >
-                          <Box
-                            textStyle="2xs"
-                            color="fg.default"
-                            fontFamily="mono"
-                          >
+                        <HStack justifyContent="space-between" alignItems="center">
+                          <Box textStyle="2xs" color="fg.default" fontFamily="mono">
                             {item.token}
                           </Box>
                           <Show when={item.isAlias}>
@@ -2206,10 +2060,7 @@ export const DesignSystemOverview = (props: DesignSystemOverviewProps) => {
                             borderColor="border"
                             bg="bg.subtle"
                             style={{
-                              "box-shadow":
-                                typeof item.value === "string"
-                                  ? item.value
-                                  : undefined,
+                              "box-shadow": typeof item.value === "string" ? item.value : undefined,
                             }}
                           />
                         </Show>

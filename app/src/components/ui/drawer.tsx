@@ -37,8 +37,7 @@ const drawerSizes = ["xs", "sm", "md", "lg", "xl", "full"] as const;
 const drawerPlacements = ["start", "end", "top", "bottom"] as const;
 
 export const DrawerDemo = (props: DrawerDemoProps) => {
-  const [selectedSize, setSelectedSize] =
-    createSignal<(typeof drawerSizes)[number]>("sm");
+  const [selectedSize, setSelectedSize] = createSignal<(typeof drawerSizes)[number]>("sm");
   const [selectedPlacement, setSelectedPlacement] =
     createSignal<(typeof drawerPlacements)[number]>("end");
   const [isModal, setIsModal] = createSignal(true);
@@ -108,9 +107,7 @@ export const DrawerDemo = (props: DrawerDemoProps) => {
           modal={isModal()}
         >
           <Trigger
-            asChild={(triggerProps) => (
-              <DemoButton {...triggerProps()}>Open Drawer</DemoButton>
-            )}
+            asChild={(triggerProps) => <DemoButton {...triggerProps()}>Open Drawer</DemoButton>}
           />
           <Positioner>
             <Backdrop
@@ -138,14 +135,10 @@ export const DrawerDemo = (props: DrawerDemoProps) => {
                   )}
                 />
                 <CloseTrigger
-                  asChild={(closeProps) => (
-                    <DemoButton {...closeProps()}>Save</DemoButton>
-                  )}
+                  asChild={(closeProps) => <DemoButton {...closeProps()}>Save</DemoButton>}
                 />
               </Footer>
-              <CloseTrigger
-                asChild={(closeProps) => <CloseButton {...closeProps()} />}
-              />
+              <CloseTrigger asChild={(closeProps) => <CloseButton {...closeProps()} />} />
             </Content>
           </Positioner>
         </Root>

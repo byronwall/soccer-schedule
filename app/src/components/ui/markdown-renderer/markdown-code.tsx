@@ -12,17 +12,9 @@ type MarkdownCodeProps = JSX.HTMLAttributes<HTMLElement> & {
 };
 
 export function MarkdownCode(codeProps: MarkdownCodeProps) {
-  const [local, rest] = splitProps(codeProps, [
-    "children",
-    "node",
-    "class",
-    "className",
-    "inline",
-  ]);
+  const [local, rest] = splitProps(codeProps, ["children", "node", "class", "className", "inline"]);
   const resolvedChildren = children(() => local.children);
-  const codeText = createMemo(() =>
-    normalizeCodeText(resolvedChildren(), local.node),
-  );
+  const codeText = createMemo(() => normalizeCodeText(resolvedChildren(), local.node));
   const languageClass = createMemo(() => local.class ?? local.className);
   const isBlock = createMemo(() => isBlockCode(languageClass(), local.inline));
   const language = createMemo(() => parseLanguage(languageClass()));

@@ -31,24 +31,24 @@ describe("partial-aware quality report", () => {
       ),
     });
 
-    expect(report.find((rule) => rule.id === "completeness")?.summary)
-      .toBe("14 of 56 assignments filled");
-    expect(report.find((rule) => rule.id === "game-balance")?.status)
-      .toBe("not-assessable");
-    expect(report.find((rule) => rule.id === "whole-game-variety")?.status)
-      .toBe("not-assessable");
+    expect(report.find((rule) => rule.id === "completeness")?.summary).toBe(
+      "14 of 56 assignments filled",
+    );
+    expect(report.find((rule) => rule.id === "game-balance")?.status).toBe("not-assessable");
+    expect(report.find((rule) => rule.id === "whole-game-variety")?.status).toBe("not-assessable");
     expect(report.slice(0, 3).map((rule) => rule.id)).toEqual([
       "locks",
       "validity",
       "completeness",
     ]);
-    expect(report.every((rule) =>
-      rule.help.length > 20 && rule.priority > 0)).toBe(true);
-    expect(generationHardErrors({
-      assignments,
-      currentAssignments: assignments,
-      players,
-    })).toEqual([]);
+    expect(report.every((rule) => rule.help.length > 20 && rule.priority > 0)).toBe(true);
+    expect(
+      generationHardErrors({
+        assignments,
+        currentAssignments: assignments,
+        players,
+      }),
+    ).toEqual([]);
   });
 
   it("orders season balance and preferences above goalkeeper then defender continuity", () => {
@@ -71,31 +71,20 @@ describe("partial-aware quality report", () => {
     const compare = (
       left: Partial<ScheduleGenerationQuality>,
       right: Partial<ScheduleGenerationQuality>,
-    ) => compareGenerationRanks(
-      generationPriorityRank({ ...base, ...left }),
-      generationPriorityRank({ ...base, ...right }),
-    );
+    ) =>
+      compareGenerationRanks(
+        generationPriorityRank({ ...base, ...left }),
+        generationPriorityRank({ ...base, ...right }),
+      );
 
-    expect(compare({ seasonMinuteSpread: 1 }, { avoidAssignmentCount: 1 }))
-      .toBeGreaterThan(0);
-    expect(compare({ avoidAssignmentCount: 1 }, { goalkeeperChanges: 1 }))
-      .toBeGreaterThan(0);
-    expect(compare({ goalkeeperOveruse: 1 }, { goalkeeperChanges: 1 }))
-      .toBeGreaterThan(0);
-    expect(compare({ goalkeeperChanges: 1 }, { defenderChanges: 1 }))
-      .toBeGreaterThan(0);
-    expect(compare({ defenderChanges: 1 }, { midfieldRepeats: 1 }))
-      .toBeGreaterThan(0);
-    expect(compare(
-      { midfieldRepeats: 1 },
-      { crossQuarterPositionRepeats: 1 },
-    )).toBeGreaterThan(0);
-    expect(compare(
-      { crossQuarterPositionRepeats: 1 },
-      { varietyGaps: 1 },
-    )).toBeGreaterThan(0);
-    expect(compare({ varietyGaps: 1 }, { favoredExtraMisses: 1 }))
-      .toBeGreaterThan(0);
+    expect(compare({ seasonMinuteSpread: 1 }, { avoidAssignmentCount: 1 })).toBeGreaterThan(0);
+    expect(compare({ avoidAssignmentCount: 1 }, { goalkeeperChanges: 1 })).toBeGreaterThan(0);
+    expect(compare({ goalkeeperOveruse: 1 }, { goalkeeperChanges: 1 })).toBeGreaterThan(0);
+    expect(compare({ goalkeeperChanges: 1 }, { defenderChanges: 1 })).toBeGreaterThan(0);
+    expect(compare({ defenderChanges: 1 }, { midfieldRepeats: 1 })).toBeGreaterThan(0);
+    expect(compare({ midfieldRepeats: 1 }, { crossQuarterPositionRepeats: 1 })).toBeGreaterThan(0);
+    expect(compare({ crossQuarterPositionRepeats: 1 }, { varietyGaps: 1 })).toBeGreaterThan(0);
+    expect(compare({ varietyGaps: 1 }, { favoredExtraMisses: 1 })).toBeGreaterThan(0);
   });
 
   it("evaluates whole-game rules only when all cells are filled", () => {
@@ -110,9 +99,9 @@ describe("partial-aware quality report", () => {
       quality,
     });
 
-    expect(report.find((rule) => rule.id === "game-balance")?.status)
-      .not.toBe("not-assessable");
-    expect(report.find((rule) => rule.id === "whole-game-variety")?.status)
-      .not.toBe("not-assessable");
+    expect(report.find((rule) => rule.id === "game-balance")?.status).not.toBe("not-assessable");
+    expect(report.find((rule) => rule.id === "whole-game-variety")?.status).not.toBe(
+      "not-assessable",
+    );
   });
 });

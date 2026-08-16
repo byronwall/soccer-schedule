@@ -12,7 +12,7 @@ export const DisplayValue = <T,>(props: DisplayValueProps<T>) => {
   const formattedValue = createMemo(() => {
     const value = props.value;
     const formatValue = props.formatValue;
-    return isNotEmpty(value) ? (formatValue?.(value) ?? String(value)) : null;
+    return isNotEmpty(value) ? formatValue?.(value) ?? String(value) : null;
   });
 
   return (
@@ -56,10 +56,7 @@ export const DisplayValueDemo = (_props: DisplayValueDemoProps) => {
       >
         Toggle value
       </Button>
-      <DisplayValue
-        value={value()}
-        formatValue={(nextValue) => `$${nextValue.toFixed(2)}`}
-      />
+      <DisplayValue value={value()} formatValue={(nextValue) => `$${nextValue.toFixed(2)}`} />
     </VStack>
   );
 };

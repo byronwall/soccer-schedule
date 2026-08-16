@@ -14,9 +14,7 @@ function enhanceHeading(headingEl: HTMLElement) {
   if (!headingId) return;
   headingEl.setAttribute("id", headingId);
 
-  const existingAnchor = headingEl.querySelector(
-    "[data-heading-anchor='true']",
-  );
+  const existingAnchor = headingEl.querySelector("[data-heading-anchor='true']");
   if (existingAnchor) return;
 
   const anchor = document.createElement("a");

@@ -11,17 +11,13 @@ const normalizePath = (value) => value.replaceAll("\\", "/");
 
 const isUiInternalFile = (filename) => {
   const normalized = normalizePath(filename);
-  return (
-    normalized.includes(UI_DIRECTORY_FRAGMENT) ||
-    normalized.startsWith("src/components/ui/")
-  );
+  return normalized.includes(UI_DIRECTORY_FRAGMENT) || normalized.startsWith("src/components/ui/");
 };
 
 const isUiSubpathImport = (source) => {
   const normalized = normalizePath(source);
   return (
-    /^[@~]\/components\/ui\/.+/.test(normalized) ||
-    /(?:^|\/)components\/ui\/.+/.test(normalized)
+    /^[@~]\/components\/ui\/.+/.test(normalized) || /(?:^|\/)components\/ui\/.+/.test(normalized)
   );
 };
 
@@ -48,8 +44,7 @@ export default {
       meta: {
         type: "problem",
         docs: {
-          description:
-            "Require downstream shared UI imports to use the components/ui index.",
+          description: "Require downstream shared UI imports to use the components/ui index.",
         },
         messages: {
           preferIndex:

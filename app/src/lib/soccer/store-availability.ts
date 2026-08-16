@@ -1,15 +1,10 @@
 import type { Availability, SoccerStore } from "./schemas";
 
-const availabilityKey = (gameId: string, playerId: string) =>
-  `${gameId}:${playerId}`;
+const availabilityKey = (gameId: string, playerId: string) => `${gameId}:${playerId}`;
 
-export const ensureActivePlayerAvailability = (
-  store: SoccerStore,
-  stamp: string,
-) => {
+export const ensureActivePlayerAvailability = (store: SoccerStore, stamp: string) => {
   const existing = new Set(
-    store.availability.map((item) =>
-      availabilityKey(item.gameId, item.playerId)),
+    store.availability.map((item) => availabilityKey(item.gameId, item.playerId)),
   );
 
   for (const game of store.games) {
@@ -33,8 +28,7 @@ export const upsertAvailability = (
   stamp: string,
 ) => {
   const existing = store.availability.find(
-    (item) =>
-      item.gameId === input.gameId && item.playerId === input.playerId,
+    (item) => item.gameId === input.gameId && item.playerId === input.playerId,
   );
   if (existing) {
     existing.status = input.status;

@@ -1,15 +1,5 @@
-import {
-  Toaster as ArkToaster,
-  createToaster,
-  Toast,
-  useToastContext,
-} from "@ark-ui/solid/toast";
-import {
-  CheckCircleIcon,
-  CircleAlertIcon,
-  CircleXIcon,
-  InfoIcon,
-} from "lucide-solid";
+import { Toaster as ArkToaster, createToaster, Toast, useToastContext } from "@ark-ui/solid/toast";
+import { CheckCircleIcon, CircleAlertIcon, CircleXIcon, InfoIcon } from "lucide-solid";
 import { For, Show } from "solid-js";
 import { Portal } from "solid-js/web";
 import { Box, createStyleContext, HStack, Stack, styled } from "styled-system/jsx";
@@ -105,9 +95,7 @@ export const Toaster = () => {
                 </Stack>
                 <Show when={toast().action}>
                   {(action) => (
-                    <ActionTrigger color="colorPalette.plain.fg">
-                      {action().label}
-                    </ActionTrigger>
+                    <ActionTrigger color="colorPalette.plain.fg">{action().label}</ActionTrigger>
                   )}
                 </Show>
               </Stack>
@@ -184,9 +172,7 @@ export const ToastDemo = (_props: ToastDemoProps) => {
           size="xs"
           variant="outline"
           onClick={() => {
-            const task = new Promise<void>((resolve) =>
-              setTimeout(() => resolve(), 1800),
-            );
+            const task = new Promise<void>((resolve) => setTimeout(() => resolve(), 1800));
 
             toaster.promise(task, {
               loading: {

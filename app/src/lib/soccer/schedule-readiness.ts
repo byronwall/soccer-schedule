@@ -81,9 +81,7 @@ export const scheduleReadiness = (
 
 export type LockState = "none" | "some" | "all";
 
-export const lockStateForAssignments = (
-  assignments: Assignment[],
-): LockState => {
+export const lockStateForAssignments = (assignments: Assignment[]): LockState => {
   if (assignments.length === 0 || assignments.every((item) => !item.locked)) {
     return "none";
   }

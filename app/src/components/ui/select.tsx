@@ -24,10 +24,9 @@ type RootProviderProps<T> = SelectRootProviderProps<T> & StyleProps;
 export const Root = withProvider(Select.Root, "root") as unknown as <T>(
   props: RootProps<T>,
 ) => JSX.Element;
-export const RootProvider = withProvider(
-  Select.RootProvider,
-  "root",
-) as unknown as <T>(props: RootProviderProps<T>) => JSX.Element;
+export const RootProvider = withProvider(Select.RootProvider, "root") as unknown as <T>(
+  props: RootProviderProps<T>,
+) => JSX.Element;
 
 export const ClearTrigger = withContext(Select.ClearTrigger, "clearTrigger");
 export const Content = withContext(Select.Content, "content");
@@ -35,10 +34,7 @@ export const Control = withContext(Select.Control, "control");
 export const IndicatorGroup = withContext(ark.div, "indicatorGroup");
 export const Item = withContext(Select.Item, "item");
 export const ItemGroup = withContext(Select.ItemGroup, "itemGroup");
-export const ItemGroupLabel = withContext(
-  Select.ItemGroupLabel,
-  "itemGroupLabel",
-);
+export const ItemGroupLabel = withContext(Select.ItemGroupLabel, "itemGroupLabel");
 export const ItemText = withContext(Select.ItemText, "itemText");
 export const Label = withContext(Select.Label, "label");
 export const List = withContext(Select.List, "list");
@@ -212,12 +208,7 @@ export const SelectDemo = (props: SelectDemoProps) => {
           <Box as="h3" fontWeight="semibold">
             Grouped
           </Box>
-          <Root
-            {...baseVariantProps()}
-            size={size()}
-            collection={groupedItems}
-            width="64"
-          >
+          <Root {...baseVariantProps()} size={size()} collection={groupedItems} width="64">
             <Label>Technology</Label>
             <Control>
               <Trigger>

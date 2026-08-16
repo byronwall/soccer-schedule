@@ -22,20 +22,13 @@ const GROUP_LABELS = {
 export function SeasonImpactTable(props: {
   impact: SeasonImpact;
   player: (playerId: string) => Player | undefined;
-  targetFor: (
-    playerId: string,
-    group: PositionGroup,
-  ) => SeasonImpactAssignmentTarget | undefined;
+  targetFor: (playerId: string, group: PositionGroup) => SeasonImpactAssignmentTarget | undefined;
   onSchedule: (playerId: string, group: PositionGroup) => void;
 }) {
   const sourceLabel = () => {
     const parts = [
-      props.impact.actualGameCount
-        ? `${props.impact.actualGameCount} confirmed actual`
-        : "",
-      props.impact.plannedGameCount
-        ? `${props.impact.plannedGameCount} published plan`
-        : "",
+      props.impact.actualGameCount ? `${props.impact.actualGameCount} confirmed actual` : "",
+      props.impact.plannedGameCount ? `${props.impact.plannedGameCount} published plan` : "",
     ].filter(Boolean);
     return parts.length ? parts.join(" · ") : "No earlier published games";
   };
@@ -53,7 +46,9 @@ export function SeasonImpactTable(props: {
             <Badge colorPalette="blue">
               This game +{formatPlanningMinutes(props.impact.draftSeconds)} min
             </Badge>
-            <Text textStyle="xs" color="fg.muted">{sourceLabel()}</Text>
+            <Text textStyle="xs" color="fg.muted">
+              {sourceLabel()}
+            </Text>
           </VStack>
         </HStack>
       </Card.Header>
@@ -65,11 +60,19 @@ export function SeasonImpactTable(props: {
             </Table.Caption>
             <Table.Head>
               <Table.Row>
-                <Table.Header px="2" py="1.5">Player</Table.Header>
+                <Table.Header px="2" py="1.5">
+                  Player
+                </Table.Header>
                 <For each={SEASON_ROLE_GROUPS}>
-                  {(group) => <Table.Header textAlign="center" px="2" py="1.5">{GROUP_LABELS[group]}</Table.Header>}
+                  {(group) => (
+                    <Table.Header textAlign="center" px="2" py="1.5">
+                      {GROUP_LABELS[group]}
+                    </Table.Header>
+                  )}
                 </For>
-                <Table.Header textAlign="center" px="2" py="1.5" bg="bg.subtle">Total</Table.Header>
+                <Table.Header textAlign="center" px="2" py="1.5" bg="bg.subtle">
+                  Total
+                </Table.Header>
               </Table.Row>
             </Table.Head>
             <Table.Body>
@@ -129,20 +132,15 @@ function ImpactValue(props: {
   target?: SeasonImpactAssignmentTarget;
   onSchedule?: () => void;
 }) {
-  const before = () => props.group
-    ? props.before[props.group]
-    : totalRoleSeconds(props.before);
-  const draft = () => props.group
-    ? props.draft[props.group]
-    : totalRoleSeconds(props.draft);
-  const actionDescription = () => props.draft[props.group!] > 0
-    ? "Already scheduled in this position group."
-    : "No available compatible spot in this position group.";
+  const before = () => (props.group ? props.before[props.group] : totalRoleSeconds(props.before));
+  const draft = () => (props.group ? props.draft[props.group] : totalRoleSeconds(props.draft));
+  const actionDescription = () =>
+    props.draft[props.group!] > 0
+      ? "Already scheduled in this position group."
+      : "No available compatible spot in this position group.";
   const accessibleLabel = () => {
     const role = GROUP_LABELS[props.group!];
-    const availability = props.target
-      ? "Available to schedule."
-      : actionDescription();
+    const availability = props.target ? "Available to schedule." : actionDescription();
     return `${props.playerName}, ${role}: this game +${formatPlanningMinutes(draft())} minutes; before ${formatPlanningMinutes(before())} minutes. ${availability}`;
   };
   const content = () => (

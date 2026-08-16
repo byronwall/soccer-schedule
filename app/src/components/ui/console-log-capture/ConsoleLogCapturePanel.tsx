@@ -11,9 +11,7 @@ import {
 import { ConsoleLogCapturePanelShell } from "./ConsoleLogCapturePanelShell";
 import { ConsoleLogCapturePrefixFilters } from "./ConsoleLogCapturePrefixFilters";
 import { ConsoleLogCaptureTopControls } from "./ConsoleLogCaptureTopControls";
-import {
-  consoleLogCaptureEnabled,
-} from "./consoleLogCapture.store";
+import { consoleLogCaptureEnabled } from "./consoleLogCapture.store";
 import { tooltipContentProps } from "./consoleLogCapture.styles";
 
 type ConsoleLogCapturePanelProps = {
@@ -24,10 +22,7 @@ type ConsoleLogCapturePanelProps = {
 export const ConsoleLogCapturePanel = (props: ConsoleLogCapturePanelProps) => {
   return (
     <ConsoleLogCapturePanelProvider open={props.open}>
-      <ConsoleLogCapturePanelView
-        onClose={props.onClose}
-        open={props.open}
-      />
+      <ConsoleLogCapturePanelView onClose={props.onClose} open={props.open} />
     </ConsoleLogCapturePanelProvider>
   );
 };
@@ -44,7 +39,12 @@ const ConsoleLogCapturePanelView = (props: ConsoleLogCapturePanelProps) => {
     >
       <Stack h="full" minH="0" gap="0" fontFamily="mono" position="relative">
         <Box position="absolute" top="2.5" right="4" zIndex="1">
-          <Tooltip portalled={false} contentProps={tooltipContentProps} content="Close panel" showArrow>
+          <Tooltip
+            portalled={false}
+            contentProps={tooltipContentProps}
+            content="Close panel"
+            showArrow
+          >
             <CloseButton size="xs" onClick={props.onClose} />
           </Tooltip>
         </Box>

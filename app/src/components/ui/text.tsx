@@ -24,16 +24,11 @@ const weights = ["normal", "medium", "semibold"] as const;
 const contentModes = ["paragraph", "helper", "caption"] as const;
 
 export const TextDemo = (props: TextDemoProps) => {
-  const [tone, setTone] = createSignal<(typeof tones)[number]["label"]>(
-    "default",
-  );
+  const [tone, setTone] = createSignal<(typeof tones)[number]["label"]>("default");
   const [weight, setWeight] = createSignal<(typeof weights)[number]>("normal");
-  const [mode, setMode] = createSignal<(typeof contentModes)[number]>(
-    "paragraph",
-  );
+  const [mode, setMode] = createSignal<(typeof contentModes)[number]>("paragraph");
 
-  const selectedTone = () =>
-    tones.find((item) => item.label === tone()) ?? tones[0];
+  const selectedTone = () => tones.find((item) => item.label === tone()) ?? tones[0];
 
   const previewText = () => {
     if (mode() === "helper") {

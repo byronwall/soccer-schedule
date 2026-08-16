@@ -22,11 +22,7 @@ export interface SkeletonTextProps extends SkeletonProps {
 }
 
 export const SkeletonText = (props: SkeletonTextProps) => {
-  const [local, skeletonProps] = splitProps(props, [
-    "noOfLines",
-    "gap",
-    "rootProps",
-  ]);
+  const [local, skeletonProps] = splitProps(props, ["noOfLines", "gap", "rootProps"]);
   const noOfLines = () => local.noOfLines ?? 3;
 
   return (

@@ -678,18 +678,18 @@ complete replacement for targeted editing.
 
 ### Comparison
 
-| Dimension | Option A: progressive fill | Option B: scoped regeneration | Option C: recipe + candidates |
-| --- | --- | --- | --- |
-| Valid complete plan at each step | No | Yes | Yes |
-| Coach control over construction order | Highest | High | Medium |
-| Preserves unrelated accepted work | Yes, through pass locks | Yes, through scoped freezing | Yes after candidate selection |
-| Fairness visible throughout | Provisional | Yes | Yes |
-| Handles player/position preferences | Direct placement | Targeted improvement | Explicit generation goals |
-| Handles Stephen's rotation rules | Sequentially | As selected refinement goals | As recipe objectives |
-| Fit with current architecture | Lowest | Highest | Medium |
-| Main technical challenge | Feasible partial completion | Minimal-change constrained search | Distinct explainable candidates |
-| Main UX risk | Dead ends and lock overload | Scope expansion surprises | Comparison overload |
-| Final role | Deferred outside plan | Approved refinement foundation | Approved starting-point companion |
+| Dimension                             | Option A: progressive fill  | Option B: scoped regeneration     | Option C: recipe + candidates     |
+| ------------------------------------- | --------------------------- | --------------------------------- | --------------------------------- |
+| Valid complete plan at each step      | No                          | Yes                               | Yes                               |
+| Coach control over construction order | Highest                     | High                              | Medium                            |
+| Preserves unrelated accepted work     | Yes, through pass locks     | Yes, through scoped freezing      | Yes after candidate selection     |
+| Fairness visible throughout           | Provisional                 | Yes                               | Yes                               |
+| Handles player/position preferences   | Direct placement            | Targeted improvement              | Explicit generation goals         |
+| Handles Stephen's rotation rules      | Sequentially                | As selected refinement goals      | As recipe objectives              |
+| Fit with current architecture         | Lowest                      | Highest                           | Medium                            |
+| Main technical challenge              | Feasible partial completion | Minimal-change constrained search | Distinct explainable candidates   |
+| Main UX risk                          | Dead ends and lock overload | Scope expansion surprises         | Comparison overload               |
+| Final role                            | Deferred outside plan       | Approved refinement foundation    | Approved starting-point companion |
 
 ### Approved product direction
 
@@ -710,52 +710,52 @@ real schedule-building work.
 
 ## Scope and commitment levels
 
-| Idea or capability | Related jobs | Commitment | Current state | Final treatment |
-| --- | --- | --- | --- | --- |
-| Truthful planned-time labels | J04, J05 | Decided direction | Partial/proxy | First change |
-| Progressive position/player fill | J01, J02, J06 | Parked/cautioned | Absent | Deferred outside the final plan |
-| Scoped regeneration | J01, J02, J03, J06 | Decided direction | Partial/proxy | Implement as the refinement foundation |
-| Coaching recipe and candidate comparison | J01, J02, J06 | Decided direction | Partial/proxy | Pair a compact recipe and on-demand candidates with scoped refinement |
-| Change preview and quality delta | J06 | Decided direction | Absent | Required before applying automated refinement |
-| Manual pregame drag/swap and lock | J03 | Current baseline | Implemented | Keep; document in help text |
-| Preferred/neutral/avoided positions | J01 | Decided direction | Absent | Store per exact position with role-group editing shortcuts |
-| Bounded field-time preference | J01 | Decided direction | Absent | Tie-break only; do not widen the fairness bound |
-| Full-quarter left/right defense | J02 | Decided direction | Partial/proxy | Add as team default with per-game override |
-| Attack/defense coverage warning | J02, J05 | Decided direction | Partial/proxy | Warn per game; track exact-position variety across the season |
-| Direct bench-to-position substitution | J04 | Decided direction | Implemented as temporary snapshot | Preserve simple interaction and make it durable |
-| On-field position swap | J04 | Decided direction | Absent | Include with event-ledger slice |
-| Durable actual-game events | J04, J05 | Decided direction | Absent | Keep event types and processing minimal |
-| Automatic next-sub ordering | J02, J04 | Parked/cautioned | Absent | Do not build in game mode |
-| Habitual-punctuality score | J03 | Parked/cautioned | Absent | Do not build |
-| Own-team goal-scorer event | J04, J05 | Decided direction | Absent | Add to the minimal event ledger |
-| Opponent goals or visible scoreboard | — | Parked/cautioned | Absent | Explicit non-goal |
-| Team-name/calendar workflow | — | Parked/cautioned | Team names exist; calendar absent | Separate discovery; not part of this feedback slice |
+| Idea or capability                       | Related jobs       | Commitment        | Current state                     | Final treatment                                                       |
+| ---------------------------------------- | ------------------ | ----------------- | --------------------------------- | --------------------------------------------------------------------- |
+| Truthful planned-time labels             | J04, J05           | Decided direction | Partial/proxy                     | First change                                                          |
+| Progressive position/player fill         | J01, J02, J06      | Parked/cautioned  | Absent                            | Deferred outside the final plan                                       |
+| Scoped regeneration                      | J01, J02, J03, J06 | Decided direction | Partial/proxy                     | Implement as the refinement foundation                                |
+| Coaching recipe and candidate comparison | J01, J02, J06      | Decided direction | Partial/proxy                     | Pair a compact recipe and on-demand candidates with scoped refinement |
+| Change preview and quality delta         | J06                | Decided direction | Absent                            | Required before applying automated refinement                         |
+| Manual pregame drag/swap and lock        | J03                | Current baseline  | Implemented                       | Keep; document in help text                                           |
+| Preferred/neutral/avoided positions      | J01                | Decided direction | Absent                            | Store per exact position with role-group editing shortcuts            |
+| Bounded field-time preference            | J01                | Decided direction | Absent                            | Tie-break only; do not widen the fairness bound                       |
+| Full-quarter left/right defense          | J02                | Decided direction | Partial/proxy                     | Add as team default with per-game override                            |
+| Attack/defense coverage warning          | J02, J05           | Decided direction | Partial/proxy                     | Warn per game; track exact-position variety across the season         |
+| Direct bench-to-position substitution    | J04                | Decided direction | Implemented as temporary snapshot | Preserve simple interaction and make it durable                       |
+| On-field position swap                   | J04                | Decided direction | Absent                            | Include with event-ledger slice                                       |
+| Durable actual-game events               | J04, J05           | Decided direction | Absent                            | Keep event types and processing minimal                               |
+| Automatic next-sub ordering              | J02, J04           | Parked/cautioned  | Absent                            | Do not build in game mode                                             |
+| Habitual-punctuality score               | J03                | Parked/cautioned  | Absent                            | Do not build                                                          |
+| Own-team goal-scorer event               | J04, J05           | Decided direction | Absent                            | Add to the minimal event ledger                                       |
+| Opponent goals or visible scoreboard     | —                  | Parked/cautioned  | Absent                            | Explicit non-goal                                                     |
+| Team-name/calendar workflow              | —                  | Parked/cautioned  | Team names exist; calendar absent | Separate discovery; not part of this feedback slice                   |
 
 ## Current-state and gap audit
 
-| Capability needed by a job | Status | Evidence | Gap or caution |
-| --- | --- | --- | --- |
-| Complete schedule generation | Implemented | `schedule-generator.ts` and `store-schedule-actions.ts` | Always fills all 56 field assignments |
-| Cell-level persistent locks | Implemented | Assignment schema, `toggleLock`, and `schedule-regenerator.ts` | Locks have no reason or generation-pass grouping |
-| Regeneration around locks | Partial/proxy | `regenerateSchedule` reconciles locked assignments into complete candidates | Every unlocked cell may move; no player/position/time scope |
-| Minimal-change repair | Partial/proxy | `repairSchedule` preserves unaffected assignments | Repairs eligibility/validity, not a selected coaching goal |
-| Partial-grid persistence and completion | Absent | Schedule schema and publish workflow assume complete assignments | Option A requires an incomplete-draft model and feasibility checks |
-| Candidate comparison | Absent | Regeneration chooses one candidate server-side | No quality-delta or side-by-side selection contract |
-| Undo/redo of complete snapshots | Implemented | Schedule history/future and store actions | Can support accepting/rejecting a scoped alternative |
-| Player preference storage | Absent | `app/src/lib/soccer/schemas.ts` player schema | Requires schema evolution and persisted-store migration |
-| Preference-aware generation | Absent | `app/src/lib/soccer/schedule-generator.ts` | Current choices use counts, repeat penalties, position groups, and stable random rank only |
-| Fair minute calculation | Implemented | `scoreSchedule` in `app/src/lib/soccer/scheduling.ts` | Does not express a coach-approved target or preference |
-| Full-quarter goalkeeper | Implemented preference | Generator and goalkeeper continuity warnings | Feasibility can still require a named exception |
-| Full-quarter defense | Partial/proxy | Generator preserves retained positions within a quarter | No explicit defensive-continuity objective or option |
-| Pregame drag/swap | Implemented | `ScheduleGrids.tsx` and `SchedulePage.tsx` | Swap is limited to one seven-minute segment, as intended |
-| Bench ordering by time sat | Absent | `orderSubstitutesForDisplay` and `LivePage.tsx` | Schedule bench is alphabetical; live bench is roster order |
-| Temporary bench-to-field change | Implemented | `store-live-actions.ts` and `LivePage.tsx` | Snapshot only; not historical |
-| On-field position swap | Absent | Live replacement rejects a player already on the field | Needs an atomic two-position command |
-| Actual event/history ledger | Absent | `liveStateSchema` stores only current overrides | Requires durable events and correction semantics |
-| Player position/time drill-down | Partial/proxy | `player-profile.ts` and `PlayerDetailsPage.tsx` | Exists, but derives completed values from the published plan |
-| Planned/actual comparison | Absent | Player profile has one schedule-derived total | Must wait for trustworthy actual events |
-| Own-team goal recording | Absent | No goal schema or action | Add a typed event and duplicate-resistant write control |
-| Scoreboard/opponent scoring | Absent | No goal or score model | Intentionally remain absent |
+| Capability needed by a job              | Status                 | Evidence                                                                    | Gap or caution                                                                             |
+| --------------------------------------- | ---------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Complete schedule generation            | Implemented            | `schedule-generator.ts` and `store-schedule-actions.ts`                     | Always fills all 56 field assignments                                                      |
+| Cell-level persistent locks             | Implemented            | Assignment schema, `toggleLock`, and `schedule-regenerator.ts`              | Locks have no reason or generation-pass grouping                                           |
+| Regeneration around locks               | Partial/proxy          | `regenerateSchedule` reconciles locked assignments into complete candidates | Every unlocked cell may move; no player/position/time scope                                |
+| Minimal-change repair                   | Partial/proxy          | `repairSchedule` preserves unaffected assignments                           | Repairs eligibility/validity, not a selected coaching goal                                 |
+| Partial-grid persistence and completion | Absent                 | Schedule schema and publish workflow assume complete assignments            | Option A requires an incomplete-draft model and feasibility checks                         |
+| Candidate comparison                    | Absent                 | Regeneration chooses one candidate server-side                              | No quality-delta or side-by-side selection contract                                        |
+| Undo/redo of complete snapshots         | Implemented            | Schedule history/future and store actions                                   | Can support accepting/rejecting a scoped alternative                                       |
+| Player preference storage               | Absent                 | `app/src/lib/soccer/schemas.ts` player schema                               | Requires schema evolution and persisted-store migration                                    |
+| Preference-aware generation             | Absent                 | `app/src/lib/soccer/schedule-generator.ts`                                  | Current choices use counts, repeat penalties, position groups, and stable random rank only |
+| Fair minute calculation                 | Implemented            | `scoreSchedule` in `app/src/lib/soccer/scheduling.ts`                       | Does not express a coach-approved target or preference                                     |
+| Full-quarter goalkeeper                 | Implemented preference | Generator and goalkeeper continuity warnings                                | Feasibility can still require a named exception                                            |
+| Full-quarter defense                    | Partial/proxy          | Generator preserves retained positions within a quarter                     | No explicit defensive-continuity objective or option                                       |
+| Pregame drag/swap                       | Implemented            | `ScheduleGrids.tsx` and `SchedulePage.tsx`                                  | Swap is limited to one seven-minute segment, as intended                                   |
+| Bench ordering by time sat              | Absent                 | `orderSubstitutesForDisplay` and `LivePage.tsx`                             | Schedule bench is alphabetical; live bench is roster order                                 |
+| Temporary bench-to-field change         | Implemented            | `store-live-actions.ts` and `LivePage.tsx`                                  | Snapshot only; not historical                                                              |
+| On-field position swap                  | Absent                 | Live replacement rejects a player already on the field                      | Needs an atomic two-position command                                                       |
+| Actual event/history ledger             | Absent                 | `liveStateSchema` stores only current overrides                             | Requires durable events and correction semantics                                           |
+| Player position/time drill-down         | Partial/proxy          | `player-profile.ts` and `PlayerDetailsPage.tsx`                             | Exists, but derives completed values from the published plan                               |
+| Planned/actual comparison               | Absent                 | Player profile has one schedule-derived total                               | Must wait for trustworthy actual events                                                    |
+| Own-team goal recording                 | Absent                 | No goal schema or action                                                    | Add a typed event and duplicate-resistant write control                                    |
+| Scoreboard/opponent scoring             | Absent                 | No goal or score model                                                      | Intentionally remain absent                                                                |
 
 ## Tensions, assumptions, and non-goals
 
@@ -1012,7 +1012,7 @@ mutating the plan or turning game mode into a coaching engine.
 9. Provide a compact recent-events list and one simple correction path so a
    mistaken substitution, swap, or goal can be voided.
 10. Define quarter-boundary behavior explicitly; do not erase events when the
-   displayed override clears.
+    displayed override clears.
 11. Do not calculate suggested substitutions, fairness warnings, minute
     corrections, or compensating future moves in game mode. The coach handles
     any resulting imbalance manually.

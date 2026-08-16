@@ -1,10 +1,5 @@
 import { ark } from "@ark-ui/solid";
-import {
-  type ComponentProps,
-  type JSX,
-  createMemo,
-  splitProps,
-} from "solid-js";
+import { type ComponentProps, type JSX, createMemo, splitProps } from "solid-js";
 import { createStyleContext } from "styled-system/jsx";
 import { inputGroup } from "styled-system/recipes";
 import { Input as DemoInput } from "./input";
@@ -22,11 +17,7 @@ export interface InputGroupProps extends RootProps {
 }
 
 export const InputGroup = (props: InputGroupProps) => {
-  const [local, rest] = splitProps(props, [
-    "startElement",
-    "endElement",
-    "children",
-  ]);
+  const [local, rest] = splitProps(props, ["startElement", "endElement", "children"]);
   const resolveMaybeFnDeep = <T,>(value: T | (() => T)) => {
     let current = value as unknown;
     let guard = 0;
@@ -43,14 +34,10 @@ export const InputGroup = (props: InputGroupProps) => {
     resolveMaybeFnDeep(local.children as JSX.Element | (() => JSX.Element)),
   );
   const resolvedStart = createMemo(() =>
-    resolveMaybeFnDeep(
-      local.startElement as JSX.Element | (() => JSX.Element) | undefined,
-    ),
+    resolveMaybeFnDeep(local.startElement as JSX.Element | (() => JSX.Element) | undefined),
   );
   const resolvedEnd = createMemo(() =>
-    resolveMaybeFnDeep(
-      local.endElement as JSX.Element | (() => JSX.Element) | undefined,
-    ),
+    resolveMaybeFnDeep(local.endElement as JSX.Element | (() => JSX.Element) | undefined),
   );
 
   return (

@@ -1,9 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  getAppBaseUrl,
-  getConfiguredAppBaseUrl,
-  isConfiguredAppBaseUrlSecure,
-} from "./base-url";
+import { getAppBaseUrl, getConfiguredAppBaseUrl, isConfiguredAppBaseUrlSecure } from "./base-url";
 
 const originalServiceUrl = process.env.SERVICE_URL_APP;
 const originalAppBaseUrl = process.env.APP_BASE_URL;

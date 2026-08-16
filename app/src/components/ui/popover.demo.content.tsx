@@ -1,6 +1,5 @@
-
-import { Arrow, Body, CloseTrigger, Description, Title } from './popover';
-import { CloseButton } from './close-button';
+import { Arrow, Body, CloseTrigger, Description, Title } from "./popover";
+import { CloseButton } from "./close-button";
 
 export const PopoverBasePanelContent = () => (
   <>

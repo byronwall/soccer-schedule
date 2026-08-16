@@ -47,14 +47,10 @@ export const PanelPopover = (props: PanelPopoverProps) => {
           <Popover.Content style={{ width: props.width ?? "24rem" }}>
             <Popover.Header>
               <Popover.Title>{props.title ?? "Menu"}</Popover.Title>
-              <Popover.Description>
-                {props.description ?? ""}
-              </Popover.Description>
+              <Popover.Description>{props.description ?? ""}</Popover.Description>
             </Popover.Header>
             <Popover.Body>{props.children}</Popover.Body>
-            {props.footer ? (
-              <Popover.Footer>{props.footer}</Popover.Footer>
-            ) : null}
+            {props.footer ? <Popover.Footer>{props.footer}</Popover.Footer> : null}
           </Popover.Content>
         </Popover.Positioner>
       </WrapWhen>

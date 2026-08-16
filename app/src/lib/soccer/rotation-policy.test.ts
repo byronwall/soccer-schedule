@@ -1,14 +1,7 @@
 import { describe, expect, it } from "vitest";
-import {
-  createDefaultPlayerPreference,
-  neutralPositionDispositions,
-} from "./player-preferences";
+import { createDefaultPlayerPreference, neutralPositionDispositions } from "./player-preferences";
 import { scheduleExperienceWarnings } from "./schedule-experience-quality";
-import {
-  generateSchedule,
-  repairSchedule,
-  scoreSchedule,
-} from "./scheduling";
+import { generateSchedule, repairSchedule, scoreSchedule } from "./scheduling";
 import type { Player, PlayerPreference } from "./schemas";
 
 const stamp = "2026-07-28T12:00:00.000Z";
@@ -93,22 +86,25 @@ describe("defensive continuity and game experience coverage", () => {
 
   it("reports attack-only and defense-only players without blocking validity", () => {
     const roster = players(2);
-    const warnings = scheduleExperienceWarnings([
-      {
-        segmentKey: "q1a",
-        positionKey: "leftForward",
-        playerId: roster[0].id,
-        source: "generated",
-        locked: false,
-      },
-      {
-        segmentKey: "q1a",
-        positionKey: "goalkeeper",
-        playerId: roster[1].id,
-        source: "generated",
-        locked: false,
-      },
-    ], roster.map((player) => player.id));
+    const warnings = scheduleExperienceWarnings(
+      [
+        {
+          segmentKey: "q1a",
+          positionKey: "leftForward",
+          playerId: roster[0].id,
+          source: "generated",
+          locked: false,
+        },
+        {
+          segmentKey: "q1a",
+          positionKey: "goalkeeper",
+          playerId: roster[1].id,
+          source: "generated",
+          locked: false,
+        },
+      ],
+      roster.map((player) => player.id),
+    );
 
     expect(warnings).toEqual([
       expect.objectContaining({
@@ -157,24 +153,18 @@ describe("defensive continuity and game experience coverage", () => {
       continuityPolicy: "goalkeeper-only",
     });
     const unavailableId = current.find(
-      (assignment) =>
-        assignment.segmentKey === "q1a" &&
-        assignment.positionKey === "leftDefense",
+      (assignment) => assignment.segmentKey === "q1a" && assignment.positionKey === "leftDefense",
     )!.playerId;
     const available = roster.filter((player) => player.id !== unavailableId);
-    const repaired = repairSchedule(
-      current,
-      available,
-      [],
-      "goalkeeper-and-defense",
-    );
+    const repaired = repairSchedule(current, available, [], "goalkeeper-and-defense");
 
-    expect(scoreSchedule(
-      repaired,
-      available.map((player) => player.id),
-      [],
-      "goalkeeper-and-defense",
-    )).toMatchObject({ valid: true, minuteSpread: 7 });
+    expect(
+      scoreSchedule(
+        repaired,
+        available.map((player) => player.id),
+        [],
+        "goalkeeper-and-defense",
+      ),
+    ).toMatchObject({ valid: true, minuteSpread: 7 });
   });
-
 });

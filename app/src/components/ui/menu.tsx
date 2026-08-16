@@ -13,11 +13,7 @@ import {
 import type { ComponentProps } from "solid-js";
 import { Show } from "solid-js";
 import { Portal } from "solid-js/web";
-import {
-  Box,
-  createStyleContext,
-  type HTMLStyledProps,
-} from "styled-system/jsx";
+import { Box, createStyleContext, type HTMLStyledProps } from "styled-system/jsx";
 import { menu } from "styled-system/recipes";
 import { Button as DemoButton } from "./button";
 
@@ -34,19 +30,13 @@ export const Arrow = withContext(Menu.Arrow, "arrow");
 export const ArrowTip = withContext(Menu.ArrowTip, "arrowTip");
 export const CheckboxItem = withContext(Menu.CheckboxItem, "item");
 export const Content = withContext(Menu.Content, "content");
-export const ContextTrigger = withContext(
-  Menu.ContextTrigger,
-  "contextTrigger",
-);
+export const ContextTrigger = withContext(Menu.ContextTrigger, "contextTrigger");
 export const Indicator = withContext(Menu.Indicator, "indicator", {
   defaultProps: () => ({ children: <ChevronDownIcon /> }),
 });
 export const Item = withContext(Menu.Item, "item");
 export const ItemGroup = withContext(Menu.ItemGroup, "itemGroup");
-export const ItemGroupLabel = withContext(
-  Menu.ItemGroupLabel,
-  "itemGroupLabel",
-);
+export const ItemGroupLabel = withContext(Menu.ItemGroupLabel, "itemGroupLabel");
 export const ItemText = withContext(Menu.ItemText, "itemText");
 export const Positioner = withContext(Menu.Positioner, "positioner");
 export const RadioItem = withContext(Menu.RadioItem, "item");
@@ -86,15 +76,10 @@ const MenuShortcut = (props: { value: string }) => (
 
 export const MenuDemo = (props: MenuDemoProps) => {
   const sizes = ["xs", "sm", "md", "lg", "xl"] as const;
-  const size = () =>
-    sizes.find((value) => value === props.variantProps?.size) ?? "md";
+  const size = () => sizes.find((value) => value === props.variantProps?.size) ?? "md";
 
   return (
-    <Root
-      {...(props.variantProps ?? {})}
-      positioning={{ placement: "bottom-start" }}
-      size={size()}
-    >
+    <Root {...(props.variantProps ?? {})} positioning={{ placement: "bottom-start" }} size={size()}>
       <Trigger
         asChild={(props) => {
           if (size() === "xs") {

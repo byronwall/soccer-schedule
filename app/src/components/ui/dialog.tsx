@@ -33,7 +33,5 @@ export const ActionTrigger = (props: ComponentProps<typeof StyledButton>) => {
 
 export { DialogContext as Context } from "@ark-ui/solid/dialog";
 
-
-
 export type { DialogDemoProps } from "./dialog.demo";
 export { DialogDemo } from "./dialog.demo";

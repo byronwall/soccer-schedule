@@ -24,10 +24,7 @@ export interface PinInputDemoProps {
 
 export const PinInputDemo = (props: PinInputDemoProps) => {
   return (
-    <Root
-      {...(props.variantProps ?? {})}
-      value={props.value ?? ["1", "2", "3", "4"]}
-    >
+    <Root {...(props.variantProps ?? {})} value={props.value ?? ["1", "2", "3", "4"]}>
       <Label>PIN</Label>
       <Control>
         <Input index={0} />

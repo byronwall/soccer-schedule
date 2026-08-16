@@ -10,20 +10,12 @@ const { withProvider, withContext } = createStyleContext(numberInput);
 export type RootProps = ComponentProps<typeof Root>;
 export const Root = withProvider(NumberInput.Root, "root");
 export const RootProvider = withProvider(NumberInput.RootProvider, "root");
-export const DecrementTrigger = withContext(
-  NumberInput.DecrementTrigger,
-  "decrementTrigger",
-  {
-    defaultProps: () => ({ children: <ChevronDownIcon /> }),
-  },
-);
-export const IncrementTrigger = withContext(
-  NumberInput.IncrementTrigger,
-  "incrementTrigger",
-  {
-    defaultProps: () => ({ children: <ChevronUpIcon /> }),
-  },
-);
+export const DecrementTrigger = withContext(NumberInput.DecrementTrigger, "decrementTrigger", {
+  defaultProps: () => ({ children: <ChevronDownIcon /> }),
+});
+export const IncrementTrigger = withContext(NumberInput.IncrementTrigger, "incrementTrigger", {
+  defaultProps: () => ({ children: <ChevronUpIcon /> }),
+});
 export const Input = withContext(NumberInput.Input, "input");
 export const Label = withContext(NumberInput.Label, "label");
 export const Scrubber = withContext(NumberInput.Scrubber, "scrubber");
@@ -52,11 +44,7 @@ export const NumberInputDemo = (props: NumberInputDemoProps) => {
       <DemoBox textStyle="sm" fontWeight="medium">
         Amount
       </DemoBox>
-      <Root
-        {...(props.variantProps ?? {})}
-        value={props.value ?? "42"}
-        width="64"
-      >
+      <Root {...(props.variantProps ?? {})} value={props.value ?? "42"} width="64">
         <Input />
         <Control />
       </Root>

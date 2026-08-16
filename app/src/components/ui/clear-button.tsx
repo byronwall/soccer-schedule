@@ -13,13 +13,7 @@ export const ClearButton = (props: ClearButtonProps) => {
 
   return (
     <Tooltip content={label()} disabled={rest.disabled}>
-      <IconButton
-        size="xs"
-        variant="plain"
-        aria-label={label()}
-        type="button"
-        {...rest}
-      >
+      <IconButton size="xs" variant="plain" aria-label={label()} type="button" {...rest}>
         {local.children ?? <CircleXIcon />}
       </IconButton>
     </Tooltip>

@@ -37,8 +37,7 @@ export const Indicator = (props: IndicatorProps) => {
   );
 };
 
-interface ThumbIndicatorProps
-  extends ComponentProps<typeof StyledThumbIndicator> {
+interface ThumbIndicatorProps extends ComponentProps<typeof StyledThumbIndicator> {
   fallback?: JSX.Element | undefined;
 }
 
@@ -48,10 +47,7 @@ export const ThumbIndicator = (props: ThumbIndicatorProps) => {
   const api = useSwitchContext();
 
   return (
-    <StyledThumbIndicator
-      data-checked={api().checked ? "" : undefined}
-      {...rest}
-    >
+    <StyledThumbIndicator data-checked={api().checked ? "" : undefined} {...rest}>
       <Show when={api().checked} fallback={local.fallback}>
         {local.children}
       </Show>

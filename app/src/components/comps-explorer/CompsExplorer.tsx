@@ -1,9 +1,6 @@
 import { Show, createMemo } from "solid-js";
 import { Box, HStack, VStack } from "styled-system/jsx";
-import {
-  DesignSystemOverview,
-  type DesignSystemSection,
-} from "./DesignSystemOverview";
+import { DesignSystemOverview, type DesignSystemSection } from "./DesignSystemOverview";
 import { CompsExplorerSidebar } from "./CompsExplorerSidebar";
 import { ErrorOverlayPlayground } from "./ErrorOverlayPlayground";
 import { MarkdownRendererPlayground } from "./MarkdownRendererPlayground";
@@ -38,9 +35,7 @@ const isDesignSystemKey = (value: string) =>
   value === "design-system-sizes" ||
   value === "design-system-theme";
 
-const getDesignSystemSection = (
-  selectedComponent: string,
-): DesignSystemSection =>
+const getDesignSystemSection = (selectedComponent: string): DesignSystemSection =>
   selectedComponent === DESIGN_SYSTEM_LAYOUT_KEY ||
   selectedComponent === "design-system-sizes" ||
   selectedComponent === "design-system-theme"
@@ -87,53 +82,39 @@ const resolveSelectedComponent = (selectedComponent: string) => {
 };
 
 export const CompsExplorer = (props: CompsExplorerProps) => {
-  const selectedComponent = createMemo(() =>
-    resolveSelectedComponent(props.selectedComponent),
-  );
+  const selectedComponent = createMemo(() => resolveSelectedComponent(props.selectedComponent));
   const selectedSimpleComponent = createMemo(() =>
-    SIMPLE_COMPONENT_LINKS.find(
-      (component) => component.key === selectedComponent(),
-    ),
+    SIMPLE_COMPONENT_LINKS.find((component) => component.key === selectedComponent()),
   );
   const selectedDocsOnlyComponent = createMemo(() =>
-    DOCS_ONLY_COMPONENT_LINKS.find(
-      (component) => component.key === selectedComponent(),
-    ),
+    DOCS_ONLY_COMPONENT_LINKS.find((component) => component.key === selectedComponent()),
   );
-  const selectedRecipe = createMemo(
-    () => {
-      const simpleComponent = selectedSimpleComponent();
-      const docsOnlyComponent = selectedDocsOnlyComponent();
+  const selectedRecipe = createMemo(() => {
+    const simpleComponent = selectedSimpleComponent();
+    const docsOnlyComponent = selectedDocsOnlyComponent();
 
-      return (
-        recipeList.find((recipe) => recipe.key === selectedComponent()) ??
-        (simpleComponent
+    return (
+      recipeList.find((recipe) => recipe.key === selectedComponent()) ??
+      (simpleComponent
+        ? {
+            key: simpleComponent.key,
+            label: simpleComponent.label,
+            variantMap: {},
+            defaultVariants: {},
+          }
+        : docsOnlyComponent
           ? {
-              key: simpleComponent.key,
-              label: simpleComponent.label,
+              key: docsOnlyComponent.key,
+              label: docsOnlyComponent.label,
               variantMap: {},
               defaultVariants: {},
             }
-          : docsOnlyComponent
-            ? {
-                key: docsOnlyComponent.key,
-                label: docsOnlyComponent.label,
-                variantMap: {},
-                defaultVariants: {},
-              }
-            : null)
-      );
-    },
-  );
+          : null)
+    );
+  });
 
   return (
-    <Box
-      position="fixed"
-      inset="0"
-      overflow="hidden"
-      bg="bg.default"
-      color="fg.default"
-    >
+    <Box position="fixed" inset="0" overflow="hidden" bg="bg.default" color="fg.default">
       <HStack alignItems="stretch" gap="0" h="full">
         <CompsExplorerSidebar
           recipeList={recipeList}
@@ -142,14 +123,7 @@ export const CompsExplorer = (props: CompsExplorerProps) => {
           selectedComponent={selectedComponent()}
         />
 
-        <Box
-          as="main"
-          flex="1"
-          minW="0"
-          h="full"
-          overflowY="auto"
-          p={{ base: "3", md: "4" }}
-        >
+        <Box as="main" flex="1" minW="0" h="full" overflowY="auto" p={{ base: "3", md: "4" }}>
           <Box pt={{ base: "2", md: "3" }}>
             <VStack alignItems="stretch" gap="5">
               <Show
@@ -159,9 +133,7 @@ export const CompsExplorer = (props: CompsExplorerProps) => {
                     when={selectedComponent() === MARKDOWN_RENDERER_COMPONENT_KEY}
                     fallback={
                       <Show
-                        when={
-                          selectedComponent() === ERROR_OVERLAY_COMPONENT_KEY
-                        }
+                        when={selectedComponent() === ERROR_OVERLAY_COMPONENT_KEY}
                         fallback={
                           <Show
                             when={selectedRecipe()}
@@ -171,9 +143,7 @@ export const CompsExplorer = (props: CompsExplorerProps) => {
                               </Box>
                             }
                           >
-                            {(recipe) => (
-                              <RecipeExplorerPanel recipe={recipe()} />
-                            )}
+                            {(recipe) => <RecipeExplorerPanel recipe={recipe()} />}
                           </Show>
                         }
                       >
@@ -185,9 +155,7 @@ export const CompsExplorer = (props: CompsExplorerProps) => {
                   </Show>
                 }
               >
-                <DesignSystemOverview
-                  section={getDesignSystemSection(selectedComponent())}
-                />
+                <DesignSystemOverview section={getDesignSystemSection(selectedComponent())} />
               </Show>
             </VStack>
           </Box>

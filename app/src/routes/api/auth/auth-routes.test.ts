@@ -44,7 +44,8 @@ describe("coach auth API", () => {
     expect(response.status).toBe(503);
     expect(response.headers.get("content-type")).toContain("application/json");
     await expect(response.json()).resolves.toEqual({
-      error: "Coach sign-in is temporarily unavailable. Check the server configuration and try again.",
+      error:
+        "Coach sign-in is temporarily unavailable. Check the server configuration and try again.",
     });
   });
 

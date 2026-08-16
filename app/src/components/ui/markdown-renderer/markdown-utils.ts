@@ -10,17 +10,11 @@ function isRecord(value: unknown): value is UnknownRecord {
 }
 
 function isMarkdownTextNode(node: unknown): node is MarkdownTextNode {
-  return (
-    isRecord(node) && node.type === "text" && typeof node.value === "string"
-  );
+  return isRecord(node) && node.type === "text" && typeof node.value === "string";
 }
 
 function isMarkdownElementNode(node: unknown): node is MarkdownElementNode {
-  return (
-    isRecord(node) &&
-    typeof node.tagName === "string" &&
-    Array.isArray(node.children)
-  );
+  return isRecord(node) && typeof node.tagName === "string" && Array.isArray(node.children);
 }
 
 function extractTextFromNode(node: unknown): string {
@@ -39,9 +33,7 @@ function extractTextFromNode(node: unknown): string {
  */
 export function normalizeCodeText(children: unknown, node?: unknown): string {
   if (Array.isArray(children)) {
-    const joined = children
-      .map((child) => (typeof child === "string" ? child : ""))
-      .join("");
+    const joined = children.map((child) => (typeof child === "string" ? child : "")).join("");
     if (joined.length > 0) return joined;
   }
   if (typeof children === "string") {

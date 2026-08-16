@@ -1,9 +1,7 @@
 import { A, useParams } from "@solidjs/router";
 import { Show, createMemo, createSignal, onCleanup } from "solid-js";
 import { createStore } from "solid-js/store";
-import {
-  Printer,
-} from "lucide-solid";
+import { Printer } from "lucide-solid";
 import { Button, ConfirmDialog, Text, Toaster, toaster } from "~/components/ui";
 import { useSoccerData } from "~/features/soccer/SoccerDataProvider";
 import {
@@ -14,10 +12,7 @@ import {
 } from "~/lib/soccer/fixed-game";
 import { scoreSchedule } from "~/lib/soccer/scheduling";
 import { scheduleReadiness } from "~/lib/soccer/schedule-readiness";
-import {
-  isEditableSchedule,
-  selectCurrentSchedule,
-} from "~/lib/soccer/schedule-selection";
+import { isEditableSchedule, selectCurrentSchedule } from "~/lib/soccer/schedule-selection";
 import { buildSeasonImpact } from "~/lib/soccer/season-impact";
 import {
   seasonImpactAssignmentResultSchema,
@@ -32,9 +27,7 @@ import { PageHeader } from "./PageHeader";
 import { PlayerScheduleGrid } from "./PlayerScheduleGrid";
 import { PositionGrid, type ScheduleSwap } from "./ScheduleGrids";
 import { ScheduleAssignmentDialog } from "./ScheduleAssignmentDialog";
-import {
-  ScheduleEmptyState,
-} from "./ScheduleGenerationStatus";
+import { ScheduleEmptyState } from "./ScheduleGenerationStatus";
 import { ScheduleToolbar, type ScheduleView } from "./ScheduleToolbar";
 import { SchedulePreferenceLegend } from "./SchedulePreferenceLegend";
 import { SeasonImpactTable } from "./SeasonImpactTable";
@@ -62,11 +55,16 @@ export function SchedulePage() {
   });
 
   const game = () => data.snapshot()?.games.find((item) => item.id === params.gameId);
-  const schedule = createMemo(() => selectCurrentSchedule(data.snapshot()?.schedules ?? [], params.gameId ?? ""));
+  const schedule = createMemo(() =>
+    selectCurrentSchedule(data.snapshot()?.schedules ?? [], params.gameId ?? ""),
+  );
   const availableIds = createMemo(
     () =>
-      data.snapshot()?.availability
-        .filter((item) => item.gameId === params.gameId && item.status === "available")
+      data
+        .snapshot()
+        ?.availability.filter(
+          (item) => item.gameId === params.gameId && item.status === "available",
+        )
         .map((item) => item.playerId) ?? [],
   );
   const availablePlayers = createMemo(
@@ -75,23 +73,25 @@ export function SchedulePage() {
   const rosterPlayers = createMemo(
     () => data.snapshot()?.players.filter((item) => item.active) ?? [],
   );
-  const inactivePlayerIds = createMemo(
-    () => rosterPlayers().filter((item) => !availableIds().includes(item.id)).map((item) => item.id),
+  const inactivePlayerIds = createMemo(() =>
+    rosterPlayers()
+      .filter((item) => !availableIds().includes(item.id))
+      .map((item) => item.id),
   );
   const quality = createMemo(() => {
     const current = schedule();
-    return current ? scoreSchedule(
-      current.assignments,
-      availableIds(),
-      data.snapshot()?.playerPreferences.entries,
-      "goalkeeper-and-defense",
-    ) : undefined;
+    return current
+      ? scoreSchedule(
+          current.assignments,
+          availableIds(),
+          data.snapshot()?.playerPreferences.entries,
+          "goalkeeper-and-defense",
+        )
+      : undefined;
   });
   const readiness = createMemo(() => {
     const current = schedule();
-    return current
-      ? scheduleReadiness(current, availableIds())
-      : undefined;
+    return current ? scheduleReadiness(current, availableIds()) : undefined;
   });
   const seasonImpact = createMemo(() => {
     const snapshot = data.snapshot();
@@ -185,11 +185,11 @@ export function SchedulePage() {
     const current = schedule();
     if (!current || !isEditableSchedule(current)) return;
     const { label, ...requestScope } = scope;
-    const result = await data.run("clearAssignmentGroup", {
+    const result = (await data.run("clearAssignmentGroup", {
       scheduleId: current.id,
       expectedRevision: current.revision,
       scope: requestScope,
-    }) as { changed: boolean };
+    })) as { changed: boolean };
     if (!result.changed) return;
     if (highlightTimer) {
       clearTimeout(highlightTimer);
@@ -205,10 +205,11 @@ export function SchedulePage() {
       closable: true,
       action: {
         label: "Undo",
-        onClick: () => void undoLatestScheduleChange(
-          "Clear undone",
-          "Previous assignments and locks were restored.",
-        ),
+        onClick: () =>
+          void undoLatestScheduleChange(
+            "Clear undone",
+            "Previous assignments and locks were restored.",
+          ),
       },
     });
   };
@@ -268,29 +269,26 @@ export function SchedulePage() {
             ? result.summary
             : result.noChangeReason ?? "The draft was left unchanged.",
           ...result.hardErrors,
-        ].filter(Boolean).join(" "),
+        ]
+          .filter(Boolean)
+          .join(" "),
         duration: 8_000,
         closable: true,
         action: result.changed
           ? {
               label: "Undo",
-              onClick: () => void undoLatestScheduleChange(
-                "Generation undone",
-                "Previous draft restored.",
-              ),
+              onClick: () =>
+                void undoLatestScheduleChange("Generation undone", "Previous draft restored."),
             }
           : undefined,
       });
       if (result.changed) {
         setView("position");
         if (highlightTimer) clearTimeout(highlightTimer);
-        highlightTimer = setTimeout(
-          () => {
-            setGeneration("changedCellIds", []);
-            highlightTimer = undefined;
-          },
-          6_000,
-        );
+        highlightTimer = setTimeout(() => {
+          setGeneration("changedCellIds", []);
+          highlightTimer = undefined;
+        }, 6_000);
       }
       setSelection();
     } catch (error) {
@@ -309,10 +307,7 @@ export function SchedulePage() {
     }
   };
 
-  const undoLatestScheduleChange = async (
-    title: string,
-    description: string,
-  ) => {
+  const undoLatestScheduleChange = async (title: string, description: string) => {
     const current = schedule();
     if (!current) return;
     if (highlightTimer) {
@@ -336,10 +331,7 @@ export function SchedulePage() {
     });
   };
 
-  const seasonImpactTargetFor = (
-    playerId: string,
-    group: PositionGroup,
-  ) => {
+  const seasonImpactTargetFor = (playerId: string, group: PositionGroup) => {
     const current = schedule();
     if (!current || !isEditableSchedule(current)) return undefined;
     return selectSeasonImpactAssignmentTarget({
@@ -351,10 +343,7 @@ export function SchedulePage() {
     });
   };
 
-  const scheduleFromSeasonImpact = async (
-    playerId: string,
-    group: PositionGroup,
-  ) => {
+  const scheduleFromSeasonImpact = async (playerId: string, group: PositionGroup) => {
     const current = schedule();
     if (!current || !seasonImpactTargetFor(playerId, group)) return;
     const result = seasonImpactAssignmentResultSchema.parse(
@@ -374,10 +363,8 @@ export function SchedulePage() {
       closable: true,
       action: {
         label: "Undo",
-        onClick: () => void undoLatestScheduleChange(
-          "Assignment undone",
-          "Previous draft restored.",
-        ),
+        onClick: () =>
+          void undoLatestScheduleChange("Assignment undone", "Previous draft restored."),
       },
     });
   };
@@ -405,10 +392,8 @@ export function SchedulePage() {
       closable: true,
       action: {
         label: "Undo",
-        onClick: () => void undoLatestScheduleChange(
-          "Clear undone",
-          "All assignments and locks were restored.",
-        ),
+        onClick: () =>
+          void undoLatestScheduleChange("Clear undone", "All assignments and locks were restored."),
       },
     });
   };
@@ -420,9 +405,11 @@ export function SchedulePage() {
           <PageHeader
             eyebrow="Schedule editor"
             title={`vs. ${currentGame().opponentName}`}
-            description={schedule()?.status === "published"
-              ? "This published rotation is read-only until you choose Edit again."
-              : undefined}
+            description={
+              schedule()?.status === "published"
+                ? "This published rotation is read-only until you choose Edit again."
+                : undefined
+            }
             actions={
               <Show when={schedule()?.status === "published"}>
                 <HStack gap="2" flexWrap="wrap">
@@ -432,7 +419,9 @@ export function SchedulePage() {
                     </Button>
                   </A>
                   <A href={`/games/${params.gameId}/live`}>
-                    <Button size="sm" variant="outline">Game day</Button>
+                    <Button size="sm" variant="outline">
+                      Game day
+                    </Button>
                   </A>
                 </HStack>
               </Show>
@@ -511,22 +500,24 @@ export function SchedulePage() {
                         editable={isEditableSchedule(currentSchedule())}
                         changedCellIds={generation.changedCellIds}
                         preferences={data.snapshot()?.playerPreferences.entries ?? []}
-                        onLockPlayer={(playerId) =>
-                          void lockGroup({ kind: "player", playerId })}
+                        onLockPlayer={(playerId) => void lockGroup({ kind: "player", playerId })}
                         onClearPlayer={(playerId) =>
                           void clearGroup({
                             kind: "player",
                             playerId,
                             label: player(playerId)?.displayName ?? "Player assignments",
-                          })}
+                          })
+                        }
                         onClearSegment={(segmentKey) =>
                           void clearGroup({
                             kind: "segment",
                             segmentKey,
                             label: segmentLabel(segmentKey),
-                          })}
+                          })
+                        }
                         onGeneratePlayer={(playerId) =>
-                          void generateTarget({ kind: "player", playerId })}
+                          void generateTarget({ kind: "player", playerId })
+                        }
                       />
                     }
                   >
@@ -542,27 +533,33 @@ export function SchedulePage() {
                       onSelect={setSelection}
                       onSwap={(change) => void swap(change)}
                       onLockPosition={(positionKey) =>
-                        void lockGroup({ kind: "position", positionKey })}
+                        void lockGroup({ kind: "position", positionKey })
+                      }
                       onLockSegment={(segmentKey) =>
-                        void lockGroup({ kind: "segment", segmentKey })}
+                        void lockGroup({ kind: "segment", segmentKey })
+                      }
                       onClearPosition={(positionKey) =>
                         void clearGroup({
                           kind: "position",
                           positionKey,
-                          label: data.positions().find(
-                            (position) => position.key === positionKey,
-                          )?.label ?? "Position assignments",
-                        })}
+                          label:
+                            data.positions().find((position) => position.key === positionKey)
+                              ?.label ?? "Position assignments",
+                        })
+                      }
                       onClearSegment={(segmentKey) =>
                         void clearGroup({
                           kind: "segment",
                           segmentKey,
                           label: segmentLabel(segmentKey),
-                        })}
+                        })
+                      }
                       onGeneratePosition={(positionKey) =>
-                        void generateTarget({ kind: "position", positionKey })}
+                        void generateTarget({ kind: "position", positionKey })
+                      }
                       onGenerateSegment={(segmentKey) =>
-                        void generateTarget({ kind: "segment", segmentKey })}
+                        void generateTarget({ kind: "segment", segmentKey })
+                      }
                     />
                   </Show>
                 </Box>
@@ -573,7 +570,8 @@ export function SchedulePage() {
                       player={player}
                       targetFor={seasonImpactTargetFor}
                       onSchedule={(playerId, group) =>
-                        void scheduleFromSeasonImpact(playerId, group)}
+                        void scheduleFromSeasonImpact(playerId, group)
+                      }
                     />
                   )}
                 </Show>
@@ -608,7 +606,6 @@ export function SchedulePage() {
             onConfirm={() => void clearSchedule()}
           />
           <Toaster />
-
         </>
       )}
     </Show>

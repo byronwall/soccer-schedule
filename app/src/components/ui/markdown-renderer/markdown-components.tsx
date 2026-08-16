@@ -56,48 +56,24 @@ const MarkdownAnchor = (props: MarkdownAnchorProps) => {
 };
 
 const MarkdownImage = (props: MarkdownImageProps) => {
-  const [, rest] = splitProps(props, [
-    "index",
-    "node",
-    "siblingCount",
-    "sourcePosition",
-  ]);
+  const [, rest] = splitProps(props, ["index", "node", "siblingCount", "sourcePosition"]);
 
-  return (
-    <img
-      class={markdownStyles.img}
-      loading="lazy"
-      decoding="async"
-      {...rest}
-    />
-  );
+  return <img class={markdownStyles.img} loading="lazy" decoding="async" {...rest} />;
 };
 
 export const markdownComponents = {
-  h1: (props) => (
-    <MarkdownHeading as="h1" headingClass={markdownStyles.h1} {...props} />
-  ),
-  h2: (props) => (
-    <MarkdownHeading as="h2" headingClass={markdownStyles.h2} {...props} />
-  ),
-  h3: (props) => (
-    <MarkdownHeading as="h3" headingClass={markdownStyles.h3} {...props} />
-  ),
-  h4: (props) => (
-    <MarkdownHeading as="h4" headingClass={markdownStyles.h4} {...props} />
-  ),
-  h5: (props) => (
-    <MarkdownHeading as="h5" headingClass={markdownStyles.h5} {...props} />
-  ),
+  h1: (props) => <MarkdownHeading as="h1" headingClass={markdownStyles.h1} {...props} />,
+  h2: (props) => <MarkdownHeading as="h2" headingClass={markdownStyles.h2} {...props} />,
+  h3: (props) => <MarkdownHeading as="h3" headingClass={markdownStyles.h3} {...props} />,
+  h4: (props) => <MarkdownHeading as="h4" headingClass={markdownStyles.h4} {...props} />,
+  h5: (props) => <MarkdownHeading as="h5" headingClass={markdownStyles.h5} {...props} />,
   p: (props) => <Text class={markdownStyles.p} {...props} />,
   a: MarkdownAnchor,
   img: MarkdownImage,
   ul: (props) => <ul class={markdownStyles.ul} {...props} />,
   ol: (props) => <ol class={markdownStyles.ol} {...props} />,
   li: (props) => <li class={markdownStyles.li} {...props} />,
-  blockquote: (props) => (
-    <blockquote class={markdownStyles.blockquote} {...props} />
-  ),
+  blockquote: (props) => <blockquote class={markdownStyles.blockquote} {...props} />,
   pre: MarkdownPre,
   code: MarkdownCode,
   ...markdownTableComponents,

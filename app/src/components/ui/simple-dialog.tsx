@@ -66,19 +66,14 @@ export function SimpleDialog(props: SimpleDialogProps) {
     return classes.join(" ");
   };
 
-  const hasHeader = () =>
-    props.header !== undefined || !!props.title || !!props.description;
+  const hasHeader = () => props.header !== undefined || !!props.title || !!props.description;
 
   const headerContent = () =>
     props.header ?? (
       <>
-        <Show when={props.title}>
-          {(title) => <Dialog.Title>{title()}</Dialog.Title>}
-        </Show>
+        <Show when={props.title}>{(title) => <Dialog.Title>{title()}</Dialog.Title>}</Show>
         <Show when={props.description}>
-          {(description) => (
-            <Dialog.Description>{description()}</Dialog.Description>
-          )}
+          {(description) => <Dialog.Description>{description()}</Dialog.Description>}
         </Show>
       </>
     );
@@ -102,9 +97,7 @@ export function SimpleDialog(props: SimpleDialogProps) {
             <Show when={shouldShowClose()}>
               <Dialog.CloseTrigger
                 aria-label={props.closeLabel ?? "Close dialog"}
-                asChild={(triggerProps) => (
-                  <CloseButton {...triggerProps()} />
-                )}
+                asChild={(triggerProps) => <CloseButton {...triggerProps()} />}
               />
             </Show>
             <Dialog.Body
@@ -116,9 +109,7 @@ export function SimpleDialog(props: SimpleDialogProps) {
             >
               {props.children}
             </Dialog.Body>
-            <Show when={props.footer}>
-              {(footer) => <Dialog.Footer>{footer()}</Dialog.Footer>}
-            </Show>
+            <Show when={props.footer}>{(footer) => <Dialog.Footer>{footer()}</Dialog.Footer>}</Show>
           </Dialog.Content>
         </Dialog.Positioner>
       </WrapWhen>
@@ -167,11 +158,7 @@ export const SimpleDialogDemo = (_props: SimpleDialogDemoProps) => {
         <Box as="h3" fontWeight="semibold">
           Controlled
         </Box>
-        <Button
-          variant="outline"
-          style={{ width: "auto" }}
-          onClick={() => setControlledOpen(true)}
-        >
+        <Button variant="outline" style={{ width: "auto" }} onClick={() => setControlledOpen(true)}>
           Open Dialog
         </Button>
         <SimpleDialog
@@ -196,11 +183,7 @@ export const SimpleDialogDemo = (_props: SimpleDialogDemoProps) => {
         <Box as="h3" fontWeight="semibold">
           Initial Focus
         </Box>
-        <Button
-          variant="outline"
-          style={{ width: "auto" }}
-          onClick={() => setFocusOpen(true)}
-        >
+        <Button variant="outline" style={{ width: "auto" }} onClick={() => setFocusOpen(true)}>
           Open Profile Dialog
         </Button>
         <SimpleDialog

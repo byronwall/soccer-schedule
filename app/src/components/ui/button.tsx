@@ -1,12 +1,6 @@
 import { ark } from "@ark-ui/solid/factory";
 import { createContext } from "@ark-ui/solid/utils";
-import {
-  type ComponentProps,
-  type JSX,
-  mergeProps,
-  Show,
-  splitProps,
-} from "solid-js";
+import { type ComponentProps, type JSX, mergeProps, Show, splitProps } from "solid-js";
 import { styled } from "styled-system/jsx";
 import { type ButtonVariantProps, button } from "styled-system/recipes";
 import { Group, type GroupProps } from "./group";
@@ -51,11 +45,7 @@ export const Button = (props: ButtonProps) => {
   ]);
 
   return (
-    <BaseButton
-      {...rest}
-      type={rest.type ?? "button"}
-      disabled={local.loading || rest.disabled}
-    >
+    <BaseButton {...rest} type={rest.type ?? "button"} disabled={local.loading || rest.disabled}>
       <Show when={local.loading} fallback={local.children}>
         <Loader
           spinner={local.spinner}
@@ -80,10 +70,9 @@ export const ButtonGroup = (props: ButtonGroupProps) => {
   );
 };
 
-const [ButtonPropsProvider, useButtonPropsContext] =
-  createContext<ButtonVariantProps>({
-    strict: false,
-  });
+const [ButtonPropsProvider, useButtonPropsContext] = createContext<ButtonVariantProps>({
+  strict: false,
+});
 
 export interface ButtonDemoProps {
   variantProps?: Record<string, string>;

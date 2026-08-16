@@ -1,11 +1,6 @@
 import { type ConsoleCaptureEntry } from "./consoleLogCapture.store";
 
-export const parseBoundedInt = (
-  raw: string,
-  fallback: number,
-  min: number,
-  max: number,
-) => {
+export const parseBoundedInt = (raw: string, fallback: number, min: number, max: number) => {
   const parsed = Number.parseInt(raw.trim(), 10);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.max(min, Math.min(parsed, max));
@@ -61,10 +56,7 @@ export const buildSingleEntryJson = (entry: ConsoleCaptureEntry) => {
   );
 };
 
-export const buildPrefixesText = (
-  rows: Array<[string, number]>,
-  total: number,
-) => {
+export const buildPrefixesText = (rows: Array<[string, number]>, total: number) => {
   const lines = rows.map(([prefix, count]) =>
     prefix === "untyped" ? `[untyped] ${count}` : `[${prefix}] ${count}`,
   );

@@ -136,15 +136,15 @@ node app/scripts/verify.mjs
 
 ### Configuration lifecycle
 
-| Variable | Lifecycle | Secret? | Changing it requires |
-| --- | --- | --- | --- |
-| `BASE_PATH` | Build-time and runtime | No | Image rebuild when the built base path changes |
-| `CI_SSG_PRERENDER` | Build-time only | No | Image rebuild |
-| `APP_BASE_URL` / `SERVICE_URL_APP` | Runtime | No | Application restart |
-| `APP_DATA_DIR` | Runtime | No | Application restart and a matching persistent mount in deployment |
-| `COACH_CREDENTIALS_JSON` | Runtime | Yes | Application restart; current auth behavior is unchanged |
-| `COACH_CREDENTIAL_VERSION` | Runtime | No | Application restart; incrementing invalidates existing sessions |
-| `OPENAI_API_KEY`, Stripe, and email credentials | Runtime | Yes | Application restart when those inherited integrations are used |
+| Variable                                        | Lifecycle              | Secret? | Changing it requires                                              |
+| ----------------------------------------------- | ---------------------- | ------- | ----------------------------------------------------------------- |
+| `BASE_PATH`                                     | Build-time and runtime | No      | Image rebuild when the built base path changes                    |
+| `CI_SSG_PRERENDER`                              | Build-time only        | No      | Image rebuild                                                     |
+| `APP_BASE_URL` / `SERVICE_URL_APP`              | Runtime                | No      | Application restart                                               |
+| `APP_DATA_DIR`                                  | Runtime                | No      | Application restart and a matching persistent mount in deployment |
+| `COACH_CREDENTIALS_JSON`                        | Runtime                | Yes     | Application restart; current auth behavior is unchanged           |
+| `COACH_CREDENTIAL_VERSION`                      | Runtime                | No      | Application restart; incrementing invalidates existing sessions   |
+| `OPENAI_API_KEY`, Stripe, and email credentials | Runtime                | Yes     | Application restart when those inherited integrations are used    |
 
 ## Deployment with Coolify
 
@@ -176,17 +176,28 @@ Then set `APP_DATA_DIR=/app/data`. This directory holds the soccer store, coach 
 
 These are the only values that require deployment-specific attention for the soccer application:
 
-| Variable | Required? | Coolify value |
-| --- | --- | --- |
-| `COACH_CREDENTIALS_JSON` | **Yes** | A one-line JSON array containing exactly two coaches. IDs and display names must be unique, and every password must be at least 16 characters. Store it as a secret. |
-| `APP_DATA_DIR` | **Yes** | `/app/data` |
-| `APP_BASE_URL` | **Yes for the Dockerfile build pack** | Set to `$COOLIFY_URL` or the literal final HTTPS origin, such as `https://coach.example.com`. |
-| `COACH_CREDENTIAL_VERSION` | Recommended | Start with `1`. Change it whenever credentials are rotated to invalidate all existing sessions. |
+| Variable                   | Required?                             | Coolify value                                                                                                                                                        |
+| -------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `COACH_CREDENTIALS_JSON`   | **Yes**                               | A one-line JSON array containing exactly two coaches. IDs and display names must be unique, and every password must be at least 16 characters. Store it as a secret. |
+| `APP_DATA_DIR`             | **Yes**                               | `/app/data`                                                                                                                                                          |
+| `APP_BASE_URL`             | **Yes for the Dockerfile build pack** | Set to `$COOLIFY_URL` or the literal final HTTPS origin, such as `https://coach.example.com`.                                                                        |
+| `COACH_CREDENTIAL_VERSION` | Recommended                           | Start with `1`. Change it whenever credentials are rotated to invalidate all existing sessions.                                                                      |
 
 Use raw JSON in the Coolify value field—do not include the outer single quotes shown in `.env` file examples:
 
 ```json
-[{"id":"coach-one","displayName":"Coach One","password":"replace-with-a-long-unique-password"},{"id":"coach-two","displayName":"Coach Two","password":"replace-with-another-long-unique-password"}]
+[
+  {
+    "id": "coach-one",
+    "displayName": "Coach One",
+    "password": "replace-with-a-long-unique-password"
+  },
+  {
+    "id": "coach-two",
+    "displayName": "Coach Two",
+    "password": "replace-with-another-long-unique-password"
+  }
+]
 ```
 
 Replace both example passwords before deploying. The application deliberately refuses to load the coach list unless the value contains exactly two valid coach records.
@@ -199,22 +210,22 @@ Coach Companion prefers `SERVICE_URL_APP` when it exists, then falls back to `AP
 
 The Docker image and Compose file already provide these values. They normally do not need to be entered in Coolify, but these are the expected production settings if you choose to declare them explicitly:
 
-| Variable | Production value | Notes |
-| --- | --- | --- |
-| `NODE_ENV` | `production` | Disables the local development-coach bypass and requires real login. |
-| `HOST` | `0.0.0.0` | Allows Coolify’s proxy to reach the Node server. |
-| `PORT` | `3000` | Must match the internal port configured in Coolify. |
-| `PRODUCT_NAME` | `Coach Companion` | Used by inherited application infrastructure. |
-| `SERVICE_URL_APP` | Usually unset | Used when deploying the repository as a Coolify Docker Compose service stack; it takes precedence over `APP_BASE_URL`. |
+| Variable          | Production value  | Notes                                                                                                                  |
+| ----------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`        | `production`      | Disables the local development-coach bypass and requires real login.                                                   |
+| `HOST`            | `0.0.0.0`         | Allows Coolify’s proxy to reach the Node server.                                                                       |
+| `PORT`            | `3000`            | Must match the internal port configured in Coolify.                                                                    |
+| `PRODUCT_NAME`    | `Coach Companion` | Used by inherited application infrastructure.                                                                          |
+| `SERVICE_URL_APP` | Usually unset     | Used when deploying the repository as a Coolify Docker Compose service stack; it takes precedence over `APP_BASE_URL`. |
 
 ### 5. Leave build-time settings at their defaults
 
 `BASE_PATH` and `CI_SSG_PRERENDER` are Docker build arguments, not ordinary runtime settings. A standard Coolify deployment on its own domain should omit both and use the Dockerfile defaults:
 
-| Build argument | Default | When to change it |
-| --- | --- | --- |
-| `BASE_PATH` | `/` | Only when intentionally serving the app below a URL prefix. Changing it requires a rebuild. |
-| `CI_SSG_PRERENDER` | `false` | Used for the static component-explorer build, not the server deployment. |
+| Build argument     | Default | When to change it                                                                           |
+| ------------------ | ------- | ------------------------------------------------------------------------------------------- |
+| `BASE_PATH`        | `/`     | Only when intentionally serving the app below a URL prefix. Changing it requires a rebuild. |
+| `CI_SSG_PRERENDER` | `false` | Used for the static component-explorer build, not the server deployment.                    |
 
 Setting either variable only after the image is built will not change the compiled application. If one must be overridden in Coolify, enable its **Build Variable** setting and rebuild the image.
 

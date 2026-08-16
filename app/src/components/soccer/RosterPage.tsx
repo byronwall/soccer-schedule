@@ -75,23 +75,30 @@ export function RosterPage() {
   const sortedPlayers = createMemo(() => {
     const players = [...(data.snapshot()?.players ?? [])];
     const sortMode = sort();
-    return players.sort((left, right) => sortMode === "number"
-      ? compareJerseyNumbers(left, right)
-      : compareText(left.displayName, right.displayName));
+    return players.sort((left, right) =>
+      sortMode === "number"
+        ? compareJerseyNumbers(left, right)
+        : compareText(left.displayName, right.displayName),
+    );
   });
 
   const edit = (player?: Player) => {
-    setDraft(player ? {
-      id: player.id,
-      displayName: player.displayName,
-      jerseyNumber: player.jerseyNumber ?? "",
-      color: player.color,
-    } : {
-      ...emptyDraft,
-      color: PLAYER_COLORS.find((color) =>
-        !data.snapshot()?.players.some((candidate) => candidate.color === color),
-      ) ?? PLAYER_COLORS[0],
-    });
+    setDraft(
+      player
+        ? {
+            id: player.id,
+            displayName: player.displayName,
+            jerseyNumber: player.jerseyNumber ?? "",
+            color: player.color,
+          }
+        : {
+            ...emptyDraft,
+            color:
+              PLAYER_COLORS.find(
+                (color) => !data.snapshot()?.players.some((candidate) => candidate.color === color),
+              ) ?? PLAYER_COLORS[0],
+          },
+    );
     setOpen(true);
   };
 
@@ -112,30 +119,64 @@ export function RosterPage() {
         eyebrow="Team"
         title="Roster"
         description="Open a player to compare published plans with confirmed actual history, review season coverage, and edit scheduling preferences. Each player color carries through every schedule."
-        actions={<Button onClick={() => edit()}><Plus size={16} /> Add player</Button>}
+        actions={
+          <Button onClick={() => edit()}>
+            <Plus size={16} /> Add player
+          </Button>
+        }
       />
       <Card.Root>
         <Card.Header borderBottomWidth="1px" borderColor="border">
-          <Flex alignItems={{ base: "stretch", sm: "center" }} justifyContent="space-between" flexDirection={{ base: "column", sm: "row" }} gap="3">
+          <Flex
+            alignItems={{ base: "stretch", sm: "center" }}
+            justifyContent="space-between"
+            flexDirection={{ base: "column", sm: "row" }}
+            gap="3"
+          >
             <VStack alignItems="start" gap="0">
               <Card.Title>Players</Card.Title>
               <Card.Description>{sortedPlayers().length} roster members</Card.Description>
             </VStack>
             <HStack gap="2">
-              <Text textStyle="sm" color="fg.muted">Sort by</Text>
-              <SegmentGroup.Root value={sort()} onValueChange={(details) => setSort((details.value || "name") as SortMode)} size="sm">
+              <Text textStyle="sm" color="fg.muted">
+                Sort by
+              </Text>
+              <SegmentGroup.Root
+                value={sort()}
+                onValueChange={(details) => setSort((details.value || "name") as SortMode)}
+                size="sm"
+              >
                 <SegmentGroup.Indicator />
                 <SegmentGroup.Items items={sortItems} />
               </SegmentGroup.Root>
             </HStack>
           </Flex>
         </Card.Header>
-        <Show when={sortedPlayers().length > 0} fallback={<Card.Body><Text color="fg.muted">No players have been added yet.</Text></Card.Body>}>
+        <Show
+          when={sortedPlayers().length > 0}
+          fallback={
+            <Card.Body>
+              <Text color="fg.muted">No players have been added yet.</Text>
+            </Card.Body>
+          }
+        >
           <Box as="ul" listStyleType="none" p="0" m="0">
             <For each={sortedPlayers()}>
               {(player) => (
-                <Box as="li" opacity={player.active ? 1 : 0.58} borderBottomWidth="1px" borderColor="border" _last={{ borderBottomWidth: "0" }}>
-                  <Grid gridTemplateColumns="minmax(0, 1fr) auto" alignItems="center" gap="4" px={{ base: "4", sm: "6" }} py="3">
+                <Box
+                  as="li"
+                  opacity={player.active ? 1 : 0.58}
+                  borderBottomWidth="1px"
+                  borderColor="border"
+                  _last={{ borderBottomWidth: "0" }}
+                >
+                  <Grid
+                    gridTemplateColumns="minmax(0, 1fr) auto"
+                    alignItems="center"
+                    gap="4"
+                    px={{ base: "4", sm: "6" }}
+                    py="3"
+                  >
                     <HStack gap="3" minW="0">
                       <Box
                         boxSize="11"
@@ -144,21 +185,51 @@ export function RosterPage() {
                         display="grid"
                         placeItems="center"
                         fontWeight="bold"
-                        style={{ "background-color": `${player.color}20`, color: player.color, "border-color": player.color, "border-width": "2px" }}
+                        style={{
+                          "background-color": `${player.color}20`,
+                          color: player.color,
+                          "border-color": player.color,
+                          "border-width": "2px",
+                        }}
                       >
                         {player.jerseyNumber ?? "—"}
                       </Box>
                       <VStack alignItems="start" gap="0" minW="0">
                         <A href={`/roster/${player.id}`} class={playerNameLink}>
-                          <Text fontWeight="semibold" truncate>{player.displayName}</Text>
+                          <Text fontWeight="semibold" truncate>
+                            {player.displayName}
+                          </Text>
                         </A>
-                        <Text textStyle="sm" color="fg.muted">{player.active ? "Active" : "Inactive"}</Text>
+                        <Text textStyle="sm" color="fg.muted">
+                          {player.active ? "Active" : "Inactive"}
+                        </Text>
                       </VStack>
                     </HStack>
                     <HStack gap="1">
-                      <Button variant="plain" size="sm" aria-label={`Edit ${player.displayName}`} onClick={() => edit(player)}><Pencil size={16} /></Button>
-                      <Button variant="plain" size="sm" aria-label={`${player.active ? "Deactivate" : "Activate"} ${player.displayName}`} onClick={() => data.run("togglePlayer", { id: player.id })}><Power size={16} /></Button>
-                      <Button variant="plain" size="sm" aria-label={`Delete ${player.displayName}`} onClick={() => data.run("deletePlayer", { id: player.id })}><Trash2 size={16} /></Button>
+                      <Button
+                        variant="plain"
+                        size="sm"
+                        aria-label={`Edit ${player.displayName}`}
+                        onClick={() => edit(player)}
+                      >
+                        <Pencil size={16} />
+                      </Button>
+                      <Button
+                        variant="plain"
+                        size="sm"
+                        aria-label={`${player.active ? "Deactivate" : "Activate"} ${player.displayName}`}
+                        onClick={() => data.run("togglePlayer", { id: player.id })}
+                      >
+                        <Power size={16} />
+                      </Button>
+                      <Button
+                        variant="plain"
+                        size="sm"
+                        aria-label={`Delete ${player.displayName}`}
+                        onClick={() => data.run("deletePlayer", { id: player.id })}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
                     </HStack>
                   </Grid>
                 </Box>
@@ -174,19 +245,29 @@ export function RosterPage() {
         description="Names are required. Colors must be unique so players stay easy to track across the rotation."
         footer={
           <HStack justifyContent="end">
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button loading={pending()} onClick={() => void save()}>{draft.id ? "Save changes" : "Add player"}</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button loading={pending()} onClick={() => void save()}>
+              {draft.id ? "Save changes" : "Add player"}
+            </Button>
           </HStack>
         }
       >
         <VStack gap="4" alignItems="stretch">
           <Field.Root required>
             <Field.Label>Display name</Field.Label>
-            <Input value={draft.displayName} onInput={(event) => setDraft("displayName", event.currentTarget.value)} />
+            <Input
+              value={draft.displayName}
+              onInput={(event) => setDraft("displayName", event.currentTarget.value)}
+            />
           </Field.Root>
           <Field.Root>
             <Field.Label>Jersey number</Field.Label>
-            <Input value={draft.jerseyNumber} onInput={(event) => setDraft("jerseyNumber", event.currentTarget.value)} />
+            <Input
+              value={draft.jerseyNumber}
+              onInput={(event) => setDraft("jerseyNumber", event.currentTarget.value)}
+            />
           </Field.Root>
           <Field.Root required>
             <Field.Label>Schedule color</Field.Label>
@@ -196,13 +277,24 @@ export function RosterPage() {
                 type="color"
                 value={draft.color}
                 onInput={(event) => setDraft("color", event.currentTarget.value.toUpperCase())}
-                style={{ width: "3rem", height: "2.5rem", padding: "0.2rem", border: "1px solid var(--colors-border)", "border-radius": "0.5rem", cursor: "pointer" }}
+                style={{
+                  width: "3rem",
+                  height: "2.5rem",
+                  padding: "0.2rem",
+                  border: "1px solid var(--colors-border)",
+                  "border-radius": "0.5rem",
+                  cursor: "pointer",
+                }}
               />
-              <Text textStyle="sm" color="fg.muted">{draft.color}</Text>
+              <Text textStyle="sm" color="fg.muted">
+                {draft.color}
+              </Text>
             </HStack>
           </Field.Root>
           <Show when={draft.id}>
-            <Text textStyle="sm" color="fg.muted">Historical schedules keep the player record and use its current color.</Text>
+            <Text textStyle="sm" color="fg.muted">
+              Historical schedules keep the player record and use its current color.
+            </Text>
           </Show>
         </VStack>
       </SimpleDialog>

@@ -14,13 +14,7 @@ export interface AbsoluteCenterDemoProps {
 
 export const AbsoluteCenterDemo = (props: AbsoluteCenterDemoProps) => {
   return (
-    <DemoBox
-      position="relative"
-      width="72"
-      height="20"
-      borderWidth="1px"
-      borderColor="border"
-    >
+    <DemoBox position="relative" width="72" height="20" borderWidth="1px" borderColor="border">
       <AbsoluteCenter {...(props.variantProps ?? {})}>
         <DemoBadge>Centered</DemoBadge>
       </AbsoluteCenter>

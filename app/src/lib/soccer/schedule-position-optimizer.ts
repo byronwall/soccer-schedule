@@ -1,9 +1,6 @@
 import { POSITIONS, type PositionKey, type SegmentKey } from "./fixed-game";
 import { crossQuarterPositionRepeatScore } from "./schedule-position-repeats";
-import {
-  playerPreferenceLookup,
-  positionDisposition,
-} from "./player-preferences";
+import { playerPreferenceLookup, positionDisposition } from "./player-preferences";
 import type { Assignment, Player, PlayerPreference } from "./schemas";
 
 export type Lineup = Map<PositionKey, Player>;
@@ -11,22 +8,21 @@ export type Lineup = Map<PositionKey, Player>;
 const permutations = <T>(values: T[]): T[][] => {
   if (values.length <= 1) return [values];
   return values.flatMap((value, index) =>
-    permutations([...values.slice(0, index), ...values.slice(index + 1)]).map(
-      (rest) => [value, ...rest],
-    ),
+    permutations([...values.slice(0, index), ...values.slice(index + 1)]).map((rest) => [
+      value,
+      ...rest,
+    ]),
   );
 };
 
-const assignmentsForLineup = (
-  lineup: Lineup,
-  segmentKey: SegmentKey,
-): Assignment[] => POSITIONS.map((position) => ({
-  segmentKey,
-  positionKey: position.key,
-  playerId: lineup.get(position.key)?.id ?? "",
-  source: "generated",
-  locked: false,
-}));
+const assignmentsForLineup = (lineup: Lineup, segmentKey: SegmentKey): Assignment[] =>
+  POSITIONS.map((position) => ({
+    segmentKey,
+    positionKey: position.key,
+    playerId: lineup.get(position.key)?.id ?? "",
+    source: "generated",
+    locked: false,
+  }));
 
 export const chooseLowestRepeatLineup = (options: {
   lineup: Lineup;
@@ -43,12 +39,10 @@ export const chooseLowestRepeatLineup = (options: {
   const preferenceRank = (lineup: Lineup, disposition: "avoid" | "prefer") =>
     options.positionKeys.reduce(
       (total, positionKey) =>
-        total + Number(
-          positionDisposition(
-            preferences,
-            lineup.get(positionKey)?.id ?? "",
-            positionKey,
-          ) === disposition,
+        total +
+        Number(
+          positionDisposition(preferences, lineup.get(positionKey)?.id ?? "", positionKey) ===
+            disposition,
         ),
       0,
     );
@@ -58,17 +52,18 @@ export const chooseLowestRepeatLineup = (options: {
       positionKeys.forEach((positionKey, index) => candidate.set(positionKey, permutation[index]));
       return candidate;
     })
-    .sort((left, right) =>
-      preferenceRank(left, "avoid") - preferenceRank(right, "avoid") ||
-      preferenceRank(right, "prefer") - preferenceRank(left, "prefer") ||
-      crossQuarterPositionRepeatScore([
-        ...assignments,
-        ...assignmentsForLineup(left, segmentKey),
-      ]) -
-      crossQuarterPositionRepeatScore([
-        ...assignments,
-        ...assignmentsForLineup(right, segmentKey),
-      ]),
+    .sort(
+      (left, right) =>
+        preferenceRank(left, "avoid") - preferenceRank(right, "avoid") ||
+        preferenceRank(right, "prefer") - preferenceRank(left, "prefer") ||
+        crossQuarterPositionRepeatScore([
+          ...assignments,
+          ...assignmentsForLineup(left, segmentKey),
+        ]) -
+          crossQuarterPositionRepeatScore([
+            ...assignments,
+            ...assignmentsForLineup(right, segmentKey),
+          ]),
     )[0];
 };
 
@@ -78,17 +73,20 @@ export const minimumIncomingPositionRepeatScore = (options: {
   positionKeys: PositionKey[];
   segmentKey: SegmentKey;
   preferences?: PlayerPreference[];
-}) => Math.min(
-  ...permutations(options.incomingPlayers).map((permutation) =>
-    crossQuarterPositionRepeatScore([
-      ...options.assignments,
-      ...options.positionKeys.map((positionKey, index): Assignment => ({
-        segmentKey: options.segmentKey,
-        positionKey,
-        playerId: permutation[index].id,
-        source: "generated",
-        locked: false,
-      })),
-    ]),
-  ),
-);
+}) =>
+  Math.min(
+    ...permutations(options.incomingPlayers).map((permutation) =>
+      crossQuarterPositionRepeatScore([
+        ...options.assignments,
+        ...options.positionKeys.map(
+          (positionKey, index): Assignment => ({
+            segmentKey: options.segmentKey,
+            positionKey,
+            playerId: permutation[index].id,
+            source: "generated",
+            locked: false,
+          }),
+        ),
+      ]),
+    ),
+  );

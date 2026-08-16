@@ -1,10 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { preferencesForPlayers } from "./player-preferences";
-import {
-  repairSchedule,
-  replaceAssignment,
-  scoreSchedule,
-} from "./scheduling";
+import { repairSchedule, replaceAssignment, scoreSchedule } from "./scheduling";
 import {
   generateScheduleTarget,
   scheduleGenerationRequestSchema,
@@ -28,7 +24,10 @@ const groupLockRequestSchema = z.object({
   expectedRevision: z.number().int().positive(),
   scope: z.discriminatedUnion("kind", [
     z.object({ kind: z.literal("player"), playerId: z.string().uuid() }),
-    z.object({ kind: z.literal("position"), positionKey: z.enum(POSITIONS.map((item) => item.key)) }),
+    z.object({
+      kind: z.literal("position"),
+      positionKey: z.enum(POSITIONS.map((item) => item.key)),
+    }),
     z.object({ kind: z.literal("segment"), segmentKey: z.enum(SEGMENTS.map((item) => item.key)) }),
   ]),
 });
@@ -37,7 +36,10 @@ const groupClearRequestSchema = z.object({
   expectedRevision: z.number().int().positive(),
   scope: z.discriminatedUnion("kind", [
     z.object({ kind: z.literal("player"), playerId: z.string().uuid() }),
-    z.object({ kind: z.literal("position"), positionKey: z.enum(POSITIONS.map((item) => item.key)) }),
+    z.object({
+      kind: z.literal("position"),
+      positionKey: z.enum(POSITIONS.map((item) => item.key)),
+    }),
     z.object({ kind: z.literal("segment"), segmentKey: z.enum(SEGMENTS.map((item) => item.key)) }),
   ]),
 });
@@ -57,12 +59,12 @@ const seasonImpactAssignmentRequestSchema = scheduleRevisionRequestSchema.extend
   group: z.enum(["goalkeeper", "defense", "midfield", "forward"] satisfies PositionGroup[]),
 });
 
-const recordScheduleChange = (
-  schedule: ReturnType<typeof requireSchedule>,
-) => {
-  schedule.history.push(schedule.assignments.map((assignment) => ({
-    ...assignment,
-  })));
+const recordScheduleChange = (schedule: ReturnType<typeof requireSchedule>) => {
+  schedule.history.push(
+    schedule.assignments.map((assignment) => ({
+      ...assignment,
+    })),
+  );
   schedule.future = [];
 };
 
@@ -75,21 +77,14 @@ export const scheduleActionHandlers: Record<string, StoreActionHandler> = {
     assertEditableSchedule(schedule.status);
     assertRevision(schedule.revision, request);
     const players = playersAvailableForGame(store, schedule.gameId);
-    const preferences = preferencesForPlayers(
-      players,
-      store.playerPreferences.entries,
-    );
+    const preferences = preferencesForPlayers(players, store.playerPreferences.entries);
     const currentGame = requireGame(store, schedule.gameId);
     const earlierGameIds = new Set(
-      store.games
-        .filter((game) => game.startsAt < currentGame.startsAt)
-        .map((game) => game.id),
+      store.games.filter((game) => game.startsAt < currentGame.startsAt).map((game) => game.id),
     );
     const seasonAssignments = store.schedules
       .filter(
-        (candidate) =>
-          earlierGameIds.has(candidate.gameId) &&
-          candidate.status === "published",
+        (candidate) => earlierGameIds.has(candidate.gameId) && candidate.status === "published",
       )
       .flatMap((candidate) => candidate.assignments);
     const generated = generateScheduleTarget({
@@ -206,18 +201,14 @@ export const scheduleActionHandlers: Record<string, StoreActionHandler> = {
     assertEditableSchedule(schedule.status);
     assertRevision(schedule.revision, request);
     const assignmentIndex = schedule.assignments.findIndex(
-      (item) =>
-        item.segmentKey === request.segmentKey &&
-        item.positionKey === request.positionKey,
+      (item) => item.segmentKey === request.segmentKey && item.positionKey === request.positionKey,
     );
     if (assignmentIndex === -1) return { changed: false };
     if (schedule.assignments[assignmentIndex].locked) {
       throw new Error("Unlock this assignment before clearing it.");
     }
     recordScheduleChange(schedule);
-    schedule.assignments = schedule.assignments.filter(
-      (_, index) => index !== assignmentIndex,
-    );
+    schedule.assignments = schedule.assignments.filter((_, index) => index !== assignmentIndex);
     schedule.revision += 1;
     schedule.updatedAt = stamp;
     return { changed: true };
@@ -252,9 +243,7 @@ export const scheduleActionHandlers: Record<string, StoreActionHandler> = {
     assertEditableSchedule(schedule.status);
     assertRevision(schedule.revision, request);
     const assignment = schedule.assignments.find(
-      (item) =>
-        item.segmentKey === request.segmentKey &&
-        item.positionKey === request.positionKey,
+      (item) => item.segmentKey === request.segmentKey && item.positionKey === request.positionKey,
     );
     if (!assignment) throw new Error("Assignment not found.");
     recordScheduleChange(schedule);
@@ -300,9 +289,7 @@ export const scheduleActionHandlers: Record<string, StoreActionHandler> = {
     };
     if (!schedule.assignments.some(matchesScope)) return { changed: false };
     recordScheduleChange(schedule);
-    schedule.assignments = schedule.assignments.filter(
-      (assignment) => !matchesScope(assignment),
-    );
+    schedule.assignments = schedule.assignments.filter((assignment) => !matchesScope(assignment));
     schedule.status = "draft";
     schedule.revision += 1;
     schedule.updatedAt = stamp;
@@ -349,12 +336,14 @@ export const scheduleActionHandlers: Record<string, StoreActionHandler> = {
     if (readiness.kind === "incomplete") {
       throw new Error(`Incomplete schedule: ${readiness.message}`);
     }
-    if (!scoreSchedule(
-      schedule.assignments,
-      eligibleIds,
-      store.playerPreferences.entries,
-      continuityPolicyForGame(),
-    ).valid) {
+    if (
+      !scoreSchedule(
+        schedule.assignments,
+        eligibleIds,
+        store.playerPreferences.entries,
+        continuityPolicyForGame(),
+      ).valid
+    ) {
       throw new Error("Invalid schedule: repair hard errors before publishing.");
     }
     for (const item of store.schedules.filter(

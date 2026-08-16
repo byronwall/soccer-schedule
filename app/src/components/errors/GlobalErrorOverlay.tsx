@@ -58,9 +58,7 @@ export function GlobalErrorOverlay(props: GlobalErrorOverlayProps) {
   const isOpen = () => props.open?.() ?? true;
   const detailsMessage = () => getErrorMessage(props.error);
   const detailsStack = () => getErrorStack(props.error);
-  const [copyState, setCopyState] = createSignal<"idle" | "copied" | "failed">(
-    "idle",
-  );
+  const [copyState, setCopyState] = createSignal<"idle" | "copied" | "failed">("idle");
   let copyStateTimer: ReturnType<typeof setTimeout> | undefined;
 
   onCleanup(() => {
@@ -172,10 +170,7 @@ export function GlobalErrorOverlay(props: GlobalErrorOverlayProps) {
 
               <Flex justify="flex-end" gap="2" flexWrap="wrap">
                 <Show when={detailsMessage() || detailsStack()}>
-                  <Button
-                    variant="outline"
-                    onClick={() => void copyJsonSummary()}
-                  >
+                  <Button variant="outline" onClick={() => void copyJsonSummary()}>
                     {copyState() === "copied"
                       ? "Copied JSON"
                       : copyState() === "failed"
@@ -183,13 +178,8 @@ export function GlobalErrorOverlay(props: GlobalErrorOverlayProps) {
                         : "Copy JSON"}
                   </Button>
                 </Show>
-                <Show
-                  when={props.onSecondaryAction && props.secondaryActionLabel}
-                >
-                  <Button
-                    variant="outline"
-                    onClick={() => props.onSecondaryAction?.()}
-                  >
+                <Show when={props.onSecondaryAction && props.secondaryActionLabel}>
+                  <Button variant="outline" onClick={() => props.onSecondaryAction?.()}>
                     {props.secondaryActionLabel}
                   </Button>
                 </Show>

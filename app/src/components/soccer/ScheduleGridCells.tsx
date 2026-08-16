@@ -23,12 +23,14 @@ type DragCellProps = {
   onPointerDown: (event: PointerEvent) => void;
 };
 
-export function PlayerAssignmentCell(props: DragCellProps & {
-  locked?: boolean;
-  warnings: string[];
-  onClick: () => void;
-  onEmphasisChange: (playerId?: string) => void;
-}) {
+export function PlayerAssignmentCell(
+  props: DragCellProps & {
+    locked?: boolean;
+    warnings: string[];
+    onClick: () => void;
+    onEmphasisChange: (playerId?: string) => void;
+  },
+) {
   return (
     <Button
       variant="plain"
@@ -128,13 +130,32 @@ export function SubstituteCell(props: DragCellProps & { warnings: string[] }) {
   );
 }
 
-function PlayerCellContent(props: { player?: Player; inactive?: boolean; locked?: boolean; substitute?: boolean; warnings?: string[]; preference?: PositionDisposition }) {
+function PlayerCellContent(props: {
+  player?: Player;
+  inactive?: boolean;
+  locked?: boolean;
+  substitute?: boolean;
+  warnings?: string[];
+  preference?: PositionDisposition;
+}) {
   return (
-    <Show when={props.player} fallback={<Text textStyle="xs" color="fg.muted">Empty</Text>}>
+    <Show
+      when={props.player}
+      fallback={
+        <Text textStyle="xs" color="fg.muted">
+          Empty
+        </Text>
+      }
+    >
       {(player) => (
         <VStack width="full" minW="0" gap="0" justifyContent="center">
           <HStack gap="1" minW="0" maxW="full" justifyContent="center">
-            <Box boxSize="2" borderRadius="full" flexShrink="0" style={{ "background-color": player().color }} />
+            <Box
+              boxSize="2"
+              borderRadius="full"
+              flexShrink="0"
+              style={{ "background-color": player().color }}
+            />
             <Text
               textStyle="xs"
               fontWeight="semibold"
@@ -166,7 +187,12 @@ function PlayerCellContent(props: { player?: Player; inactive?: boolean; locked?
                 }}
                 openDelay={150}
               >
-                <Box as="span" display="inline-flex" color="orange.fg" aria-label={props.warnings?.join(" ")}>
+                <Box
+                  as="span"
+                  display="inline-flex"
+                  color="orange.fg"
+                  aria-label={props.warnings?.join(" ")}
+                >
                   <TriangleAlert size={12} />
                 </Box>
               </Tooltip>
@@ -184,10 +210,12 @@ const preferenceLabel = (preference?: PositionDisposition) => {
   return "neutral position fit";
 };
 
-const assignmentCellLabel = (options: DragCellProps & {
-  locked?: boolean;
-  warnings: string[];
-}) => {
+const assignmentCellLabel = (
+  options: DragCellProps & {
+    locked?: boolean;
+    warnings: string[];
+  },
+) => {
   if (!options.player) return "Empty assignment. Click to assign a player.";
   const states = [
     preferenceLabel(options.preference),
@@ -196,9 +224,9 @@ const assignmentCellLabel = (options: DragCellProps & {
     options.changed ? "changed by the latest generation" : "",
     options.selected ? "selected" : "",
     options.inactive ? "inactive for this game" : "",
-  ].filter(Boolean).join(", ");
-  const action = options.inactive
-    ? "Click to change."
-    : "Click to change or drag to swap.";
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const action = options.inactive ? "Click to change." : "Click to change or drag to swap.";
   return `${options.player.displayName}, ${states}. ${action}`;
 };

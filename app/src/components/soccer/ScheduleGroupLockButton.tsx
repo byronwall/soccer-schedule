@@ -9,12 +9,9 @@ type ScheduleGroupLockButtonProps = {
   onLock: () => void;
 };
 
-export function ScheduleGroupLockButton(
-  props: ScheduleGroupLockButtonProps,
-) {
-  const actionLabel = () => props.state === "all"
-    ? "Unlock all filled assignments"
-    : "Lock all filled assignments";
+export function ScheduleGroupLockButton(props: ScheduleGroupLockButtonProps) {
+  const actionLabel = () =>
+    props.state === "all" ? "Unlock all filled assignments" : "Lock all filled assignments";
 
   return (
     <Tooltip
@@ -36,24 +33,28 @@ export function ScheduleGroupLockButton(
         aria-label={`${actionLabel()} for ${props.label}.`}
         data-lock-state={props.state}
         style={{
-          color: props.state === "all"
-            ? "var(--colors-grass-fg)"
-            : props.state === "some"
-              ? "var(--colors-blue-fg)"
-              : "var(--colors-fg-muted)",
-          "background-color": props.state === "all"
-            ? "var(--colors-grass-subtle-bg)"
-            : props.state === "some"
-              ? "var(--colors-blue-subtle-bg)"
-              : undefined,
+          color:
+            props.state === "all"
+              ? "var(--colors-grass-fg)"
+              : props.state === "some"
+                ? "var(--colors-blue-fg)"
+                : "var(--colors-fg-muted)",
+          "background-color":
+            props.state === "all"
+              ? "var(--colors-grass-subtle-bg)"
+              : props.state === "some"
+                ? "var(--colors-blue-subtle-bg)"
+                : undefined,
         }}
         onClick={props.onLock}
       >
-        {props.state === "all"
-          ? <LockKeyhole size={14} />
-          : props.state === "some"
-            ? <Lock size={14} />
-            : <LockOpen size={14} />}
+        {props.state === "all" ? (
+          <LockKeyhole size={14} />
+        ) : props.state === "some" ? (
+          <Lock size={14} />
+        ) : (
+          <LockOpen size={14} />
+        )}
       </IconButton>
     </Tooltip>
   );

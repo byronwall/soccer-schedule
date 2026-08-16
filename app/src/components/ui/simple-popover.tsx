@@ -67,7 +67,9 @@ export const SimplePopover = (props: PopoverProps) => {
       }}
       positioning={positioning()}
     >
-      <Popover.Anchor style={{ display: "inline-flex", width: "fit-content", ...local.anchorStyle }}>
+      <Popover.Anchor
+        style={{ display: "inline-flex", width: "fit-content", ...local.anchorStyle }}
+      >
         {local.anchor}
       </Popover.Anchor>
       <Show
@@ -121,9 +123,7 @@ export const SimplePopoverDemo = (_props: SimplePopoverDemoProps) => {
             <Popover.Title>Title</Popover.Title>
             <Popover.Description>Description</Popover.Description>
           </Popover.Body>
-          <Popover.CloseTrigger
-            asChild={(triggerProps) => <CloseButton {...triggerProps()} />}
-          />
+          <Popover.CloseTrigger asChild={(triggerProps) => <CloseButton {...triggerProps()} />} />
         </SimplePopover>
       </VStack>
 
@@ -147,13 +147,9 @@ export const SimplePopoverDemo = (_props: SimplePopoverDemoProps) => {
           <Popover.Arrow />
           <Popover.Body>
             <Popover.Title>Controlled Popover</Popover.Title>
-            <Popover.Description>
-              Visibility is managed by local state.
-            </Popover.Description>
+            <Popover.Description>Visibility is managed by local state.</Popover.Description>
           </Popover.Body>
-          <Popover.CloseTrigger
-            asChild={(triggerProps) => <CloseButton {...triggerProps()} />}
-          />
+          <Popover.CloseTrigger asChild={(triggerProps) => <CloseButton {...triggerProps()} />} />
         </SimplePopover>
       </VStack>
 
@@ -179,13 +175,9 @@ export const SimplePopoverDemo = (_props: SimplePopoverDemoProps) => {
           <Popover.Arrow />
           <Popover.Body>
             <Popover.Title>Right Placement</Popover.Title>
-            <Popover.Description>
-              Uses placement and main-axis offset.
-            </Popover.Description>
+            <Popover.Description>Uses placement and main-axis offset.</Popover.Description>
           </Popover.Body>
-          <Popover.CloseTrigger
-            asChild={(triggerProps) => <CloseButton {...triggerProps()} />}
-          />
+          <Popover.CloseTrigger asChild={(triggerProps) => <CloseButton {...triggerProps()} />} />
         </SimplePopover>
       </VStack>
     </HStack>

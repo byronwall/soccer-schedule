@@ -7,10 +7,7 @@ import {
   neutralPositionDispositions,
   updatePositionDisposition,
 } from "./player-preferences";
-import {
-  generateSchedule,
-  scoreSchedule,
-} from "./scheduling";
+import { generateSchedule, scoreSchedule } from "./scheduling";
 import type { Player, PlayerPreference } from "./schemas";
 import { migrateSoccerStore } from "./store-migrations";
 
@@ -68,8 +65,7 @@ describe("player scheduling preferences", () => {
     expect(first).not.toHaveProperty("defensiveContinuityDefault");
     expect(first.playerPreferences).toEqual({
       schemaVersion: 1,
-      entries: roster.map((player) =>
-        createDefaultPlayerPreference(player.id, stamp)),
+      entries: roster.map((player) => createDefaultPlayerPreference(player.id, stamp)),
     });
   });
 
@@ -89,8 +85,7 @@ describe("player scheduling preferences", () => {
       sessions: [],
       playerPreferences: {
         schemaVersion: 1,
-        entries: roster.map((player) =>
-          createDefaultPlayerPreference(player.id, stamp)),
+        entries: roster.map((player) => createDefaultPlayerPreference(player.id, stamp)),
       },
     });
 
@@ -105,9 +100,9 @@ describe("player scheduling preferences", () => {
 
     expect(second.leftMidfield).toBe("prefer");
     expect(second.rightMidfield).toBe("prefer");
-    expect(() =>
-      updatePositionDisposition(second, "leftForward", "prefer"),
-    ).toThrow(/Prefer is limited to 2 positions/);
+    expect(() => updatePositionDisposition(second, "leftForward", "prefer")).toThrow(
+      /Prefer is limited to 2 positions/,
+    );
   });
 
   it("counts Prefer and Avoid independently", () => {
@@ -120,9 +115,9 @@ describe("player scheduling preferences", () => {
     };
 
     expect(assertPositionDispositionLimits(dispositions)).toEqual(dispositions);
-    expect(() =>
-      updatePositionDisposition(dispositions, "goalkeeper", "avoid"),
-    ).toThrow(/Avoid is limited to 2 positions/);
+    expect(() => updatePositionDisposition(dispositions, "goalkeeper", "avoid")).toThrow(
+      /Avoid is limited to 2 positions/,
+    );
   });
 
   it("applies valid role shortcuts and rejects groups that exceed the cap", () => {
@@ -140,9 +135,9 @@ describe("player scheduling preferences", () => {
       leftMidfield: "prefer",
       rightMidfield: "prefer",
     });
-    expect(() =>
-      applyRoleGroupDisposition(initial, "attack", "prefer"),
-    ).toThrow(/Prefer is limited to 2 positions/);
+    expect(() => applyRoleGroupDisposition(initial, "attack", "prefer")).toThrow(
+      /Prefer is limited to 2 positions/,
+    );
     expect(initial).toEqual({
       ...neutralPositionDispositions(),
     });
@@ -188,26 +183,24 @@ describe("player scheduling preferences", () => {
       roster.map((player) => player.id),
       preferences,
     );
-    const violetTotal = quality.totals.find(
-      (total) => total.playerId === violet.id,
-    )!;
+    const violetTotal = quality.totals.find((total) => total.playerId === violet.id)!;
 
     expect(quality.valid).toBe(true);
     expect(quality.minuteSpread).toBeLessThanOrEqual(7);
-    expect(assignments.some(
-      (assignment) =>
-        assignment.playerId === amelia.id &&
-        assignment.positionKey === "goalkeeper",
-    )).toBe(false);
-    expect(assignments.some(
-      (assignment) =>
-        (assignment.playerId === maya.id ||
-          assignment.playerId === violet.id) &&
-        assignment.positionKey.includes("Midfield"),
-    )).toBe(true);
-    expect(violetTotal.segments).toBe(
-      Math.max(...quality.totals.map((total) => total.segments)),
-    );
+    expect(
+      assignments.some(
+        (assignment) =>
+          assignment.playerId === amelia.id && assignment.positionKey === "goalkeeper",
+      ),
+    ).toBe(false);
+    expect(
+      assignments.some(
+        (assignment) =>
+          (assignment.playerId === maya.id || assignment.playerId === violet.id) &&
+          assignment.positionKey.includes("Midfield"),
+      ),
+    ).toBe(true);
+    expect(violetTotal.segments).toBe(Math.max(...quality.totals.map((total) => total.segments)));
     expect(quality.favoredExtraMisses).toBe(0);
   });
 
@@ -226,15 +219,14 @@ describe("player scheduling preferences", () => {
 
     expect(quality.minuteSpread).toBe(0);
     expect(quality.favoredExtraMisses).toBe(0);
-    expect(new Set(quality.totals.map((total) => total.segments))).toEqual(
-      new Set([8]),
-    );
+    expect(new Set(quality.totals.map((total) => total.segments))).toEqual(new Set([8]));
   });
 
   it("relaxes contradictory all-goalkeeper avoids without failing generation", () => {
     const roster = players(11);
     const preferences = roster.map((player) =>
-      preference(player, { positions: { goalkeeper: "avoid" } }));
+      preference(player, { positions: { goalkeeper: "avoid" } }),
+    );
     const quality = scoreSchedule(
       generateSchedule(roster, {
         seed: "all-goalkeeper-avoids",
@@ -256,9 +248,7 @@ describe("player scheduling preferences", () => {
     const preferences = [
       preference(unavailable, {
         fieldTimePreference: "favor-extra-when-needed",
-        positions: Object.fromEntries(
-          POSITIONS.map((position) => [position.key, "prefer"]),
-        ),
+        positions: Object.fromEntries(POSITIONS.map((position) => [position.key, "prefer"])),
       }),
     ];
     const assignments = generateSchedule(available, { preferences });
@@ -269,9 +259,7 @@ describe("player scheduling preferences", () => {
     );
 
     expect(quality.valid).toBe(true);
-    expect(assignments.some(
-      (assignment) => assignment.playerId === unavailable.id,
-    )).toBe(false);
+    expect(assignments.some((assignment) => assignment.playerId === unavailable.id)).toBe(false);
     expect(quality.unmetPreferences).toEqual([]);
   });
 
@@ -286,12 +274,16 @@ describe("player scheduling preferences", () => {
       coachNote: "Completely different private context.",
     };
 
-    expect(generateSchedule(roster, {
-      seed: "private-note",
-      preferences: [base],
-    })).toEqual(generateSchedule(roster, {
-      seed: "private-note",
-      preferences: [changedNote],
-    }));
+    expect(
+      generateSchedule(roster, {
+        seed: "private-note",
+        preferences: [base],
+      }),
+    ).toEqual(
+      generateSchedule(roster, {
+        seed: "private-note",
+        preferences: [changedNote],
+      }),
+    );
   });
 });

@@ -49,9 +49,7 @@ export const DOCS_ONLY_COMPONENT_LINKS: ExplorerComponentLink[] = [
 ];
 
 export const friendlyName = (value: string) =>
-  value
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/^./, (letter) => letter.toUpperCase());
+  value.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^./, (letter) => letter.toUpperCase());
 
 export const getVariantMap = (recipe: RecipeLike): Record<string, string[]> => {
   const variants = recipe.variants ?? {};
@@ -89,6 +87,4 @@ export const resolveCombo = (recipe: RecipeMeta, selected: Combo): Combo => {
 };
 
 export const compsExplorerPath = (componentKey?: string) =>
-  componentKey
-    ? `${COMPS_EXPLORER_BASE_PATH}/${componentKey}`
-    : COMPS_EXPLORER_BASE_PATH;
+  componentKey ? `${COMPS_EXPLORER_BASE_PATH}/${componentKey}` : COMPS_EXPLORER_BASE_PATH;

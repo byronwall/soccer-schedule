@@ -1,6 +1,5 @@
-
-import { createSignal } from 'solid-js';
-import { HStack } from 'styled-system/jsx';
+import { createSignal } from "solid-js";
+import { HStack } from "styled-system/jsx";
 import {
   DialogBasicDemoSection,
   DialogControlledDemoSection,
@@ -9,12 +8,12 @@ import {
   dialogSizes,
   type DialogDemoPlacement,
   type DialogDemoSize,
-} from './dialog.demo.primary';
+} from "./dialog.demo.primary";
 import {
   DialogAlertDemoSection,
   DialogNestedDemoSection,
   DialogNonModalDemoSection,
-} from './dialog.demo.secondary';
+} from "./dialog.demo.secondary";
 
 export interface DialogDemoProps {
   variantProps?: Record<string, string>;
@@ -23,7 +22,9 @@ export interface DialogDemoProps {
 export const DialogDemo = (props: DialogDemoProps) => {
   const [isControlledOpen, setIsControlledOpen] = createSignal(false);
   const [selectedSize, setSelectedSize] = createSignal<DialogDemoSize>(dialogSizes[2]);
-  const [selectedPlacement, setSelectedPlacement] = createSignal<DialogDemoPlacement>(dialogPlacements[1]);
+  const [selectedPlacement, setSelectedPlacement] = createSignal<DialogDemoPlacement>(
+    dialogPlacements[1],
+  );
   const baseVariantProps = () => {
     const source = props.variantProps ?? {};
     const { size: _size, placement: _placement, ...rest } = source;

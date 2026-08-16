@@ -19,22 +19,26 @@ import { Box, Flex, Grid, HStack, VStack } from "styled-system/jsx";
 export function CompletedGameSummary(props: { gameId: string }) {
   const data = useSoccerData();
   const schedule = createMemo(() =>
-    data.snapshot()?.schedules.find((candidate) =>
-      candidate.gameId === props.gameId &&
-      candidate.status === "published"));
-  const availablePlayerIds = createMemo(() =>
-    data.snapshot()?.availability
-      .filter((item) =>
-        item.gameId === props.gameId && item.status === "available")
-      .map((item) => item.playerId) ?? []);
+    data
+      .snapshot()
+      ?.schedules.find(
+        (candidate) => candidate.gameId === props.gameId && candidate.status === "published",
+      ),
+  );
+  const availablePlayerIds = createMemo(
+    () =>
+      data
+        .snapshot()
+        ?.availability.filter((item) => item.gameId === props.gameId && item.status === "available")
+        .map((item) => item.playerId) ?? [],
+  );
   const actual = createMemo(() =>
     deriveActualGameSummary({
       schedule: schedule(),
-      live: data.snapshot()?.liveGames.find(
-        (candidate) => candidate.gameId === props.gameId,
-      ),
+      live: data.snapshot()?.liveGames.find((candidate) => candidate.gameId === props.gameId),
       availablePlayerIds: availablePlayerIds(),
-    }));
+    }),
+  );
   const confirmedActual = createMemo(() => {
     const summary = actual();
     return summary.status === "confirmed" ? summary : undefined;
@@ -50,36 +54,31 @@ export function CompletedGameSummary(props: { gameId: string }) {
     return snapshot.players
       .filter((player) => relevantIds.has(player.id))
       .sort((left, right) =>
-        left.displayName < right.displayName
-          ? -1
-          : left.displayName > right.displayName ? 1 : 0);
+        left.displayName < right.displayName ? -1 : left.displayName > right.displayName ? 1 : 0,
+      );
   });
   const actualPlayer = (playerId: string) => {
-    return confirmedActual()?.players.find(
-      (player) => player.playerId === playerId,
-    );
+    return confirmedActual()?.players.find((player) => player.playerId === playerId);
   };
   const plannedPositions = (playerId: string) => {
-    const assignments = schedule()?.assignments.filter(
-      (item) => item.playerId === playerId,
-    ) ?? [];
-    return resolvePositions(
-      data.snapshot()?.positionLabels ?? DEFAULT_POSITION_LABELS,
-    ).flatMap((position) => {
-      const count = assignments.filter(
-        (assignment) => assignment.positionKey === position.key,
-      ).length;
-      return count > 0 ? [{ ...position, seconds: count * SEGMENT_SECONDS }] : [];
-    });
+    const assignments = schedule()?.assignments.filter((item) => item.playerId === playerId) ?? [];
+    return resolvePositions(data.snapshot()?.positionLabels ?? DEFAULT_POSITION_LABELS).flatMap(
+      (position) => {
+        const count = assignments.filter(
+          (assignment) => assignment.positionKey === position.key,
+        ).length;
+        return count > 0 ? [{ ...position, seconds: count * SEGMENT_SECONDS }] : [];
+      },
+    );
   };
   const actualPositions = (playerId: string) => {
     const totals = actualPlayer(playerId)?.positionSeconds ?? {};
-    return resolvePositions(
-      data.snapshot()?.positionLabels ?? DEFAULT_POSITION_LABELS,
-    ).flatMap((position) => {
-      const seconds = totals[position.key as PositionKey] ?? 0;
-      return seconds > 0 ? [{ ...position, seconds }] : [];
-    });
+    return resolvePositions(data.snapshot()?.positionLabels ?? DEFAULT_POSITION_LABELS).flatMap(
+      (position) => {
+        const seconds = totals[position.key as PositionKey] ?? 0;
+        return seconds > 0 ? [{ ...position, seconds }] : [];
+      },
+    );
   };
   const trustCopy = () => {
     const summary = actual();
@@ -99,21 +98,17 @@ export function CompletedGameSummary(props: { gameId: string }) {
     <VStack alignItems="stretch" gap="5">
       <Card.Root
         borderWidth="1px"
-        borderColor={
-          actual().status === "confirmed" ? "green.border" : "orange.border"
-        }
+        borderColor={actual().status === "confirmed" ? "green.border" : "orange.border"}
       >
         <Card.Body>
           <HStack justifyContent="space-between" gap="4" flexWrap="wrap">
             <HStack alignItems="start">
-              <Box
-                color={
-                  actual().status === "confirmed" ? "green.fg" : "orange.fg"
-                }
-              >
-                {actual().status === "confirmed"
-                  ? <CheckCircle2 size={22} />
-                  : <ShieldAlert size={22} />}
+              <Box color={actual().status === "confirmed" ? "green.fg" : "orange.fg"}>
+                {actual().status === "confirmed" ? (
+                  <CheckCircle2 size={22} />
+                ) : (
+                  <ShieldAlert size={22} />
+                )}
               </Box>
               <VStack alignItems="start" gap="0">
                 <Text fontWeight="semibold">
@@ -129,11 +124,7 @@ export function CompletedGameSummary(props: { gameId: string }) {
               </VStack>
             </HStack>
             <HStack>
-              <Badge
-                colorPalette={
-                  actual().status === "confirmed" ? "green" : "orange"
-                }
-              >
+              <Badge colorPalette={actual().status === "confirmed" ? "green" : "orange"}>
                 {actual().status === "confirmed" ? "Trusted" : "Not trusted"}
               </Badge>
               <A href={`/games/${props.gameId}/live`}>
@@ -150,16 +141,19 @@ export function CompletedGameSummary(props: { gameId: string }) {
         <Card.Header>
           <Card.Title>Planned versus actual participation</Card.Title>
           <Card.Description>
-            The published plan remains unchanged. Actual field, bench, and
-            exact-position totals appear only for a trusted ledger.
+            The published plan remains unchanged. Actual field, bench, and exact-position totals
+            appear only for a trusted ledger.
           </Card.Description>
         </Card.Header>
         <Box as="ul" listStyleType="none" p="0" m="0">
           <For each={players()}>
             {(player) => {
               const actualSummary = () => actualPlayer(player.id);
-              const plannedSeconds = () => plannedPositions(player.id)
-                .reduce((total, position) => total + position.seconds, 0);
+              const plannedSeconds = () =>
+                plannedPositions(player.id).reduce(
+                  (total, position) => total + position.seconds,
+                  0,
+                );
               return (
                 <Box
                   as="li"
@@ -196,8 +190,7 @@ export function CompletedGameSummary(props: { gameId: string }) {
                         <For each={plannedPositions(player.id)}>
                           {(position) => (
                             <Badge variant="subtle">
-                              {position.short} ·{" "}
-                              {formatExactDuration(position.seconds)}
+                              {position.short} · {formatExactDuration(position.seconds)}
                             </Badge>
                           )}
                         </For>
@@ -228,8 +221,7 @@ export function CompletedGameSummary(props: { gameId: string }) {
                               <For each={actualPositions(player.id)}>
                                 {(position) => (
                                   <Badge colorPalette="grass" variant="subtle">
-                                    {position.short} ·{" "}
-                                    {formatExactDuration(position.seconds)}
+                                    {position.short} · {formatExactDuration(position.seconds)}
                                   </Badge>
                                 )}
                               </For>
@@ -250,13 +242,12 @@ export function CompletedGameSummary(props: { gameId: string }) {
         <Card.Header>
           <Card.Title>Own-team goal history</Card.Title>
           <Card.Description>
-            Individual recorded goal events only. This is not a score or game
-            result.
+            Individual recorded goal events only. This is not a score or game result.
           </Card.Description>
         </Card.Header>
         <Card.Body>
           <Show
-              when={confirmedActual()}
+            when={confirmedActual()}
             fallback={
               <Text color="fg.muted">
                 Goal history is unavailable without a confirmed actual record.
@@ -265,16 +256,10 @@ export function CompletedGameSummary(props: { gameId: string }) {
           >
             <Show
               when={(confirmedActual()?.goals.length ?? 0) > 0}
-              fallback={
-                <Text color="fg.muted">
-                  No own-team goal events were recorded.
-                </Text>
-              }
+              fallback={<Text color="fg.muted">No own-team goal events were recorded.</Text>}
             >
               <VStack alignItems="stretch" gap="2">
-                <For
-                  each={confirmedActual()?.goals ?? []}
-                >
+                <For each={confirmedActual()?.goals ?? []}>
                   {(goal) => (
                     <HStack
                       justifyContent="space-between"
@@ -284,13 +269,11 @@ export function CompletedGameSummary(props: { gameId: string }) {
                       borderRadius="l2"
                     >
                       <Text fontWeight="semibold">
-                        {data.snapshot()?.players.find(
-                          (player) => player.id === goal.playerId,
-                        )?.displayName ?? "Player"}
+                        {data.snapshot()?.players.find((player) => player.id === goal.playerId)
+                          ?.displayName ?? "Player"}
                       </Text>
                       <Badge colorPalette="green">
-                        Goal · Q{goal.quarter}{" "}
-                        {formatGameClock(goal.elapsedGameClockSeconds)}
+                        Goal · Q{goal.quarter} {formatGameClock(goal.elapsedGameClockSeconds)}
                       </Badge>
                     </HStack>
                   )}

@@ -35,9 +35,7 @@ export const RecipeExplorerPanel = (props: RecipeExplorerPanelProps) => {
   const [axisLayout, setAxisLayout] = createSignal<AxisLayout>("horizontal");
   const [axisSelection, setAxisSelection] = createSignal<AxisSelection>({});
 
-  const variantEntries = createMemo(() =>
-    Object.entries(props.recipe.variantMap),
-  );
+  const variantEntries = createMemo(() => Object.entries(props.recipe.variantMap));
   const useVariantGrid = createMemo(
     () => !["dialog", "drawer", "select", "table"].includes(props.recipe.key),
   );
@@ -46,9 +44,7 @@ export const RecipeExplorerPanel = (props: RecipeExplorerPanelProps) => {
     axes().filter((axis) => (props.recipe.variantMap[axis]?.length ?? 0) > 1),
   );
 
-  const selectedCombo = createMemo(() =>
-    resolveCombo(props.recipe, selectedVariants()),
-  );
+  const selectedCombo = createMemo(() => resolveCombo(props.recipe, selectedVariants()));
 
   const resolvedMode = createMemo<GridMode>(() => {
     if (!useVariantGrid()) return "single";
@@ -84,12 +80,7 @@ export const RecipeExplorerPanel = (props: RecipeExplorerPanelProps) => {
   });
 
   const renderCell = (combo: Combo) => (
-    <Box
-      p="2"
-      display="inline-flex"
-      alignItems="center"
-      justifyContent="center"
-    >
+    <Box p="2" display="inline-flex" alignItems="center" justifyContent="center">
       <Box width="fit-content">{renderRecipeDemo(props.recipe.key, combo)}</Box>
     </Box>
   );
@@ -139,11 +130,7 @@ export const RecipeExplorerPanel = (props: RecipeExplorerPanelProps) => {
                         {(option) => (
                           <Button
                             size="xs"
-                            variant={
-                              selectedCombo()[axis] === option
-                                ? "solid"
-                                : "outline"
-                            }
+                            variant={selectedCombo()[axis] === option ? "solid" : "outline"}
                             onClick={() =>
                               setSelectedVariants((prev) => ({
                                 ...prev,
@@ -220,9 +207,7 @@ export const RecipeExplorerPanel = (props: RecipeExplorerPanelProps) => {
                         <Button
                           size="xs"
                           variant={axis1() === axis ? "solid" : "outline"}
-                          onClick={() =>
-                            setAxisSelection((prev) => ({ ...prev, one: axis }))
-                          }
+                          onClick={() => setAxisSelection((prev) => ({ ...prev, one: axis }))}
                         >
                           {axis}
                         </Button>
@@ -246,9 +231,7 @@ export const RecipeExplorerPanel = (props: RecipeExplorerPanelProps) => {
                   <HStack gap="1" flexWrap="wrap">
                     <Button
                       size="xs"
-                      variant={
-                        axisLayout() === "horizontal" ? "solid" : "outline"
-                      }
+                      variant={axisLayout() === "horizontal" ? "solid" : "outline"}
                       onClick={() => setAxisLayout("horizontal")}
                     >
                       Horizontal
@@ -288,9 +271,7 @@ export const RecipeExplorerPanel = (props: RecipeExplorerPanelProps) => {
                           <Button
                             size="xs"
                             variant={axisX() === axis ? "solid" : "outline"}
-                            onClick={() =>
-                              setAxisSelection((prev) => ({ ...prev, x: axis }))
-                            }
+                            onClick={() => setAxisSelection((prev) => ({ ...prev, x: axis }))}
                           >
                             {axis}
                           </Button>
@@ -308,9 +289,7 @@ export const RecipeExplorerPanel = (props: RecipeExplorerPanelProps) => {
                           <Button
                             size="xs"
                             variant={axisY() === axis ? "solid" : "outline"}
-                            onClick={() =>
-                              setAxisSelection((prev) => ({ ...prev, y: axis }))
-                            }
+                            onClick={() => setAxisSelection((prev) => ({ ...prev, y: axis }))}
                           >
                             {axis}
                           </Button>
@@ -328,21 +307,14 @@ export const RecipeExplorerPanel = (props: RecipeExplorerPanelProps) => {
           <Box textStyle="sm" color="fg.muted">
             <Show
               when={useVariantGrid()}
-              fallback={
-                <>
-                  Variants are configured within the example itself for this
-                  component.
-                </>
-              }
+              fallback={<>Variants are configured within the example itself for this component.</>}
             >
               No recipe variants. Showing static template.
             </Show>
           </Box>
         </Show>
 
-        <Show when={resolvedMode() === "single"}>
-          {renderCell(selectedCombo())}
-        </Show>
+        <Show when={resolvedMode() === "single"}>{renderCell(selectedCombo())}</Show>
 
         <Show when={useVariantGrid() && resolvedMode() === "grid1d" && axis1()}>
           <Show
@@ -387,9 +359,7 @@ export const RecipeExplorerPanel = (props: RecipeExplorerPanelProps) => {
           </Show>
         </Show>
 
-        <Show
-          when={useVariantGrid() && resolvedMode() === "grid2d" && axisX() && axisY()}
-        >
+        <Show when={useVariantGrid() && resolvedMode() === "grid2d" && axisX() && axisY()}>
           <Box overflowX="auto">
             <table
               class={css({

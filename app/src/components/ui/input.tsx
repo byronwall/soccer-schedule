@@ -12,11 +12,5 @@ export interface InputDemoProps {
 }
 
 export const InputDemo = (props: InputDemoProps) => {
-  return (
-    <Input
-      {...(props.variantProps ?? {})}
-      value={props.value ?? "Input preview"}
-      readOnly
-    />
-  );
+  return <Input {...(props.variantProps ?? {})} value={props.value ?? "Input preview"} readOnly />;
 };

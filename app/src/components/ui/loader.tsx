@@ -38,9 +38,7 @@ export const Loader = (props: LoaderProps) => {
   ]);
 
   const spinner = () =>
-    local.spinner ?? (
-      <Spinner size="inherit" borderWidth="0.125em" color="inherit" />
-    );
+    local.spinner ?? <Spinner size="inherit" borderWidth="0.125em" color="inherit" />;
   const spinnerPlacement = () => local.spinnerPlacement ?? "start";
   const visible = () => local.visible ?? true;
 

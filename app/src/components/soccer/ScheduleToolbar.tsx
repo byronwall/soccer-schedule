@@ -1,21 +1,6 @@
 import { Match, Show, Switch } from "solid-js";
-import {
-  CheckCircle2,
-  LockOpen,
-  PencilLine,
-  Redo2,
-  RefreshCw,
-  Trash2,
-  Undo2,
-} from "lucide-solid";
-import {
-  Badge,
-  Button,
-  ButtonGroup,
-  IconButton,
-  SegmentGroup,
-  Tooltip,
-} from "~/components/ui";
+import { CheckCircle2, LockOpen, PencilLine, Redo2, RefreshCw, Trash2, Undo2 } from "lucide-solid";
+import { Badge, Button, ButtonGroup, IconButton, SegmentGroup, Tooltip } from "~/components/ui";
 import type { ScheduleQuality } from "~/lib/soccer/scheduling";
 import type { Schedule } from "~/lib/soccer/schemas";
 import type { ScheduleReadiness } from "~/lib/soccer/schedule-readiness";
@@ -92,9 +77,7 @@ export function ScheduleToolbar(props: ScheduleToolbarProps) {
                   onClick={props.onFillAll}
                 >
                   <RefreshCw size={16} />
-                  {props.readiness?.kind === "incomplete"
-                    ? "Fill all"
-                    : "Fill or rebalance all"}
+                  {props.readiness?.kind === "incomplete" ? "Fill all" : "Fill or rebalance all"}
                 </Button>
               </>
             }
@@ -144,10 +127,7 @@ export function ScheduleToolbar(props: ScheduleToolbarProps) {
                 />
               )}
             </Show>
-            <ScheduleStatusBadge
-              status={current().status}
-              readiness={props.readiness}
-            />
+            <ScheduleStatusBadge status={current().status} readiness={props.readiness} />
             <Show when={current().status === "draft"}>
               <Button
                 size="sm"
@@ -161,22 +141,9 @@ export function ScheduleToolbar(props: ScheduleToolbarProps) {
           </HStack>
         )}
       </Show>
-      <Show
-        when={
-          props.schedule?.status === "draft" ||
-          props.schedule?.status === "stale"
-        }
-      >
-        <Show
-          when={props.schedule?.assignments.some(
-            (assignment) => assignment.locked,
-          )}
-        >
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={props.onRemoveAllLocks}
-          >
+      <Show when={props.schedule?.status === "draft" || props.schedule?.status === "stale"}>
+        <Show when={props.schedule?.assignments.some((assignment) => assignment.locked)}>
+          <Button size="sm" variant="outline" onClick={props.onRemoveAllLocks}>
             <LockOpen size={16} /> Remove all locks
           </Button>
         </Show>
@@ -193,10 +160,7 @@ export function ScheduleToolbar(props: ScheduleToolbarProps) {
   );
 }
 
-function ScheduleStatusBadge(props: {
-  status: Schedule["status"];
-  readiness?: ScheduleReadiness;
-}) {
+function ScheduleStatusBadge(props: { status: Schedule["status"]; readiness?: ScheduleReadiness }) {
   return (
     <Switch fallback={<Badge>superseded</Badge>}>
       <Match when={props.status === "published"}>

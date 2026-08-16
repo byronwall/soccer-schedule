@@ -4,9 +4,7 @@ import { Badge, Card, Text } from "~/components/ui";
 import type { SeasonCoverage } from "~/lib/soccer/player-profile";
 import { Box, Grid, HStack, VStack } from "styled-system/jsx";
 
-export function PlayerSeasonCoverageCard(props: {
-  coverage: SeasonCoverage;
-}) {
+export function PlayerSeasonCoverageCard(props: { coverage: SeasonCoverage }) {
   const items = () => [
     {
       label: "Attack",
@@ -45,15 +43,11 @@ export function PlayerSeasonCoverageCard(props: {
           <Box>
             <Card.Title>Season experience coverage</Card.Title>
             <Card.Description>
-              Confirmed games use actual roles. Games without trusted actuals
-              use the published plan and are labeled as planned coverage.
+              Confirmed games use actual roles. Games without trusted actuals use the published plan
+              and are labeled as planned coverage.
             </Card.Description>
           </Box>
-          <Badge
-            colorPalette={
-              props.coverage.source === "confirmed actual" ? "green" : "orange"
-            }
-          >
+          <Badge colorPalette={props.coverage.source === "confirmed actual" ? "green" : "orange"}>
             {props.coverage.source}
           </Badge>
         </HStack>
@@ -77,9 +71,7 @@ export function PlayerSeasonCoverageCard(props: {
                 borderRadius="l2"
               >
                 <Box color={item.covered ? "green.fg" : "fg.muted"}>
-                  {item.covered
-                    ? <CheckCircle2 size={19} />
-                    : <CircleDashed size={19} />}
+                  {item.covered ? <CheckCircle2 size={19} /> : <CircleDashed size={19} />}
                 </Box>
                 <VStack alignItems="start" gap="0">
                   <Text fontWeight="semibold">{item.label}</Text>
@@ -90,21 +82,9 @@ export function PlayerSeasonCoverageCard(props: {
               </HStack>
             )}
           </For>
-          <HStack
-            alignItems="start"
-            p="3"
-            borderWidth="1px"
-            borderColor="border"
-            borderRadius="l2"
-          >
-            <Box
-              color={
-                props.coverage.scoredThisSeason ? "green.fg" : "fg.muted"
-              }
-            >
-              {props.coverage.scoredThisSeason
-                ? <Goal size={19} />
-                : <Shield size={19} />}
+          <HStack alignItems="start" p="3" borderWidth="1px" borderColor="border" borderRadius="l2">
+            <Box color={props.coverage.scoredThisSeason ? "green.fg" : "fg.muted"}>
+              {props.coverage.scoredThisSeason ? <Goal size={19} /> : <Shield size={19} />}
             </Box>
             <VStack alignItems="start" gap="0">
               <Text fontWeight="semibold">Scored this season</Text>

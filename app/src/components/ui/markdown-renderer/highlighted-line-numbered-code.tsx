@@ -1,10 +1,4 @@
-import {
-  createEffect,
-  createSignal,
-  onCleanup,
-  splitProps,
-  type JSX,
-} from "solid-js";
+import { createEffect, createSignal, onCleanup, splitProps, type JSX } from "solid-js";
 import { getShikiHighlightedCode } from "./markdown-code-utils";
 import { LineNumberedCode } from "./line-numbered-code";
 
@@ -13,13 +7,9 @@ type HighlightedLineNumberedCodeProps = JSX.HTMLAttributes<HTMLElement> & {
   codeText: string;
 };
 
-export function HighlightedLineNumberedCode(
-  props: HighlightedLineNumberedCodeProps,
-) {
+export function HighlightedLineNumberedCode(props: HighlightedLineNumberedCodeProps) {
   const [local, rest] = splitProps(props, ["language", "codeText"]);
-  const [highlightedHtml, setHighlightedHtml] = createSignal<string | null>(
-    null,
-  );
+  const [highlightedHtml, setHighlightedHtml] = createSignal<string | null>(null);
 
   createEffect(() => {
     const language = local.language;

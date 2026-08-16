@@ -1,10 +1,5 @@
 import { z } from "zod";
-import {
-  POSITIONS,
-  SEGMENTS,
-  type PositionKey,
-  type SegmentKey,
-} from "./fixed-game";
+import { POSITIONS, SEGMENTS, type PositionKey, type SegmentKey } from "./fixed-game";
 import {
   compareGenerationRanks,
   evaluateGenerationQuality,
@@ -16,12 +11,7 @@ import {
 } from "./schedule-generation-quality";
 import { generateSchedule } from "./schedule-generator";
 import { continuityPositionKeys } from "./schedule-experience-quality";
-import type {
-  Assignment,
-  DefensiveContinuityPolicy,
-  Player,
-  PlayerPreference,
-} from "./schemas";
+import type { Assignment, DefensiveContinuityPolicy, Player, PlayerPreference } from "./schemas";
 
 export const scheduleGenerationTargetSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("all") }),
@@ -42,9 +32,7 @@ export const scheduleGenerationRequestSchema = z.object({
   target: scheduleGenerationTargetSchema,
 });
 
-export type ScheduleGenerationTarget = z.infer<
-  typeof scheduleGenerationTargetSchema
->;
+export type ScheduleGenerationTarget = z.infer<typeof scheduleGenerationTargetSchema>;
 
 export const scheduleGenerationResultSchema = z.object({
   changed: z.boolean(),
@@ -56,9 +44,7 @@ export const scheduleGenerationResultSchema = z.object({
   noChangeReason: z.string().optional(),
 });
 
-export type ScheduleGenerationResult = z.infer<
-  typeof scheduleGenerationResultSchema
->;
+export type ScheduleGenerationResult = z.infer<typeof scheduleGenerationResultSchema>;
 
 type GenerationOptions = {
   players: Player[];
@@ -89,37 +75,30 @@ type SearchState = {
 
 const BEAM_WIDTH = 24;
 
-const stableCompare = (left: string, right: string) =>
-  left < right ? -1 : left > right ? 1 : 0;
+const stableCompare = (left: string, right: string) => (left < right ? -1 : left > right ? 1 : 0);
 
-const cellId = (cell: Cell) =>
-  `${cell.segmentKey}:${cell.positionKey}`;
+const cellId = (cell: Cell) => `${cell.segmentKey}:${cell.positionKey}`;
 
 const cloneAssignments = (assignments: Assignment[]) =>
   assignments.map((assignment) => ({ ...assignment }));
 
-const assignmentAt = (
-  assignments: Assignment[],
-  cell: Cell,
-) => assignments.find(
-  (assignment) =>
-    assignment.segmentKey === cell.segmentKey &&
-    assignment.positionKey === cell.positionKey,
-);
+const assignmentAt = (assignments: Assignment[], cell: Cell) =>
+  assignments.find(
+    (assignment) =>
+      assignment.segmentKey === cell.segmentKey && assignment.positionKey === cell.positionKey,
+  );
 
 const assignmentChanges = (before: Assignment[], after: Assignment[]) => {
-  const ids = new Set([
-    ...before.map(cellId),
-    ...after.map(cellId),
-  ]);
-  return [...ids].filter((id) => {
-    const [segmentKey, positionKey] = id.split(":") as [
-      SegmentKey,
-      PositionKey,
-    ];
-    return assignmentAt(before, { segmentKey, positionKey })?.playerId !==
-      assignmentAt(after, { segmentKey, positionKey })?.playerId;
-  }).sort(stableCompare);
+  const ids = new Set([...before.map(cellId), ...after.map(cellId)]);
+  return [...ids]
+    .filter((id) => {
+      const [segmentKey, positionKey] = id.split(":") as [SegmentKey, PositionKey];
+      return (
+        assignmentAt(before, { segmentKey, positionKey })?.playerId !==
+        assignmentAt(after, { segmentKey, positionKey })?.playerId
+      );
+    })
+    .sort(stableCompare);
 };
 
 const assignmentSignature = (assignments: Assignment[]) =>
@@ -128,17 +107,15 @@ const assignmentSignature = (assignments: Assignment[]) =>
     .map((assignment) => `${cellId(assignment)}=${assignment.playerId}`)
     .join("|");
 
-const lockedAssignmentsPreserved = (
-  before: Assignment[],
-  after: Assignment[],
-) => before.filter((assignment) => assignment.locked).every((locked) => {
-  const next = assignmentAt(after, locked);
-  return next?.playerId === locked.playerId && next.locked;
-});
+const lockedAssignmentsPreserved = (before: Assignment[], after: Assignment[]) =>
+  before
+    .filter((assignment) => assignment.locked)
+    .every((locked) => {
+      const next = assignmentAt(after, locked);
+      return next?.playerId === locked.playerId && next.locked;
+    });
 
-const canonicalPlayerTargetCells = (
-  options: GenerationOptions,
-): Cell[] => {
+const canonicalPlayerTargetCells = (options: GenerationOptions): Cell[] => {
   if (options.target.kind !== "player") return [];
   const targetPlayerId = options.target.playerId;
   const current = options.currentAssignments
@@ -151,7 +128,8 @@ const canonicalPlayerTargetCells = (
         positionKey: position.key,
       };
       return assignmentAt(options.currentAssignments, cell) ? [] : [cell];
-    }));
+    }),
+  );
   if (options.players.length < POSITIONS.length) return [...current, ...empty];
 
   // A canonical full-generation result defines where an absent player may
@@ -166,12 +144,13 @@ const canonicalPlayerTargetCells = (
         generationPriorityRank(evaluateGenerationQuality(left, options)),
         generationPriorityRank(evaluateGenerationQuality(right, options)),
       ),
-  }).filter((assignment) => assignment.playerId === targetPlayerId)
+  })
+    .filter((assignment) => assignment.playerId === targetPlayerId)
     .map(({ segmentKey, positionKey }) => ({ segmentKey, positionKey }));
 
-  return [...new Map(
-    [...current, ...empty, ...suggested].map((cell) => [cellId(cell), cell]),
-  ).values()];
+  return [
+    ...new Map([...current, ...empty, ...suggested].map((cell) => [cellId(cell), cell])).values(),
+  ];
 };
 
 const targetCells = (options: GenerationOptions): Cell[] => {
@@ -180,7 +159,8 @@ const targetCells = (options: GenerationOptions): Cell[] => {
       POSITIONS.map((position) => ({
         segmentKey: segment.key,
         positionKey: position.key,
-      })));
+      })),
+    );
   }
   if (options.target.kind === "segment") {
     const segmentKey = options.target.segmentKey;
@@ -199,14 +179,11 @@ const targetCells = (options: GenerationOptions): Cell[] => {
   return canonicalPlayerTargetCells(options);
 };
 
-const pairedPositionKeys = (
-  policy: DefensiveContinuityPolicy | undefined,
-) => new Set(continuityPositionKeys(policy ?? "goalkeeper-and-defense"));
+const pairedPositionKeys = (policy: DefensiveContinuityPolicy | undefined) =>
+  new Set(continuityPositionKeys(policy ?? "goalkeeper-and-defense"));
 
 const searchUnits = (options: GenerationOptions): SearchUnit[] => {
-  const remaining = new Map(
-    targetCells(options).map((cell) => [cellId(cell), cell]),
-  );
+  const remaining = new Map(targetCells(options).map((cell) => [cellId(cell), cell]));
   const units: SearchUnit[] = [];
   const paired = pairedPositionKeys(options.continuityPolicy);
 
@@ -220,12 +197,11 @@ const searchUnits = (options: GenerationOptions): SearchUnit[] => {
       cells.forEach((cell) => remaining.delete(cellId(cell)));
       const locked = cells
         .map((cell) => assignmentAt(options.currentAssignments, cell))
-        .filter(
-          (assignment): assignment is Assignment => !!assignment?.locked,
-        );
+        .filter((assignment): assignment is Assignment => !!assignment?.locked);
       const lockedIds = new Set(locked.map((assignment) => assignment.playerId));
       const anchorPlayerId = lockedIds.size === 1 ? [...lockedIds][0] : undefined;
-      const anchorFeasible = anchorPlayerId &&
+      const anchorFeasible =
+        anchorPlayerId &&
         options.players.some((player) => player.id === anchorPlayerId) &&
         cells.every((cell) => {
           const target = assignmentAt(options.currentAssignments, cell);
@@ -238,10 +214,10 @@ const searchUnits = (options: GenerationOptions): SearchUnit[] => {
           );
           return !counterpart || (!!target && !counterpart.locked);
         });
-      const searchableCells = locked.length > 0 && !anchorFeasible
-        ? cells.filter((cell) =>
-            !assignmentAt(options.currentAssignments, cell)?.locked)
-        : cells;
+      const searchableCells =
+        locked.length > 0 && !anchorFeasible
+          ? cells.filter((cell) => !assignmentAt(options.currentAssignments, cell)?.locked)
+          : cells;
       if (searchableCells.length > 0) {
         units.push({
           cells: searchableCells,
@@ -251,22 +227,20 @@ const searchUnits = (options: GenerationOptions): SearchUnit[] => {
     }
   }
 
-  units.push(...[...remaining.values()]
-    .sort((left, right) => stableCompare(cellId(left), cellId(right)))
-    .map((cell) => ({
-      cells: [cell],
-      anchorPlayerId: assignmentAt(options.currentAssignments, cell)?.locked
-        ? assignmentAt(options.currentAssignments, cell)?.playerId
-        : undefined,
-    })));
+  units.push(
+    ...[...remaining.values()]
+      .sort((left, right) => stableCompare(cellId(left), cellId(right)))
+      .map((cell) => ({
+        cells: [cell],
+        anchorPlayerId: assignmentAt(options.currentAssignments, cell)?.locked
+          ? assignmentAt(options.currentAssignments, cell)?.playerId
+          : undefined,
+      })),
+  );
   return units;
 };
 
-const assignPlayerToCell = (
-  assignments: Assignment[],
-  cell: Cell,
-  playerId: string,
-) => {
+const assignPlayerToCell = (assignments: Assignment[], cell: Cell, playerId: string) => {
   const target = assignmentAt(assignments, cell);
   if (target?.locked) return target.playerId === playerId;
   if (target?.playerId === playerId) return true;
@@ -299,11 +273,7 @@ const assignPlayerToCell = (
   return true;
 };
 
-const applyUnit = (
-  assignments: Assignment[],
-  unit: SearchUnit,
-  playerId: string,
-) => {
+const applyUnit = (assignments: Assignment[], unit: SearchUnit, playerId: string) => {
   const next = cloneAssignments(assignments);
   for (const cell of unit.cells) {
     if (!assignPlayerToCell(next, cell, playerId)) return undefined;
@@ -334,9 +304,7 @@ const createSearchState = (
 const optimizeTarget = (options: GenerationOptions) => {
   const current = cloneAssignments(options.currentAssignments);
   let beam = [createSearchState(current, current, options)];
-  const orderedPlayerIds = options.players
-    .map((player) => player.id)
-    .sort(stableCompare);
+  const orderedPlayerIds = options.players.map((player) => player.id).sort(stableCompare);
 
   // At most 44 units (three quarter-paired roles plus 32 independent field
   // cells) are searched. Each step expands at most BEAM_WIDTH states by the
@@ -344,9 +312,7 @@ const optimizeTarget = (options: GenerationOptions) => {
   // the full canonical lexicographic rank. This bounds the otherwise enormous
   // 8×7 assignment space while keeping every policy decision explainable.
   for (const unit of searchUnits(options)) {
-    const playerIds = unit.anchorPlayerId
-      ? [unit.anchorPlayerId]
-      : orderedPlayerIds;
+    const playerIds = unit.anchorPlayerId ? [unit.anchorPlayerId] : orderedPlayerIds;
     const candidates = new Map<string, SearchState>();
     for (const state of beam) {
       candidates.set(state.signature, state);
@@ -362,14 +328,10 @@ const optimizeTarget = (options: GenerationOptions) => {
         }
       }
     }
-    beam = [...candidates.values()]
-      .sort(compareSearchStates)
-      .slice(0, BEAM_WIDTH);
+    beam = [...candidates.values()].sort(compareSearchStates).slice(0, BEAM_WIDTH);
   }
 
-  return beam
-    .filter((state) => state.changedCellIds.length > 0)
-    .sort(compareSearchStates)[0];
+  return beam.filter((state) => state.changedCellIds.length > 0).sort(compareSearchStates)[0];
 };
 
 export const generateScheduleTarget = (
@@ -381,12 +343,14 @@ export const generateScheduleTarget = (
   const current = cloneAssignments(options.currentAssignments);
   const beforeQuality = evaluateGenerationQuality(current, options);
   const selected = optimizeTarget(options);
-  const improved = selected && compareGenerationRanks(
-    generationPriorityRank(selected.quality),
-    generationPriorityRank(beforeQuality),
-  ) < 0
-    ? selected
-    : undefined;
+  const improved =
+    selected &&
+    compareGenerationRanks(
+      generationPriorityRank(selected.quality),
+      generationPriorityRank(beforeQuality),
+    ) < 0
+      ? selected
+      : undefined;
 
   if (!improved) {
     const hardErrors = generationHardErrors({

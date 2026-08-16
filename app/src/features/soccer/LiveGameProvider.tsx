@@ -9,10 +9,7 @@ import {
 } from "solid-js";
 import { createStore } from "solid-js/store";
 import type { PositionKey } from "~/lib/soccer/fixed-game";
-import {
-  elapsedLiveSecondsAt,
-  reconstructLiveLineup,
-} from "~/lib/soccer/live-game";
+import { elapsedLiveSecondsAt, reconstructLiveLineup } from "~/lib/soccer/live-game";
 import type { LiveEvent } from "~/lib/soccer/live-event-schemas";
 import { useSoccerData } from "./SoccerDataProvider";
 
@@ -43,22 +40,18 @@ const createLiveGameContext = (gameId: string) => {
     data.snapshot()?.games.find((candidate) => candidate.id === gameId),
   );
   const schedule = createMemo(() =>
-    data.snapshot()?.schedules.find(
-      (candidate) =>
-        candidate.gameId === gameId && candidate.status === "published",
-    ),
+    data
+      .snapshot()
+      ?.schedules.find(
+        (candidate) => candidate.gameId === gameId && candidate.status === "published",
+      ),
   );
   const live = createMemo(() =>
     data.snapshot()?.liveGames.find((candidate) => candidate.gameId === gameId),
   );
   const elapsedSeconds = createMemo(() => {
     const current = live();
-    return current
-      ? elapsedLiveSecondsAt(
-          current,
-          ui.clockTimestamp ?? current.updatedAt,
-        )
-      : 0;
+    return current ? elapsedLiveSecondsAt(current, ui.clockTimestamp ?? current.updatedAt) : 0;
   });
   const lineup = createMemo(() => {
     const published = schedule();
@@ -80,22 +73,13 @@ const createLiveGameContext = (gameId: string) => {
     if (!snapshot) return [];
     const availableIds = new Set(
       snapshot.availability
-        .filter(
-          (item) =>
-            item.gameId === gameId && item.status === "available",
-        )
+        .filter((item) => item.gameId === gameId && item.status === "available")
         .map((item) => item.playerId),
     );
-    return snapshot.players.filter(
-      (player) => player.active && availableIds.has(player.id),
-    );
+    return snapshot.players.filter((player) => player.active && availableIds.has(player.id));
   });
-  const fieldIds = createMemo(
-    () => new Set(Object.values(lineup()).filter(Boolean)),
-  );
-  const bench = createMemo(() =>
-    availablePlayers().filter((player) => !fieldIds().has(player.id)),
-  );
+  const fieldIds = createMemo(() => new Set(Object.values(lineup()).filter(Boolean)));
+  const bench = createMemo(() => availablePlayers().filter((player) => !fieldIds().has(player.id)));
   const player = (playerId?: string) =>
     data.snapshot()?.players.find((candidate) => candidate.id === playerId);
 
@@ -110,10 +94,7 @@ const createLiveGameContext = (gameId: string) => {
     onCleanup(() => window.clearInterval(timer));
   });
 
-  const run = async (
-    action: string,
-    payload: Record<string, unknown> = {},
-  ) => {
+  const run = async (action: string, payload: Record<string, unknown> = {}) => {
     if (ui.pendingAction) return undefined;
     setUi({ pendingAction: action, successMessage: undefined });
     try {
@@ -127,8 +108,7 @@ const createLiveGameContext = (gameId: string) => {
     }
   };
 
-  const selectPosition = (positionKey?: PositionKey) =>
-    setUi("selectedPositionKey", positionKey);
+  const selectPosition = (positionKey?: PositionKey) => setUi("selectedPositionKey", positionKey);
   const substitute = async (playerId: string) => {
     if (!ui.selectedPositionKey) return;
     await run("liveSubstitute", {
@@ -220,16 +200,9 @@ const createLiveGameContext = (gameId: string) => {
   };
 };
 
-export function LiveGameProvider(props: {
-  gameId: string;
-  children: JSX.Element;
-}) {
+export function LiveGameProvider(props: { gameId: string; children: JSX.Element }) {
   const value = createLiveGameContext(untrack(() => props.gameId));
-  return (
-    <LiveGameContext.Provider value={value}>
-      {props.children}
-    </LiveGameContext.Provider>
-  );
+  return <LiveGameContext.Provider value={value}>{props.children}</LiveGameContext.Provider>;
 }
 
 export const useLiveGame = () => {
@@ -241,9 +214,6 @@ export const useLiveGame = () => {
 export type CorrectableLiveEvent = Extract<
   LiveEvent,
   {
-    type:
-      | "bench_replaced_field_player"
-      | "field_players_swapped"
-      | "own_team_goal_scored";
+    type: "bench_replaced_field_player" | "field_players_swapped" | "own_team_goal_scored";
   }
 >;

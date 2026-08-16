@@ -171,7 +171,12 @@ export const ConsoleLogCapturePanelProvider = (props: ConsoleLogCapturePanelProv
 
   const actions: ConsoleLogCapturePanelActions = {
     applyMaxKeep: () => {
-      const next = parseBoundedInt(state.limits.maxKeepInput, consoleLogCaptureMaxEntries(), 1, 10_000);
+      const next = parseBoundedInt(
+        state.limits.maxKeepInput,
+        consoleLogCaptureMaxEntries(),
+        1,
+        10_000,
+      );
       setConsoleLogCaptureMaxEntries(next);
       setState("limits", "maxKeepInput", String(next));
     },
@@ -186,7 +191,11 @@ export const ConsoleLogCapturePanelProvider = (props: ConsoleLogCapturePanelProv
       });
     },
     copyVisibleLogs: () => {
-      const payload = buildVisibleJson(displayedEntries(), state.filters.prefix, state.filters.searchQuery);
+      const payload = buildVisibleJson(
+        displayedEntries(),
+        state.filters.prefix,
+        state.filters.searchQuery,
+      );
       void copyText(payload).then((ok) => {
         if (!ok) return;
         setState("copy", "visible", true);
@@ -248,17 +257,23 @@ export const ConsoleLogCapturePanelProvider = (props: ConsoleLogCapturePanelProv
     visiblePrefixCounts,
   };
 
-  return <ConsoleLogCapturePanelContext.Provider value={value}>{props.children}</ConsoleLogCapturePanelContext.Provider>;
+  return (
+    <ConsoleLogCapturePanelContext.Provider value={value}>
+      {props.children}
+    </ConsoleLogCapturePanelContext.Provider>
+  );
 };
 
 export const useConsoleLogCapturePanel = () => {
   const context = useContext(ConsoleLogCapturePanelContext);
-  if (!context) throw new Error("useConsoleLogCapturePanel must be used inside ConsoleLogCapturePanelProvider");
+  if (!context)
+    throw new Error("useConsoleLogCapturePanel must be used inside ConsoleLogCapturePanelProvider");
   return context;
 };
 
 const entryMatchesQuery = (entry: ConsoleCaptureEntry, query: string) => {
-  const haystack = `${entry.summary}\n${entry.details}\n${entry.prefix ?? ""}\n${entry.level}`.toLowerCase();
+  const haystack =
+    `${entry.summary}\n${entry.details}\n${entry.prefix ?? ""}\n${entry.level}`.toLowerCase();
   return haystack.includes(query);
 };
 
