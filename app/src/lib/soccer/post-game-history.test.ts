@@ -187,12 +187,12 @@ describe("post-game actual history", () => {
     });
 
     expect(playerSummary(result, ids[3])).toMatchObject({
-      fieldSeconds: 180,
-      benchSeconds: 420,
-      positionSeconds: { leftMidfield: 180 },
+      fieldSeconds: 360,
+      benchSeconds: 240,
+      positionSeconds: { leftMidfield: 360 },
     });
     expect(playerSummary(result, ids[7])?.positionSeconds).toEqual({
-      rightForward: 420,
+      rightForward: 240,
     });
   });
 
@@ -376,14 +376,34 @@ describe("post-game actual history", () => {
     });
 
     expect(playerSummary(result, violet)).toMatchObject({
-      fieldSeconds: 660,
-      benchSeconds: 180,
+      fieldSeconds: 840,
+      benchSeconds: 0,
       positionSeconds: {
-        leftMidfield: 180,
+        leftMidfield: 360,
         rightForward: 240,
         rightDefense: 240,
       },
     });
     expect(playerSummary(result, violet)?.goals).toHaveLength(1);
+  });
+
+  it("records all reached quarters at regulation length when completion confirms a full game", () => {
+    eventNumber = 0;
+    const result = deriveActualGameSummary({
+      schedule: schedule(),
+      live: confirmedLive(
+        [
+          event("game_started", 1, 0),
+          event("quarter_advanced", 1, 580, { fromQuarter: 1, toQuarter: 2 }),
+          event("game_started", 2, 0),
+          event("game_completed", 2, 310, { fullRegulation: true }),
+          event("actual_record_confirmed", 2, 310),
+        ],
+        2,
+      ),
+      availablePlayerIds: ids,
+    });
+
+    expect(result).toMatchObject({ status: "confirmed", totalGameSeconds: 1680 });
   });
 });

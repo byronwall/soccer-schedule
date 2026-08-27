@@ -140,10 +140,30 @@ const pause = (live: LiveRecord, actor: LiveActor, stamp: string) => {
   return event;
 };
 
+const advanceSegment = (live: LiveRecord, actor: LiveActor, stamp: string) => {
+  assertGameStarted(live);
+  if (
+    live.events.some((event) => event.quarter === live.quarter && event.type === "segment_advanced")
+  ) {
+    throw new Error("The second seven-minute lineup is already active.");
+  }
+  return appendEvent(live, actor, stamp, {
+    type: "segment_advanced",
+    payload: {},
+  });
+};
+
 const advanceQuarter = (live: LiveRecord, actor: LiveActor, stamp: string) => {
   assertGameStarted(live);
   if (live.quarter === 4) {
     throw new Error('Use "Complete and confirm" after the fourth quarter.');
+  }
+  if (
+    !live.events.some(
+      (event) => event.quarter === live.quarter && event.type === "segment_advanced",
+    )
+  ) {
+    throw new Error("Advance to the second seven-minute lineup first.");
   }
   const fromQuarter = live.quarter;
   const event = appendEvent(live, actor, stamp, {
@@ -261,9 +281,12 @@ const completeAndConfirm = (
   stamp: string,
 ) => {
   assertGameStarted(live);
+  live.accumulatedQuarterSeconds = 840;
+  live.status = "paused";
+  live.runningSince = undefined;
   const completion = appendEvent(live, actor, stamp, {
     type: "game_completed",
-    payload: {},
+    payload: { fullRegulation: true },
   });
   live.accumulatedQuarterSeconds = completion.elapsedGameClockSeconds;
   live.status = "completed";
@@ -307,6 +330,7 @@ export const applyLiveAction = (
   let result: LiveEvent;
   if (action === "liveStart") result = startOrResume(live, actor, stamp);
   else if (action === "livePause") result = pause(live, actor, stamp);
+  else if (action === "liveAdvanceSegment") result = advanceSegment(live, actor, stamp);
   else if (action === "liveAdvanceQuarter") {
     result = advanceQuarter(live, actor, stamp);
   } else if (action === "liveSubstitute") {

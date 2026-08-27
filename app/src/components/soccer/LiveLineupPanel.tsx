@@ -1,7 +1,7 @@
 import { For } from "solid-js";
-import { Badge, Button, Card, Text } from "~/components/ui";
+import { Button, Text } from "~/components/ui";
 import { useLiveGame } from "~/features/soccer/LiveGameProvider";
-import { Grid, HStack, VStack } from "styled-system/jsx";
+import { Box, Grid, VStack } from "styled-system/jsx";
 
 export function LiveLineupPanel() {
   const tracker = useLiveGame();
@@ -9,48 +9,47 @@ export function LiveLineupPanel() {
   const unavailable = () => tracker.live()?.actualHistoryStatus === "legacy_unavailable";
 
   return (
-    <Card.Root>
-      <Card.Header>
-        <Card.Title>Current lineup</Card.Title>
-        <Card.Description>
+    <VStack alignItems="stretch" gap="2">
+      <Box>
+        <Text fontWeight="bold" fontSize="lg">
+          Current lineup
+        </Text>
+        <Text color="fg.muted" textStyle="sm">
           Tap a position to choose a bench replacement or swap with another field position.
-        </Card.Description>
-      </Card.Header>
-      <Card.Body>
-        <Grid gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap="3">
-          <For each={tracker.data.positions()}>
-            {(position) => {
-              const assigned = () => tracker.player(tracker.lineup()[position.key]);
-              return (
-                <Button
-                  variant="outline"
-                  minH="20"
-                  justifyContent="space-between"
-                  disabled={
-                    !!tracker.ui.pendingAction ||
-                    !started() ||
-                    tracker.live()?.status === "completed" ||
-                    unavailable()
-                  }
-                  onClick={() => tracker.selectPosition(position.key)}
-                >
-                  <HStack minW="0">
-                    <Badge>{position.short}</Badge>
-                    <VStack alignItems="start" gap="0" minW="0">
-                      <Text textStyle="xs" color="fg.muted">
-                        {position.label}
-                      </Text>
-                      <Text fontWeight="semibold">
-                        #{assigned()?.jerseyNumber ?? "—"} {assigned()?.displayName}
-                      </Text>
-                    </VStack>
-                  </HStack>
-                </Button>
-              );
-            }}
-          </For>
-        </Grid>
-      </Card.Body>
-    </Card.Root>
+        </Text>
+      </Box>
+      <Grid gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap="2">
+        <For each={tracker.data.positions()}>
+          {(position) => {
+            const assigned = () => tracker.player(tracker.lineup()[position.key]);
+            return (
+              <Button
+                variant="plain"
+                minH="15"
+                px="2"
+                bg="bg.muted"
+                justifyContent="start"
+                disabled={
+                  !!tracker.ui.pendingAction ||
+                  !started() ||
+                  tracker.live()?.status === "completed" ||
+                  unavailable()
+                }
+                onClick={() => tracker.selectPosition(position.key)}
+              >
+                <Grid gridTemplateColumns="3.5rem minmax(0, 1fr)" alignItems="center" width="full">
+                  <Text textStyle="xs" color="fg.muted" fontWeight="bold">
+                    {position.short}
+                  </Text>
+                  <Text fontWeight="semibold" textAlign="left" truncate>
+                    {assigned()?.displayName ?? "Unassigned"}
+                  </Text>
+                </Grid>
+              </Button>
+            );
+          }}
+        </For>
+      </Grid>
+    </VStack>
   );
 }

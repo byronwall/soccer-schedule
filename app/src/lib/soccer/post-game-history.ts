@@ -60,6 +60,7 @@ const mutationEventsThrough = (events: IndexedEvent[], quarter: number, seconds:
   events.filter(
     ({ event }) =>
       event.quarter === quarter &&
+      event.elapsedGameClockSeconds >= (seconds < 420 ? 0 : 420) &&
       event.elapsedGameClockSeconds <= seconds &&
       (event.type === "bench_replaced_field_player" ||
         event.type === "field_players_swapped" ||
@@ -99,6 +100,12 @@ const confirmedBoundary = (events: LiveEvent[]) => {
 };
 
 const quarterEnds = (events: LiveEvent[], completion: LiveEvent) => {
+  if (completion.type === "game_completed" && completion.payload.fullRegulation) {
+    return Array.from({ length: completion.quarter }, (_, index): [number, number] => [
+      index + 1,
+      840,
+    ]);
+  }
   const ends = new Map<number, number>();
   for (const event of events) {
     if (event.type === "quarter_advanced") {

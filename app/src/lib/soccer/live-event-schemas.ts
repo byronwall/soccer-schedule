@@ -39,6 +39,10 @@ const liveEventSchemas = [
     }),
   }),
   eventMetadataSchema.extend({
+    type: z.literal("segment_advanced"),
+    payload: z.object({}),
+  }),
+  eventMetadataSchema.extend({
     type: z.literal("bench_replaced_field_player"),
     payload: z.object({
       positionKey: positionKeySchema,
@@ -68,7 +72,9 @@ const liveEventSchemas = [
   }),
   eventMetadataSchema.extend({
     type: z.literal("game_completed"),
-    payload: z.object({}),
+    payload: z.object({
+      fullRegulation: z.boolean().optional(),
+    }),
   }),
   eventMetadataSchema.extend({
     type: z.literal("actual_record_confirmed"),

@@ -5,6 +5,7 @@ import { SEGMENTS, type Position } from "~/lib/soccer/fixed-game";
 import type { Player, PlayerPreference, PositionDisposition, Schedule } from "~/lib/soccer/schemas";
 import { playerPreferenceLookup, positionDisposition } from "~/lib/soccer/player-preferences";
 import { lockStateForAssignments } from "~/lib/soccer/schedule-readiness";
+import { playerFirstName } from "~/lib/soccer/player-display-name";
 import { Box, Grid, HStack, VStack } from "styled-system/jsx";
 import { ScheduleGroupLockButton } from "./ScheduleGroupLockButton";
 import { ScheduleGroupClearButton } from "./ScheduleGroupClearButton";
@@ -79,7 +80,7 @@ export function PlayerScheduleGrid(props: {
                       style={{ "background-color": player.color }}
                     />
                     <Text textStyle="xs" fontWeight="medium" truncate>
-                      #{player.jerseyNumber ?? "—"} {player.displayName}
+                      {playerFirstName(player.displayName)}
                     </Text>
                   </HStack>
                   <HStack gap="0">

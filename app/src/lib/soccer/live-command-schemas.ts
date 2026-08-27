@@ -26,6 +26,7 @@ export const liveVoidCommandSchema = liveBaseCommandSchema.extend({
 export const liveCommandSchemas = {
   liveStart: liveBaseCommandSchema,
   livePause: liveBaseCommandSchema,
+  liveAdvanceSegment: liveBaseCommandSchema,
   liveAdvanceQuarter: liveBaseCommandSchema,
   liveSubstitute: liveSubstituteCommandSchema,
   liveSwapPositions: liveSwapCommandSchema,

@@ -5,6 +5,7 @@ import type { Player } from "~/lib/soccer/schemas";
 import type { SegmentKey } from "~/lib/soccer/fixed-game";
 import type { PositionDisposition } from "~/lib/soccer/schemas";
 import { assignmentCellVisualStyle } from "~/lib/soccer/schedule-cell-visuals";
+import { playerFirstName } from "~/lib/soccer/player-display-name";
 import { Box, HStack, VStack } from "styled-system/jsx";
 
 type DragCellProps = {
@@ -163,10 +164,7 @@ function PlayerCellContent(props: {
               minW="0"
               style={{ "text-decoration": props.inactive ? "line-through" : undefined }}
             >
-              {player().displayName.split(" ")[0]}
-            </Text>
-            <Text textStyle="xs" color="fg.muted" flexShrink="0">
-              #{player().jerseyNumber ?? "—"}
+              {playerFirstName(player().displayName)}
             </Text>
           </HStack>
           <HStack minH="3" gap="1" justifyContent="center" color="fg.muted">

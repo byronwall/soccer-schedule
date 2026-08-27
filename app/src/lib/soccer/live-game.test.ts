@@ -232,6 +232,7 @@ describe("minimal live-game event ledger", () => {
       positionKey: "goalkeeper",
       playerId: players[7].id,
     });
+    run(store, "liveAdvanceSegment", gameId, stampAt(420));
     run(store, "liveAdvanceQuarter", gameId, stampAt(840));
     const live = store.liveGames[0];
     const lineup = reconstructLiveLineup(published, live, stampAt(840));
@@ -247,9 +248,35 @@ describe("minimal live-game event ledger", () => {
     expect(live.events.map((event) => event.type)).toEqual([
       "game_started",
       "bench_replaced_field_player",
+      "segment_advanced",
       "quarter_advanced",
     ]);
     expect(lineup.goalkeeper).toBe(q2Goalkeeper);
+  });
+
+  it("changes the published lineup only when the coach advances the segment", () => {
+    const { store, gameId } = createStore();
+    const published = store.schedules[0];
+    run(store, "liveStart", gameId, startStamp);
+
+    const firstLineup = reconstructLiveLineup(published, store.liveGames[0], stampAt(600));
+    run(store, "liveAdvanceSegment", gameId, stampAt(600));
+    const secondLineup = reconstructLiveLineup(published, store.liveGames[0], stampAt(600));
+
+    expect(firstLineup).toEqual(
+      Object.fromEntries(
+        published.assignments
+          .filter((assignment) => assignment.segmentKey === "q1a")
+          .map((assignment) => [assignment.positionKey, assignment.playerId]),
+      ),
+    );
+    expect(secondLineup).toEqual(
+      Object.fromEntries(
+        published.assignments
+          .filter((assignment) => assignment.segmentKey === "q1b")
+          .map((assignment) => [assignment.positionKey, assignment.playerId]),
+      ),
+    );
   });
 
   it("voids a mistaken event and recomputes, then records a durable lineup reset", () => {

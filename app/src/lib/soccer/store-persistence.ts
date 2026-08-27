@@ -16,6 +16,7 @@ const dataRoot = () =>
 const storePath = () => path.join(dataRoot(), "soccer", "store.json");
 const lockPath = () => path.join(path.dirname(storePath()), "store.lock");
 let queue = Promise.resolve();
+const LEGACY_DEFAULT_TEAM_NAME = "Indy United U12";
 
 const ensureScheduledGameDrafts = (store: SoccerStore, stamp: string) => {
   const currentScheduleGameIds = new Set(
@@ -83,7 +84,7 @@ const createSeedStore = (): SoccerStore => {
   const assignments = generateSchedule(players);
   return soccerStoreSchema.parse({
     schemaVersion: 6,
-    teamDisplayName: "Indy United U12",
+    teamDisplayName: "Mystics",
     seasonName: "Fall 2026",
     positionLabels: { ...DEFAULT_POSITION_LABELS },
     players,
@@ -125,10 +126,14 @@ export const readStore = async () => {
     };
     const store = migrateSoccerStore(persisted);
     const stamp = new Date().toISOString();
+    const repairedTeamName = store.teamDisplayName === LEGACY_DEFAULT_TEAM_NAME;
+    if (repairedTeamName) store.teamDisplayName = "Mystics";
     ensurePlayerPreferences(store, stamp);
     ensureActivePlayerAvailability(store, stamp);
     const repairedSchedules = ensureScheduledGameDrafts(store, stamp);
-    if (persisted.schemaVersion !== 6 || repairedSchedules) await persistStore(store);
+    if (persisted.schemaVersion !== 6 || repairedTeamName || repairedSchedules) {
+      await persistStore(store);
+    }
     return store;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;

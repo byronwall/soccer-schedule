@@ -4,6 +4,14 @@ This file records user-visible changes, important development workflow changes, 
 
 ## Unreleased
 
+- Game mode now exposes each planned seven-minute lineup independently from its
+  reference timer, assumes the published positions were played unless a coach
+  records a change, records full 14-minute quarters, and ends from the
+  fourth-quarter clock controls. It also uses a compact lineup, leads swap
+  choices with player names, and records scorers with direct short-name
+  buttons. Schedule views now show first names without jersey numbers. New data
+  uses Mystics as the team name, and stores that retain the old default team
+  name update automatically.
 - Scheduled games that lack an initial schedule now recover a persistent blank
   draft automatically, so the editor shows its assignment grid instead of an
   unusable empty state.

@@ -59,12 +59,17 @@ export const reconstructLiveLineup = (
     LiveState,
     "quarter" | "accumulatedQuarterSeconds" | "runningSince" | "status" | "events"
   >,
-  timestamp = new Date().toISOString(),
+  _timestamp = new Date().toISOString(),
 ) => {
-  const elapsedSeconds = elapsedLiveSecondsAt(live, timestamp);
-  const segmentKey = segmentKeyForLiveState(live.quarter, elapsedSeconds);
+  const quarterEvents = activeLiveEvents(live.events).filter(
+    (event) => event.quarter === live.quarter,
+  );
+  const segmentAdvanceIndex = quarterEvents.findLastIndex(
+    (event) => event.type === "segment_advanced",
+  );
+  const segmentKey = segmentKeyForLiveState(live.quarter, segmentAdvanceIndex >= 0 ? 420 : 0);
   let lineup = plannedLineup(schedule, segmentKey);
-  const events = activeLiveEvents(live.events).filter((event) => event.quarter === live.quarter);
+  const events = quarterEvents.slice(segmentAdvanceIndex + 1);
 
   for (const event of events) {
     if (event.type === "quarter_advanced") {

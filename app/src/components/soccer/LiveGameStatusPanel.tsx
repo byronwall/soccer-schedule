@@ -1,5 +1,5 @@
 import { For, Show } from "solid-js";
-import { CircleDot, Pause, Play, RefreshCw, RotateCcw, SkipForward } from "lucide-solid";
+import { CircleDot, Flag, Pause, Play, RefreshCw, RotateCcw, SkipForward } from "lucide-solid";
 import { Badge, Button, Card, Text } from "~/components/ui";
 import { useLiveGame } from "~/features/soccer/LiveGameProvider";
 import { Box, HStack, VStack } from "styled-system/jsx";
@@ -13,6 +13,11 @@ function LiveClockCard() {
   const completed = () => tracker.live()?.status === "completed";
   const status = () => tracker.live()?.status;
   const quarter = () => tracker.live()?.quarter ?? 1;
+  const secondSegment = () =>
+    tracker
+      .live()
+      ?.events.some((event) => event.quarter === quarter() && event.type === "segment_advanced") ??
+    false;
   const revision = () => tracker.live()?.revision ?? 0;
   const confirmed = () => tracker.live()?.actualHistoryStatus === "confirmed";
   const unavailable = () => tracker.live()?.actualHistoryStatus === "legacy_unavailable";
@@ -34,6 +39,9 @@ function LiveClockCard() {
         <VStack py="3">
           <HStack flexWrap="wrap" justifyContent="center">
             <Badge>Quarter {quarter()}</Badge>
+            <Badge colorPalette={secondSegment() ? "blue" : "gray"}>
+              {secondSegment() ? "Second 7 min" : "First 7 min"}
+            </Badge>
             <Badge colorPalette={trustPalette()}>{trustLabel()}</Badge>
           </HStack>
           <Box fontSize="6xl" lineHeight="1" fontWeight="bold" fontVariantNumeric="tabular-nums">
@@ -59,13 +67,39 @@ function LiveClockCard() {
                 <Pause /> Pause
               </Button>
             </Show>
-            <Button
-              variant="outline"
-              disabled={pending() || !started() || completed() || unavailable() || quarter() === 4}
-              onClick={() => void tracker.run("liveAdvanceQuarter")}
+            <Show
+              when={secondSegment()}
+              fallback={
+                <Button
+                  variant="outline"
+                  disabled={pending() || !started() || completed() || unavailable()}
+                  onClick={() => void tracker.run("liveAdvanceSegment")}
+                >
+                  <SkipForward /> Show second lineup
+                </Button>
+              }
             >
-              <SkipForward /> Next quarter
-            </Button>
+              <Show
+                when={quarter() === 4}
+                fallback={
+                  <Button
+                    variant="outline"
+                    disabled={pending() || !started() || completed() || unavailable()}
+                    onClick={() => void tracker.run("liveAdvanceQuarter")}
+                  >
+                    <SkipForward /> Next quarter
+                  </Button>
+                }
+              >
+                <Button
+                  colorPalette="orange"
+                  disabled={pending() || !started() || completed() || unavailable()}
+                  onClick={() => tracker.setCompletionOpen(true)}
+                >
+                  <Flag /> End game
+                </Button>
+              </Show>
+            </Show>
           </HStack>
         </VStack>
       </Card.Body>
@@ -120,8 +154,8 @@ function LivePrimaryActions() {
         <RotateCcw size={16} /> Reset to published plan
       </Button>
       <Text textStyle="xs" color="fg.muted">
-        Advancing a quarter keeps every event and loads that quarter’s published lineup. Resetting
-        also adds an event; it never erases history.
+        The timer is a reference. Lineups follow the published 0–7 and 7–14 minute plan unless you
+        record a change. Completing records a full 14 minutes per quarter.
       </Text>
       <Button variant="plain" disabled={pending()} onClick={() => void tracker.data.refresh()}>
         <RefreshCw size={16} /> Refresh now

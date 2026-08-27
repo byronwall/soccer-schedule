@@ -24,6 +24,7 @@ export function LiveEventList() {
     if (event.type === "quarter_advanced") {
       return `Advanced to quarter ${event.payload.toQuarter}`;
     }
+    if (event.type === "segment_advanced") return "Advanced to second seven-minute lineup";
     if (event.type === "bench_replaced_field_player") {
       return `${playerName(event.payload.incomingPlayerId)} replaced ${playerName(event.payload.outgoingPlayerId)} at ${positionName(event.payload.positionKey)}`;
     }

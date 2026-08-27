@@ -3,6 +3,7 @@ import { Lock } from "lucide-solid";
 import { Button, SimpleDialog } from "~/components/ui";
 import type { PositionKey, SegmentKey } from "~/lib/soccer/fixed-game";
 import type { Assignment, Player, Schedule } from "~/lib/soccer/schemas";
+import { playerFirstName } from "~/lib/soccer/player-display-name";
 import { Grid } from "styled-system/jsx";
 
 type ScheduleAssignmentDialogProps = {
@@ -60,12 +61,12 @@ export function ScheduleAssignmentDialog(props: ScheduleAssignmentDialogProps) {
               when={selectedPlayerId() === player.id}
               fallback={
                 <Button variant="outline" onClick={() => props.onReplace(player.id)}>
-                  #{player.jerseyNumber ?? "—"} {player.displayName}
+                  {playerFirstName(player.displayName)}
                 </Button>
               }
             >
               <Button onClick={() => props.onReplace(player.id)}>
-                #{player.jerseyNumber ?? "—"} {player.displayName}
+                {playerFirstName(player.displayName)}
               </Button>
             </Show>
           )}

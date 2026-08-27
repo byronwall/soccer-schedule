@@ -4,6 +4,7 @@ import { Button, Card, Text } from "~/components/ui";
 import { useSoccerData } from "~/features/soccer/SoccerDataProvider";
 import { TOTAL_ASSIGNMENTS } from "~/lib/soccer/fixed-game";
 import type { Game } from "~/lib/soccer/schemas";
+import { playerFirstName } from "~/lib/soccer/player-display-name";
 import { Box, Grid, HStack, VStack } from "styled-system/jsx";
 
 export function ScheduledGamePlanningDetails(props: { game: Game }) {
@@ -64,16 +65,12 @@ export function ScheduledGamePlanningDetails(props: { game: Game }) {
                   >
                     <HStack>
                       <Box
-                        boxSize="9"
-                        display="grid"
-                        placeItems="center"
+                        boxSize="2.5"
                         borderRadius="full"
-                        bg="bg.muted"
-                        fontWeight="bold"
-                      >
-                        {player.jerseyNumber ?? "—"}
-                      </Box>
-                      <Text fontWeight="medium">{player.displayName}</Text>
+                        flexShrink="0"
+                        style={{ "background-color": player.color }}
+                      />
+                      <Text fontWeight="medium">{playerFirstName(player.displayName)}</Text>
                     </HStack>
                     <HStack gap="1">
                       <For each={["available", "unavailable", "unknown"] as const}>

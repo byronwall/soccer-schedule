@@ -1,13 +1,19 @@
-import { For } from "solid-js";
-import { Button, SimpleDialog, SimpleSelect } from "~/components/ui";
+import { createMemo, For } from "solid-js";
+import { Button, SimpleDialog, Text } from "~/components/ui";
 import { useLiveGame } from "~/features/soccer/LiveGameProvider";
-import { HStack, VStack } from "styled-system/jsx";
+import { compactPlayerNameMap } from "~/lib/soccer/player-display-name";
+import { Grid, HStack, VStack } from "styled-system/jsx";
 
 export function LiveTrackerDialogs() {
   const tracker = useLiveGame();
   const pending = () => !!tracker.ui.pendingAction;
   const currentPosition = () =>
     tracker.data.positions().find((position) => position.key === tracker.ui.selectedPositionKey);
+  const currentPlayer = () => {
+    const positionKey = tracker.ui.selectedPositionKey;
+    return positionKey ? tracker.player(tracker.lineup()[positionKey]) : undefined;
+  };
+  const scorerLabels = createMemo(() => compactPlayerNameMap(tracker.availablePlayers()));
 
   return (
     <>
@@ -15,38 +21,51 @@ export function LiveTrackerDialogs() {
         open={!!tracker.ui.selectedPositionKey}
         onOpenChange={(open) => !open && tracker.selectPosition(undefined)}
         title={`Change ${currentPosition()?.label ?? "position"}`}
-        description="Choose a bench player to replace this field player, or swap with another field position."
+        description={`Choose who replaces ${currentPlayer()?.displayName ?? "this player"}, or choose another field player to swap positions.`}
         skipPortal
       >
         <VStack alignItems="stretch" gap="4">
           <strong>Replace from bench</strong>
-          <For each={tracker.bench()}>
-            {(player) => (
-              <Button
-                variant="outline"
-                disabled={pending()}
-                onClick={() => void tracker.substitute(player.id)}
-              >
-                #{player.jerseyNumber ?? "—"} {player.displayName}
-              </Button>
-            )}
-          </For>
-          <strong>Swap field positions</strong>
-          <For
-            each={tracker.data
-              .positions()
-              .filter((position) => position.key !== tracker.ui.selectedPositionKey)}
-          >
-            {(position) => (
-              <Button
-                variant="outline"
-                disabled={pending()}
-                onClick={() => void tracker.swap(position.key)}
-              >
-                Swap with {position.label}
-              </Button>
-            )}
-          </For>
+          <Grid gridTemplateColumns={{ base: "1fr", sm: "repeat(2, minmax(0, 1fr))" }} gap="2">
+            <For each={tracker.bench()}>
+              {(player) => (
+                <Button
+                  variant="outline"
+                  disabled={pending()}
+                  onClick={() => void tracker.substitute(player.id)}
+                >
+                  {player.displayName}
+                </Button>
+              )}
+            </For>
+          </Grid>
+          <strong>Swap with field player</strong>
+          <Grid gridTemplateColumns={{ base: "1fr", sm: "repeat(2, minmax(0, 1fr))" }} gap="2">
+            <For
+              each={tracker.data
+                .positions()
+                .filter((position) => position.key !== tracker.ui.selectedPositionKey)}
+            >
+              {(position) => {
+                const player = () => tracker.player(tracker.lineup()[position.key]);
+                return (
+                  <Button
+                    variant="outline"
+                    minH="14"
+                    disabled={pending()}
+                    onClick={() => void tracker.swap(position.key)}
+                  >
+                    <VStack gap="0">
+                      <Text fontWeight="semibold">{player()?.displayName ?? "Unassigned"}</Text>
+                      <Text textStyle="xs" color="fg.muted">
+                        {position.label}
+                      </Text>
+                    </VStack>
+                  </Button>
+                );
+              }}
+            </For>
+          </Grid>
         </VStack>
       </SimpleDialog>
 
@@ -58,16 +77,31 @@ export function LiveTrackerDialogs() {
         skipPortal
       >
         <VStack alignItems="stretch" gap="4">
-          <SimpleSelect
-            label="Scorer"
-            placeholder="Choose player"
-            value={tracker.ui.goalPlayerId}
-            onChange={tracker.setGoalPlayerId}
-            items={tracker.availablePlayers().map((player) => ({
-              value: player.id,
-              label: `#${player.jerseyNumber ?? "—"} ${player.displayName}`,
-            }))}
-          />
+          <Grid
+            gridTemplateColumns={{
+              base: "repeat(2, minmax(0, 1fr))",
+              sm: "repeat(3, minmax(0, 1fr))",
+            }}
+            gap="2"
+            role="group"
+            aria-label="Scorer"
+          >
+            <For each={tracker.availablePlayers()}>
+              {(player) => {
+                const selected = () => tracker.ui.goalPlayerId === player.id;
+                return (
+                  <Button
+                    variant={selected() ? "solid" : "outline"}
+                    aria-pressed={selected()}
+                    disabled={pending()}
+                    onClick={() => tracker.setGoalPlayerId(player.id)}
+                  >
+                    {scorerLabels().get(player.id)}
+                  </Button>
+                );
+              }}
+            </For>
+          </Grid>
           <Button
             size="lg"
             disabled={!tracker.ui.goalPlayerId || pending()}
@@ -99,7 +133,7 @@ export function LiveTrackerDialogs() {
         open={tracker.ui.completionOpen}
         onOpenChange={tracker.setCompletionOpen}
         title="Complete and confirm?"
-        description="This permanently marks the event ledger as trusted actual history. Check recent events and correct mistakes first."
+        description="This records all four quarters as 14 minutes, applies each published lineup change at 7:00, and permanently confirms the ledger. Check recent events first."
         skipPortal
       >
         <HStack justifyContent="flex-end">
