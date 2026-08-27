@@ -17,6 +17,33 @@ const storePath = () => path.join(dataRoot(), "soccer", "store.json");
 const lockPath = () => path.join(path.dirname(storePath()), "store.lock");
 let queue = Promise.resolve();
 
+const ensureScheduledGameDrafts = (store: SoccerStore, stamp: string) => {
+  const currentScheduleGameIds = new Set(
+    store.schedules
+      .filter((schedule) => schedule.status !== "superseded")
+      .map((schedule) => schedule.gameId),
+  );
+  const missingGameIds = store.games
+    .filter((game) => game.status === "scheduled" && !currentScheduleGameIds.has(game.id))
+    .map((game) => game.id);
+
+  store.schedules.push(
+    ...missingGameIds.map((gameId) => ({
+      id: randomUUID(),
+      gameId,
+      revision: 1,
+      status: "draft" as const,
+      assignments: [],
+      history: [],
+      future: [],
+      generatedAt: stamp,
+      updatedAt: stamp,
+    })),
+  );
+
+  return missingGameIds.length > 0;
+};
+
 const seedPlayers = [
   ["Avery Bennett", "4"],
   ["Maya Brooks", "7"],
@@ -97,9 +124,11 @@ export const readStore = async () => {
       schemaVersion?: unknown;
     };
     const store = migrateSoccerStore(persisted);
-    ensurePlayerPreferences(store, new Date().toISOString());
-    ensureActivePlayerAvailability(store, new Date().toISOString());
-    if (persisted.schemaVersion !== 6) await persistStore(store);
+    const stamp = new Date().toISOString();
+    ensurePlayerPreferences(store, stamp);
+    ensureActivePlayerAvailability(store, stamp);
+    const repairedSchedules = ensureScheduledGameDrafts(store, stamp);
+    if (persisted.schemaVersion !== 6 || repairedSchedules) await persistStore(store);
     return store;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;

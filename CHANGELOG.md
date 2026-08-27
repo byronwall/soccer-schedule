@@ -4,6 +4,9 @@ This file records user-visible changes, important development workflow changes, 
 
 ## Unreleased
 
+- Scheduled games that lack an initial schedule now recover a persistent blank
+  draft automatically, so the editor shows its assignment grid instead of an
+  unusable empty state.
 - Added pinned Prettier checks, a staged-content pre-commit hook, and agent guidance for consistent formatting.
 - Removed the unused internal component-explorer routes and their prerender entries.
 - The schedule editor now keeps Clear all and Remove all locks directly in the
