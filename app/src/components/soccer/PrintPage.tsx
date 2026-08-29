@@ -110,7 +110,6 @@ export function PrintPage() {
                                 fontSize="xs"
                               >
                                 <Box fontWeight="bold">{person()?.displayName.split(" ")[0]}</Box>
-                                <Box>#{person()?.jerseyNumber ?? "—"}</Box>
                               </Box>
                             );
                           }}
@@ -137,11 +136,7 @@ export function PrintPage() {
                           fontSize="xs"
                         >
                           <For each={bench(segment.key)}>
-                            {(person) => (
-                              <Box>
-                                {person.displayName.split(" ")[0]} #{person.jerseyNumber ?? "—"}
-                              </Box>
-                            )}
+                            {(person) => <Box>{person.displayName.split(" ")[0]}</Box>}
                           </For>
                         </Box>
                       )}
