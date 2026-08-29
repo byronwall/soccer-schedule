@@ -1,7 +1,7 @@
 import { randomInt, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { DEFAULT_POSITION_LABELS } from "./fixed-game";
+import { DEFAULT_POSITION_COORDINATES, DEFAULT_POSITION_LABELS } from "./fixed-game";
 import { pickPlayerColor } from "./player-colors";
 import { createDefaultPlayerPreference, ensurePlayerPreferences } from "./player-preferences";
 import { generateSchedule } from "./scheduling";
@@ -83,10 +83,11 @@ const createSeedStore = (): SoccerStore => {
   };
   const assignments = generateSchedule(players);
   return soccerStoreSchema.parse({
-    schemaVersion: 6,
+    schemaVersion: 7,
     teamDisplayName: "Mystics",
     seasonName: "Fall 2026",
     positionLabels: { ...DEFAULT_POSITION_LABELS },
+    positionCoordinates: { ...DEFAULT_POSITION_COORDINATES },
     players,
     games: [game],
     availability: players.map((player) => ({
@@ -131,7 +132,7 @@ export const readStore = async () => {
     ensurePlayerPreferences(store, stamp);
     ensureActivePlayerAvailability(store, stamp);
     const repairedSchedules = ensureScheduledGameDrafts(store, stamp);
-    if (persisted.schemaVersion !== 6 || repairedTeamName || repairedSchedules) {
+    if (persisted.schemaVersion !== 7 || repairedTeamName || repairedSchedules) {
       await persistStore(store);
     }
     return store;

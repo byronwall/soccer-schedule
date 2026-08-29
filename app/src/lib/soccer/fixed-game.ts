@@ -16,10 +16,22 @@ export const POSITIONS = [
 
 export type PositionKey = (typeof POSITIONS)[number]["key"];
 export type PositionLabels = Record<PositionKey, string>;
+export type FieldCoordinate = { x: number; y: number };
+export type PositionCoordinates = Record<PositionKey, FieldCoordinate>;
 
 export const DEFAULT_POSITION_LABELS: PositionLabels = Object.fromEntries(
   POSITIONS.map((position) => [position.key, position.label]),
 ) as PositionLabels;
+
+export const DEFAULT_POSITION_COORDINATES: PositionCoordinates = {
+  goalkeeper: { x: 0.12, y: 0.5 },
+  leftDefense: { x: 0.32, y: 0.3 },
+  rightDefense: { x: 0.32, y: 0.7 },
+  leftMidfield: { x: 0.56, y: 0.28 },
+  rightMidfield: { x: 0.56, y: 0.72 },
+  leftForward: { x: 0.8, y: 0.35 },
+  rightForward: { x: 0.8, y: 0.65 },
+};
 
 export const resolvePositions = (labels: PositionLabels) =>
   POSITIONS.map((position) => ({ ...position, label: labels[position.key] }));

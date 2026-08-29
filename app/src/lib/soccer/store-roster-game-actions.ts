@@ -8,6 +8,7 @@ import {
   availabilityStatusSchema,
   gameStatusSchema,
   playerPreferenceSchema,
+  positionCoordinatesSchema,
   positionLabelsSchema,
   type Game,
 } from "./schemas";
@@ -39,6 +40,10 @@ const createGameFromPayload = (payload: ActionPayload, stamp: string): Game => (
 });
 
 export const rosterAndGameActionHandlers: Record<string, StoreActionHandler> = {
+  updatePositionSettings: (store, payload) => {
+    store.positionLabels = positionLabelsSchema.parse(payload.positionLabels);
+    store.positionCoordinates = positionCoordinatesSchema.parse(payload.positionCoordinates);
+  },
   updatePositionLabels: (store, payload) => {
     store.positionLabels = positionLabelsSchema.parse(payload.positionLabels);
   },

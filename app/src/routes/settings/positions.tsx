@@ -5,7 +5,7 @@ import { PositionSettingsPage } from "~/components/soccer/PositionSettingsPage";
 export default function PositionSettingsRoute() {
   return (
     <SoccerPage>
-      <Title>Position names · Coach Companion</Title>
+      <Title>Positions · Coach Companion</Title>
       <PositionSettingsPage />
     </SoccerPage>
   );

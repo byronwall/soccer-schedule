@@ -61,7 +61,7 @@ describe("player scheduling preferences", () => {
     const second = migrateSoccerStore(v2);
 
     expect(first).toEqual(second);
-    expect(first.schemaVersion).toBe(6);
+    expect(first.schemaVersion).toBe(7);
     expect(first).not.toHaveProperty("defensiveContinuityDefault");
     expect(first.playerPreferences).toEqual({
       schemaVersion: 1,
@@ -89,7 +89,7 @@ describe("player scheduling preferences", () => {
       },
     });
 
-    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.schemaVersion).toBe(7);
     expect(migrated).not.toHaveProperty("defensiveContinuityDefault");
   });
 

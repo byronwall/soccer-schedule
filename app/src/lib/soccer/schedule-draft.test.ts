@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { POSITIONS, SEGMENTS } from "./fixed-game";
+import { DEFAULT_POSITION_COORDINATES, POSITIONS, SEGMENTS } from "./fixed-game";
 import { generateSchedule, repairSchedule, replaceAssignment } from "./scheduling";
 import { generateScheduleTarget } from "./schedule-targeted-generation";
 import { lockStateForAssignments, scheduleReadiness } from "./schedule-readiness";
@@ -29,7 +29,7 @@ const players: Player[] = ids.slice(0, 8).map((id, index) => ({
 
 const storeWithAssignments = (assignments: Assignment[]): SoccerStore =>
   soccerStoreSchema.parse({
-    schemaVersion: 6,
+    schemaVersion: 7,
     teamDisplayName: "Test Team",
     seasonName: "Test Season",
     positionLabels: {
@@ -508,7 +508,8 @@ describe("partial schedule drafts", () => {
       defensiveContinuityDefault: "goalkeeper-only",
     };
     const migrated = migrateSoccerStore(legacy);
-    expect(migrated.schemaVersion).toBe(6);
+    expect(migrated.schemaVersion).toBe(7);
+    expect(migrated.positionCoordinates).toEqual(DEFAULT_POSITION_COORDINATES);
     expect(migrated.schedules[0].assignments).toEqual(complete);
     expect(migrated.schedules[0].assignments).toHaveLength(POSITIONS.length * SEGMENTS.length);
   });

@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { DEFAULT_POSITION_LABELS, POSITIONS, SEGMENTS } from "./fixed-game";
+import {
+  DEFAULT_POSITION_COORDINATES,
+  DEFAULT_POSITION_LABELS,
+  POSITIONS,
+  SEGMENTS,
+} from "./fixed-game";
 import { legacyLiveStateSchema, liveStateSchema, type LiveState } from "./live-event-schemas";
 
 export { liveStateSchema } from "./live-event-schemas";
@@ -86,6 +91,19 @@ export const positionLabelsSchema = z.object({
   leftForward: z.string().trim().min(1).max(40),
   rightForward: z.string().trim().min(1).max(40),
 });
+const fieldCoordinateSchema = z.object({
+  x: z.number().min(0).max(1),
+  y: z.number().min(0).max(1),
+});
+export const positionCoordinatesSchema = z.object({
+  goalkeeper: fieldCoordinateSchema,
+  leftDefense: fieldCoordinateSchema,
+  rightDefense: fieldCoordinateSchema,
+  leftMidfield: fieldCoordinateSchema,
+  rightMidfield: fieldCoordinateSchema,
+  leftForward: fieldCoordinateSchema,
+  rightForward: fieldCoordinateSchema,
+});
 export const positionDispositionSchema = z.enum(["prefer", "neutral", "avoid"]);
 export const positionDispositionsSchema = z.object({
   goalkeeper: positionDispositionSchema,
@@ -142,12 +160,22 @@ export const soccerStoreV5Schema = z.object({
   playerPreferences: playerPreferencesSchema,
   defensiveContinuityDefault: defensiveContinuityPolicySchema,
 });
-export const soccerStoreSchema = z.object({
+export const soccerStoreV6Schema = z.object({
   schemaVersion: z.literal(6),
   ...legacySoccerStoreFields,
   games: z.array(gameSchema),
   liveGames: z.array(liveStateSchema),
   playerPreferences: playerPreferencesSchema,
+});
+export const soccerStoreSchema = z.object({
+  schemaVersion: z.literal(7),
+  ...legacySoccerStoreFields,
+  games: z.array(gameSchema),
+  liveGames: z.array(liveStateSchema),
+  playerPreferences: playerPreferencesSchema,
+  positionCoordinates: positionCoordinatesSchema.default(() => ({
+    ...DEFAULT_POSITION_COORDINATES,
+  })),
 });
 export type Player = z.infer<typeof playerSchema>;
 export type Game = z.infer<typeof gameSchema>;
@@ -157,6 +185,7 @@ export type Assignment = z.infer<typeof assignmentSchema>;
 export type Schedule = z.infer<typeof scheduleSchema>;
 export type { LiveState };
 export type PositionLabels = z.infer<typeof positionLabelsSchema>;
+export type PositionCoordinates = z.infer<typeof positionCoordinatesSchema>;
 export type PositionDisposition = z.infer<typeof positionDispositionSchema>;
 export type PositionDispositions = z.infer<typeof positionDispositionsSchema>;
 export type FieldTimePreference = z.infer<typeof fieldTimePreferenceSchema>;

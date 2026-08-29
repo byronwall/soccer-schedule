@@ -2,8 +2,9 @@ import { A, useParams } from "@solidjs/router";
 import { For, Show } from "solid-js";
 import { Button, Text } from "~/components/ui";
 import { useSoccerData } from "~/features/soccer/SoccerDataProvider";
-import { SEGMENTS, type SegmentKey } from "~/lib/soccer/fixed-game";
+import { DEFAULT_POSITION_COORDINATES, SEGMENTS, type SegmentKey } from "~/lib/soccer/fixed-game";
 import { Box, Grid, HStack, VStack } from "styled-system/jsx";
+import { SoccerFieldDiagram } from "./SoccerFieldDiagram";
 
 export function PrintPage() {
   const data = useSoccerData();
@@ -34,7 +35,13 @@ export function PrintPage() {
   return (
     <Show when={game()}>
       {(current) => (
-        <Box bg="white" color="black" p={{ base: "3", md: "8" }} borderRadius="l3">
+        <Box
+          class="print-layout"
+          bg="white"
+          color="black"
+          p={{ base: "3", md: "8" }}
+          borderRadius="l3"
+        >
           <HStack justifyContent="space-between" mb="5" class="no-print">
             <A href={`/games/${params.gameId}/schedule`}>
               <Button variant="outline">Back to editor</Button>
@@ -158,6 +165,24 @@ export function PrintPage() {
                     : "—"}{" "}
                   · Revision {published().revision}
                 </Text>
+                <Box class="print-field-page" mt="8">
+                  <VStack alignItems="stretch" gap="3" h="full">
+                    <Box textAlign="center">
+                      <Box as="h2" fontSize="2xl" fontWeight="bold">
+                        {data.snapshot()?.teamDisplayName} Position Guide
+                      </Box>
+                      <Text>Attack toward the right goal.</Text>
+                    </Box>
+                    <Box flex="1" minH="0">
+                      <SoccerFieldDiagram
+                        positions={data.positions()}
+                        coordinates={
+                          data.snapshot()?.positionCoordinates ?? DEFAULT_POSITION_COORDINATES
+                        }
+                      />
+                    </Box>
+                  </VStack>
+                </Box>
               </>
             )}
           </Show>

@@ -84,6 +84,19 @@ describe("file-backed soccer store", () => {
     });
   });
 
+  it("persists the printable field layout with position labels", async () => {
+    const before = await getSnapshot();
+    const leftDefense = { x: 0.27, y: 0.24 };
+    await applySoccerAction("updatePositionSettings", {
+      positionLabels: { ...before.positionLabels, leftDefense: "Left Back" },
+      positionCoordinates: { ...before.positionCoordinates, leftDefense },
+    });
+    const after = await getSnapshot();
+    expect(after.positionLabels.leftDefense).toBe("Left Back");
+    expect(after.positionCoordinates.leftDefense).toEqual(leftDefense);
+    expect(after.positionCoordinates.goalkeeper).toEqual(before.positionCoordinates.goalkeeper);
+  });
+
   it("does not expose retired continuity persistence actions", async () => {
     await expect(
       applySoccerAction("updateDefensiveContinuityDefault", { policy: "goalkeeper-and-defense" }),

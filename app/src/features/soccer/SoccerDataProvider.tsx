@@ -13,6 +13,7 @@ import type {
   LiveState,
   Player,
   PlayerPreference,
+  PositionCoordinates,
   PositionLabels,
   Schedule,
 } from "~/lib/soccer/schemas";
@@ -21,6 +22,7 @@ export type SoccerSnapshot = {
   teamDisplayName: string;
   seasonName: string;
   positionLabels: PositionLabels;
+  positionCoordinates: PositionCoordinates;
   players: Player[];
   games: Game[];
   availability: Availability[];

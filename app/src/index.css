@@ -17,4 +17,17 @@ body.schedule-drag-active * {
   body {
     background: white !important;
   }
+  .print-layout {
+    padding: 0 !important;
+  }
+  .print-field-page {
+    break-before: page;
+    page-break-before: always;
+    height: 7.7in;
+    margin-top: 0 !important;
+  }
+  .print-field-page svg {
+    height: 100%;
+    width: 100%;
+  }
 }

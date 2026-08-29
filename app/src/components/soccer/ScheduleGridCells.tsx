@@ -158,7 +158,7 @@ function PlayerCellContent(props: {
               style={{ "background-color": player().color }}
             />
             <Text
-              textStyle="xs"
+              textStyle="sm"
               fontWeight="semibold"
               truncate
               minW="0"
@@ -169,7 +169,7 @@ function PlayerCellContent(props: {
           </HStack>
           <HStack minH="3" gap="1" justifyContent="center" color="fg.muted">
             <Show when={props.locked}>
-              <Lock size={10} aria-label="Locked" />
+              <Lock size={9} opacity={0.7} aria-label="Locked" />
             </Show>
             <Show when={(props.warnings?.length ?? 0) > 0}>
               <Tooltip
@@ -189,9 +189,10 @@ function PlayerCellContent(props: {
                   as="span"
                   display="inline-flex"
                   color="orange.fg"
+                  opacity="0.7"
                   aria-label={props.warnings?.join(" ")}
                 >
-                  <TriangleAlert size={12} />
+                  <TriangleAlert size={10} />
                 </Box>
               </Tooltip>
             </Show>

@@ -38,7 +38,7 @@ const createStore = () => {
     })),
   );
   const store = soccerStoreSchema.parse({
-    schemaVersion: 6,
+    schemaVersion: 7,
     teamDisplayName: "Violet Test Team",
     seasonName: "Fall 2026",
     positionLabels: DEFAULT_POSITION_LABELS,

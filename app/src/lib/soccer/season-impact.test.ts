@@ -59,7 +59,7 @@ const schedule = (id: string, gameId: string) => ({
 
 const createStore = () =>
   soccerStoreSchema.parse({
-    schemaVersion: 6,
+    schemaVersion: 7,
     teamDisplayName: "Test",
     seasonName: "Fall",
     positionLabels: DEFAULT_POSITION_LABELS,

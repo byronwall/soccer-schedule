@@ -4,6 +4,13 @@ This file records user-visible changes, important development workflow changes, 
 
 ## Unreleased
 
+- Schedule cells now use larger player names and smaller, quieter lock and warning icons.
+- Position name settings now keep compact IDs and inputs side by side at every
+  screen width, with less empty space between them.
+- Position settings now include a scalable soccer field guide with draggable,
+  keyboard-movable position labels and dashed build-out lines. The black-and-white
+  guide prints as a separate landscape page after each published schedule for
+  double-sided use.
 - Game mode now exposes each planned seven-minute lineup independently from its
   reference timer, assumes the published positions were played unless a coach
   records a change, records full 14-minute quarters, and ends from the

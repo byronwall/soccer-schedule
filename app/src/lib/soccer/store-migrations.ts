@@ -4,8 +4,10 @@ import {
   soccerStoreV3Schema,
   soccerStoreV4Schema,
   soccerStoreV5Schema,
+  soccerStoreV6Schema,
   type SoccerStore,
 } from "./schemas";
+import { DEFAULT_POSITION_COORDINATES } from "./fixed-game";
 import { createDefaultPlayerPreference } from "./player-preferences";
 import type { LegacyLiveState } from "./live-event-schemas";
 
@@ -28,19 +30,29 @@ export const migrateSoccerStore = (input: unknown): SoccerStore => {
     input && typeof input === "object" && "schemaVersion" in input
       ? (input as { schemaVersion?: unknown }).schemaVersion
       : undefined;
-  if (version === 6) return soccerStoreSchema.parse(input);
+  if (version === 7) return soccerStoreSchema.parse(input);
+  if (version === 6) {
+    const previous = soccerStoreV6Schema.parse(input);
+    return soccerStoreSchema.parse({
+      ...previous,
+      schemaVersion: 7,
+      positionCoordinates: DEFAULT_POSITION_COORDINATES,
+    });
+  }
   if (version === 5) {
     const previous = soccerStoreV5Schema.parse(input);
     return soccerStoreSchema.parse({
       ...previous,
-      schemaVersion: 6,
+      schemaVersion: 7,
+      positionCoordinates: DEFAULT_POSITION_COORDINATES,
     });
   }
   if (version === 4) {
     const previous = soccerStoreV4Schema.parse(input);
     return soccerStoreSchema.parse({
       ...previous,
-      schemaVersion: 6,
+      schemaVersion: 7,
+      positionCoordinates: DEFAULT_POSITION_COORDINATES,
       liveGames: migrateLegacyLiveGames(previous.liveGames),
     });
   }
@@ -48,7 +60,8 @@ export const migrateSoccerStore = (input: unknown): SoccerStore => {
     const previous = soccerStoreV3Schema.parse(input);
     return soccerStoreSchema.parse({
       ...previous,
-      schemaVersion: 6,
+      schemaVersion: 7,
+      positionCoordinates: DEFAULT_POSITION_COORDINATES,
       liveGames: migrateLegacyLiveGames(previous.liveGames),
     });
   }
@@ -58,7 +71,8 @@ export const migrateSoccerStore = (input: unknown): SoccerStore => {
   const previous = soccerStoreV2Schema.parse(input);
   return soccerStoreSchema.parse({
     ...previous,
-    schemaVersion: 6,
+    schemaVersion: 7,
+    positionCoordinates: DEFAULT_POSITION_COORDINATES,
     liveGames: migrateLegacyLiveGames(previous.liveGames),
     playerPreferences: {
       schemaVersion: 1,
