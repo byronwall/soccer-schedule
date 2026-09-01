@@ -1,17 +1,25 @@
-import { readdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, extname, relative, resolve } from "node:path";
+import { readdir, readFile, realpath, stat, writeFile } from "node:fs/promises";
+import { dirname, extname, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadPrettier, prettierConfig, prettierIgnore, prettierRoot } from "./prettier-runtime.mjs";
 
 const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const mode = process.argv[2];
+const rawRequestedPaths = process.argv.slice(3);
+const requestedPaths =
+  rawRequestedPaths[0] === "--" ? rawRequestedPaths.slice(1) : rawRequestedPaths;
 if (mode !== "--write" && mode !== "--check") {
-  console.error("Usage: node scripts/format-files.mjs --write|--check");
+  console.error("Usage: node scripts/format-files.mjs --write|--check [file ...]");
+  process.exit(2);
+}
+
+if (requestedPaths.includes("--")) {
+  console.error("Usage: node scripts/format-files.mjs --write|--check [file ...]");
   process.exit(2);
 }
 
 const prettier = loadPrettier();
-const files = await collectFiles();
+const files = await collectFiles(requestedPaths);
 let changed = 0;
 
 for (const filePath of files) {
@@ -48,13 +56,53 @@ console.log(
   `[format] ${mode === "--write" ? "Formatted" : "Checked"} ${files.length} candidate file(s).`,
 );
 
-async function collectFiles() {
+async function collectFiles(paths) {
+  if (paths.length > 0) return collectRequestedFiles(paths);
+
   const roots = [prettierRoot, resolve(prettierRoot, "docs"), appRoot];
   const files = new Set();
   for (const root of roots) {
     await walk(root, files);
   }
   return [...files].sort();
+}
+
+async function collectRequestedFiles(paths) {
+  const files = new Set();
+  for (const requestedPath of paths) {
+    const filePath = await resolveRequestedPath(requestedPath);
+    const details = await stat(filePath);
+    if (details.isDirectory()) {
+      await walk(filePath, files);
+    } else if (details.isFile()) {
+      files.add(filePath);
+    } else {
+      throw new Error(`[format] Unsupported path: ${requestedPath}`);
+    }
+  }
+  return [...files].sort();
+}
+
+async function resolveRequestedPath(requestedPath) {
+  const candidate = resolve(process.cwd(), requestedPath);
+  const rootCandidate = resolve(prettierRoot, requestedPath);
+  const filePath = (await existingPath(candidate)) ? candidate : rootCandidate;
+  const canonicalRoot = await realpath(prettierRoot);
+  const canonicalPath = await realpath(filePath).catch(() => filePath);
+  const pathFromRoot = relative(canonicalRoot, canonicalPath);
+  if (pathFromRoot === "" || pathFromRoot === ".." || pathFromRoot.startsWith(`..${sep}`)) {
+    throw new Error(`[format] Refusing path outside the checkout: ${requestedPath}`);
+  }
+  return filePath;
+}
+
+async function existingPath(filePath) {
+  try {
+    await stat(filePath);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function walk(directory, files) {

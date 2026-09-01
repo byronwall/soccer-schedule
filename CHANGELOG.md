@@ -4,6 +4,17 @@ This file records user-visible changes, important development workflow changes, 
 
 ## Unreleased
 
+- Added nine checked base flow diagrams under `docs/flows` as `.diagram` files, with a route index,
+  source map, and viewer instructions. They cover core coaching workflows,
+  publication boundaries, live tracking, and confirmed history. No variants were added.
+  Flow checks and formatting passed. The viewer listed all nine files and rendered
+  the overview without console errors. Direct project checks passed with 158 tests
+  and 18 existing lint warnings; the pnpm launcher failed registry signature verification.
+- Added a changed-file documentation gate for Markdown and `.diagram` updates. It checks
+  local links, focused formatting, and Flow structure while mixed changes retain the
+  full application gate. The formatter now accepts confined explicit paths, including
+  paths with spaces, and the repository documents direct fallback commands after a
+  confirmed pnpm launcher failure.
 - Schedule cells now use larger player names and smaller, quieter lock and warning icons.
 - Position name settings now keep compact IDs and inputs side by side at every
   screen width, with less empty space between them.

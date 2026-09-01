@@ -8,6 +8,7 @@
     "format": "node scripts/format-files.mjs --write",
     "format:check": "node scripts/format-files.mjs --check",
     "format:staged": "node scripts/check-staged-format.mjs",
+    "check:docs": "node --experimental-strip-types scripts/check-docs.ts",
     "hooks:install": "node scripts/install-git-hooks.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

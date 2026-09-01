@@ -80,6 +80,9 @@ The deployed app supports exactly two configured coach accounts with private cre
 
 ## Product workflow
 
+See [core user flow diagrams](docs/flows/README.md) for current workflow details,
+data boundaries, implementation sources, and local viewer instructions.
+
 1. Add the roster and give each player a jersey number and identifying color.
 2. Add the season’s games and confirm the logistics.
 3. Mark every player’s availability for the next game.
@@ -133,6 +136,14 @@ If pnpm cannot bootstrap the pinned package-manager release before `verify` star
 ```bash
 node app/scripts/verify.mjs
 ```
+
+For changes that contain only Markdown and `.diagram` files, use the shorter documentation gate:
+
+```bash
+pnpm -C app check:docs
+```
+
+The gate includes untracked files and checks changed Markdown links and formatting plus changed Diagram structure and formatting. It does not require rendered Diagram images until the renderer is shipped; use the viewer for focused visual review when it is available. Mixed or uncertain changes use `pnpm -C app verify`. If pnpm fails before the script starts, run `node --experimental-strip-types app/scripts/check-docs.ts` directly after confirming the launcher failure.
 
 ### Configuration lifecycle
 
