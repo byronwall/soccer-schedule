@@ -1,0 +1,27 @@
+diagram 1
+type flow
+
+graph soccer-coach-access "Sign in to the team workspace"
+description "Production coach access through /login. Local development can use a development coach without this sign-in flow."
+
+node coach actor "Coach" layout=0,0
+node credentials input "Coach credentials" body="Use the username and private password supplied by the administrator. Account setup is outside this flow." layout=1,0
+node sign-in process "Submit sign-in" body="Enter credentials at /login and select Sign in." layout=2,0
+node session handoff "Authenticated session" body="Successful authentication permits access to the shared team workspace." layout=3,0
+node open-workspace process "Open the requested page" body="Return to the requested route, or open the dashboard when no next route is supplied." layout=4,0
+node workspace deliverable "Team workspace access" body="Authorized coaches use the same team records. Administrators manage coach accounts outside this flow." layout=5,0
+node resolve-error process "Resolve sign-in failure" body="Correct rejected credentials and submit again. Configuration failures require administrator action before retrying." layout=3,1
+node recovery deliverable "Sign-in recovery guidance" body="The error remains visible on the sign-in page. No authenticated access is granted by this path." layout=4,1
+node privacy need "Keep team access private"
+node feedback ux "Explain sign-in failures" body="Show pending state, credential errors, and service configuration errors. Disable submission when credentials are empty."
+
+edge coach-provides coach -> credentials
+edge credentials-to-login credentials -> sign-in
+edge login-succeeds sign-in -> session label="Accepted" emphasis=true
+edge session-to-page session -> open-workspace
+edge page-to-access open-workspace -> workspace
+edge login-fails sign-in -> resolve-error label="Rejected or unavailable"
+edge failure-to-guidance resolve-error -> recovery
+edge session-protects session -> privacy relation=addresses
+edge feedback-at-login feedback -> sign-in relation=appears-at
+edge feedback-supports feedback -> privacy relation=supports

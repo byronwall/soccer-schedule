@@ -1,0 +1,29 @@
+diagram 1
+type flow
+
+graph soccer-coaching-cycle "Core coaching cycle"
+description "The shared team workflow, from roster setup through confirmed game history. See README.md for the detailed flow map."
+
+node coach actor "Coach" layout=0,0
+node prepare-team process "Prepare the team" body="Maintain players, scheduling preferences, position names, and the field guide. See soccer-roster and soccer-position-settings." layout=1,0
+node plan-game process "Confirm game availability" body="Create game logistics and record In, Out, or unknown for each active player. See soccer-game-planning." layout=2,0
+node build-rotation process "Build the rotation" body="Generate or assign eight seven-minute segments. Review validity, balance, and preferences. See soccer-schedule-planning." layout=3,0
+node publish process "Publish the plan" body="Publish a complete valid draft. Print and game mode use the published assignments. See soccer-publish-revise." layout=4,0
+node published-plan deliverable "Published game plan" layout=5,0
+node track-game process "Track the game" body="Use the reference clock and planned lineups. Record changes and goals. See soccer-live-game." layout=6,0
+node confirm process "Review and confirm" body="Review the event ledger before permanent confirmation. See soccer-game-history." layout=7,0
+node history deliverable "Confirmed game history" body="Keep confirmed participation and own-team goals alongside the unchanged published plan." layout=8,0
+node dependable-plan need "Keep one dependable plan"
+node plan-boundary ux "Separate draft, plan, and actuals" body="Draft edits and live events do not silently rewrite published assignments."
+
+edge coach-prepares coach -> prepare-team
+edge team-to-game prepare-team -> plan-game
+edge game-to-rotation plan-game -> build-rotation
+edge rotation-to-publish build-rotation -> publish
+edge publish-to-plan publish -> published-plan emphasis=true
+edge plan-to-tracker published-plan -> track-game
+edge tracker-to-confirm track-game -> confirm
+edge confirm-to-history confirm -> history emphasis=true
+edge plan-addresses-need published-plan -> dependable-plan relation=addresses
+edge boundary-at-publish plan-boundary -> publish relation=appears-at
+edge boundary-supports-need plan-boundary -> dependable-plan relation=supports

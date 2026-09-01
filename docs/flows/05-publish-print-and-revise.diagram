@@ -1,0 +1,36 @@
+diagram 1
+type flow
+
+graph soccer-publish-revise "Publish, print, and revise a plan"
+description "Publish at /games/:gameId/schedule. Print and game mode consume the current published plan while a later draft is edited."
+
+node coach actor "Coach" layout=0,0
+node draft input "Reviewed schedule draft" body="A complete valid draft from soccer-schedule-planning, with current availability and revision." layout=1,0
+node publish process "Publish the draft" body="Publication rejects stale, incomplete, invalid, or outdated drafts. Quality warnings remain advisory." layout=2,0
+node snapshot deliverable "Published assignments" body="The published assignment snapshot is read-only. New publication supersedes the previous published schedule." layout=3,0
+node print process "Print the game plan" body="Open /games/:gameId/print and select Print schedule. The field guide follows on a separate landscape page." layout=4,0
+node paper-plan deliverable "Printed plan and field guide" body="The print view uses published assignments plus current game logistics, position labels, and guide coordinates." layout=5,0
+node game-mode handoff "Published plan to game mode" body="Open /games/:gameId/live. Continue in soccer-live-game." layout=4,1
+node sideline-plan deliverable "Plan available on the sideline" layout=5,1
+node reopen process "Choose Edit again" body="Clone published assignments into a new draft. The action is available when no working draft already exists." layout=4,2
+node revise process "Revise and review the copy" body="Continue the editing checks in soccer-schedule-planning. The existing published plan remains active during these edits." layout=5,2
+node republish process "Publish the revised draft" body="Apply the same validity and revision checks. Only explicit publication replaces the active plan." layout=6,2
+node replacement deliverable "Revised published plan" body="The previous snapshot is superseded; the newly published schedule becomes the plan used by downstream views." layout=7,2
+node stable-plan need "Keep the active plan stable during edits"
+node publish-gate ux "Explain publication blockers" body="Show readiness and errors. Resolve stale availability, empty cells, or hard validity errors before publishing."
+
+edge coach-provides coach -> draft
+edge draft-to-publish draft -> publish
+edge publish-to-snapshot publish -> snapshot emphasis=true
+edge snapshot-to-print snapshot -> print label="Paper copy"
+edge print-to-paper print -> paper-plan
+edge snapshot-to-live snapshot -> game-mode label="Game day"
+edge live-to-plan game-mode -> sideline-plan
+edge snapshot-to-reopen snapshot -> reopen label="Changes needed"
+edge reopen-to-revise reopen -> revise
+edge revise-to-republish revise -> republish
+edge republish-to-replacement republish -> replacement emphasis=true
+edge snapshot-addresses-stability snapshot -> stable-plan relation=addresses
+edge gate-at-publish publish-gate -> publish relation=appears-at
+edge gate-at-republish publish-gate -> republish relation=appears-at
+edge gate-supports-stability publish-gate -> stable-plan relation=supports

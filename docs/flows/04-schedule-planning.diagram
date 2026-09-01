@@ -1,0 +1,32 @@
+diagram 1
+type flow
+
+graph soccer-schedule-planning "Build and review a rotation"
+description "Create a complete valid draft at /games/:gameId/schedule. Publishing is documented in soccer-publish-revise."
+
+node coach actor "Coach" layout=0,0
+node planning-inputs input "Roster and planning context" body="Use game availability, player preferences, and earlier published schedules. The Season Impact table also identifies confirmed actual coverage." layout=1,0
+node open-draft process "Open the working draft" body="New games start with a saved blank draft. Edit again copies a published plan when revision is needed." layout=2,0
+node assign process "Fill or revise assignments" body="Generate all assignments or target a player, position, or segment. Alternatively, use the cell picker or same-segment drag swaps. Locks constrain generation." layout=3,0
+node review process "Review quality and season impact" body="Check all eight segments, seven field positions, bench, minutes, preferences, and role coverage. Compare by-position and by-player views." layout=4,0
+node refine process "Resolve blocking issues" body="Adjust assignments, availability, or locks as needed. Regenerate changed availability before publication. Review advisory warnings without treating them as hard errors." layout=5,0
+node valid-draft deliverable "Complete valid draft" body="Ready for explicit publication. Saved edits alone do not change the published plan." layout=6,0
+node saved-work deliverable "Saved work in progress" body="Partial or stale drafts remain editable. Continue later when availability, locks, or assignments can be resolved." layout=6,1
+node balance need "Build a valid, balanced rotation"
+node edit-controls ux "Keep edits recoverable" body="Undo and redo restore assignment changes. Scoped clear, Clear all, and lock controls support revision. New edits clear redo history."
+node generation-feedback ux "Explain generation results" body="Generation applies one undoable change when an improvement exists. Otherwise, it retains the draft and explains why."
+node conflicts ux "Reject outdated edits" body="Schedule writes carry the expected revision. A stale revision fails instead of overwriting another coach's work. Refresh before retrying."
+
+edge coach-provides coach -> planning-inputs
+edge inputs-to-draft planning-inputs -> open-draft
+edge draft-to-assign open-draft -> assign
+edge assign-to-review assign -> review
+edge review-to-refine review -> refine label="Corrections needed"
+edge review-to-ready review -> valid-draft label="Complete and valid" emphasis=true
+edge refine-to-ready refine -> valid-draft label="Issues resolved"
+edge refine-to-progress refine -> saved-work label="Pause with unresolved work"
+edge draft-addresses-balance valid-draft -> balance relation=addresses
+edge controls-at-assignment edit-controls -> assign relation=appears-at
+edge feedback-at-assignment generation-feedback -> assign relation=appears-at
+edge conflicts-at-assignment conflicts -> assign relation=appears-at
+edge controls-support-balance edit-controls -> balance relation=supports

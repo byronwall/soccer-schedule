@@ -1,0 +1,32 @@
+diagram 1
+type flow
+
+graph soccer-roster "Maintain players and preferences"
+description "Manage the team at /roster and scheduling preferences at /roster/:playerId. Game availability remains a separate decision."
+
+node coach actor "Coach" layout=0,0
+node player-details input "Player details" body="Player name, optional jersey number, identifying color, and coaching preferences." layout=1,0
+node edit-player process "Add or edit a player" body="Save the player from the roster dialog. Each player must have a unique schedule color." layout=2,0
+node player-record deliverable "Saved player record" body="New players start active. Missing availability entries start unknown. Schedules reference the stable player ID." layout=3,0
+node set-preferences process "Set scheduling preferences" body="Open the player profile. Set preferred or avoided positions, field-time preference, and an optional private note. Save scheduling preferences." layout=4,0
+node planning-profile deliverable "Player planning profile" body="Saved preferences inform scheduling. They do not replace game-specific In or Out availability." layout=5,0
+node retire-player process "Deactivate a player" body="Use the active status control when the player leaves the active roster. Keep records referenced by schedules." layout=4,1
+node retained-record deliverable "Retained player history" body="The inactive player record remains available for historical assignments. Reactivation can restore active roster membership." layout=5,1
+node delete-unused process "Remove an unused player" body="Confirm deletion only for a player with no schedule references. The server rejects deletion when schedule history exists." layout=4,2
+node cleaned-roster deliverable "Updated roster" body="Deletion removes the unused player, preferences, and availability entries." layout=5,2
+node continuity need "Preserve player identity and history"
+node validation ux "Explain invalid player changes" body="Reject duplicate colors and preference-limit violations. Use inactive status instead of deleting players with schedule history."
+
+edge coach-provides coach -> player-details
+edge details-to-edit player-details -> edit-player
+edge edit-to-record edit-player -> player-record
+edge record-to-preferences player-record -> set-preferences label="Prepare for scheduling"
+edge preferences-to-profile set-preferences -> planning-profile emphasis=true
+edge record-to-retire player-record -> retire-player label="Leaves active roster"
+edge retire-to-history retire-player -> retained-record
+edge record-to-delete player-record -> delete-unused label="No schedule history; remove"
+edge delete-to-roster delete-unused -> cleaned-roster
+edge record-preserves-identity player-record -> continuity relation=addresses
+edge validation-at-edit validation -> edit-player relation=appears-at
+edge validation-at-delete validation -> delete-unused relation=appears-at
+edge validation-supports validation -> continuity relation=supports

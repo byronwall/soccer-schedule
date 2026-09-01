@@ -1,0 +1,32 @@
+diagram 1
+type flow
+
+graph soccer-game-history "Confirm the game and review history"
+description "Complete and confirm in game mode, then inspect completed-game and player history. A Completed game status alone does not establish trusted actuals."
+
+node coach actor "Coach" layout=0,0
+node records input "Published plan and event ledger" body="Use the game plan and saved live events. Legacy or missing ledgers cannot supply confirmed actual totals." layout=1,0
+node review process "Review events before confirmation" body="Check lineups, substitutions, and goals. Correct eligible events before committing the final record." layout=2,0
+node confirm process "Complete and confirm" body="Confirm the dialog. The action records all four quarters as 14 minutes and applies published lineup changes at 7:00. Confirmation is permanent." layout=3,0
+node confirmed deliverable "Confirmed actual record" body="The game becomes Completed and the ledger becomes trusted. The published assignments remain unchanged." layout=4,0
+node compare process "Compare plan and participation" body="Open the completed game or /roster/:playerId. Compare planned time with confirmed field, bench, and position durations. Review own-team goals." layout=5,0
+node history deliverable "Reviewed player and game history" body="Goal events show individual scoring history, not an opponent score or full game result." layout=6,0
+node future-planning process "Review season coverage" body="The schedule editor uses confirmed actuals for earlier games when trustworthy, otherwise labeled published-plan coverage. Future games are excluded." layout=7,0
+node evidence deliverable "Evidence for the next rotation" body="Season Impact separates prior coverage, the current draft contribution, and projected totals. Empty cells add no projected minutes." layout=8,0
+node incomplete deliverable "Unconfirmed history retained" body="If the coach stops before confirmation, actual totals remain incomplete. Legacy or missing records show actual history unavailable." layout=3,1
+node trust need "Distinguish actual records from plans"
+node trust-labels ux "Show history trust explicitly" body="Completed-game and player actual-history panels do not substitute planned totals for missing actuals. Season planning labels its plan fallback separately."
+
+edge coach-provides coach -> records
+edge records-to-review records -> review
+edge review-to-confirm review -> confirm label="Events checked"
+edge review-to-incomplete review -> incomplete label="Leave unconfirmed or unavailable"
+edge confirm-to-record confirm -> confirmed emphasis=true
+edge record-to-compare confirmed -> compare
+edge compare-to-history compare -> history
+edge history-to-planning history -> future-planning
+edge planning-to-evidence future-planning -> evidence
+edge confirmed-addresses-trust confirmed -> trust relation=addresses
+edge labels-at-compare trust-labels -> compare relation=appears-at
+edge labels-at-planning trust-labels -> future-planning relation=appears-at
+edge labels-support-trust trust-labels -> trust relation=supports

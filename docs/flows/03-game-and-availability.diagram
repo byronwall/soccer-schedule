@@ -1,0 +1,33 @@
+diagram 1
+type flow
+
+graph soccer-game-planning "Plan a game and confirm availability"
+description "Create a game at /games/new, then manage logistics and player responses at /games/:gameId."
+
+node coach actor "Coach" layout=0,0
+node logistics input "Match logistics" body="Opponent, venue, address, start time, and optional arrival time." layout=1,0
+node save-game process "Add or update the game" body="Use Add game from Games, or edit an existing match. New games start Upcoming with a blank draft." layout=2,0
+node game-record deliverable "Saved game" body="A new game has unknown availability for each active player. Its lifecycle status is explicit." layout=3,0
+node availability process "Record player responses" body="Choose In, Out, or ? for active players. Mark all available can record In for the roster." layout=4,0
+node check-readiness process "Check planning readiness" body="The game page enables schedule building when no responses are unknown and at least seven players are available." layout=5,0
+node ready handoff "Available roster to scheduler" body="Continue in soccer-schedule-planning. Only available players enter the rotation." layout=6,0
+node ready-record deliverable "Game ready for planning" layout=7,0
+node unresolved deliverable "Saved unresolved availability" body="Keep collecting responses or resolve a shortage. Saving responses does not itself produce a publishable schedule." layout=6,1
+node change-status process "Change game status" body="Use Upcoming, Completed, or Canceled in Games. Setting Completed here does not confirm the live event ledger." layout=4,2
+node status-record deliverable "Updated game lifecycle" body="Use All games to include canceled games. Status does not follow the calendar or reference timer automatically." layout=5,2
+node attendance need "Plan with the expected players"
+node stale-warning ux "Flag changed availability" body="Availability edits mark a complete working schedule stale or copy a published schedule into a stale draft. Partial drafts stay editable. Published assignments remain unchanged."
+
+edge coach-provides coach -> logistics
+edge logistics-to-game logistics -> save-game
+edge save-to-record save-game -> game-record
+edge record-to-responses game-record -> availability
+edge responses-to-readiness availability -> check-readiness
+edge readiness-to-scheduler check-readiness -> ready label="No unknowns; at least seven In" emphasis=true
+edge scheduler-to-ready ready -> ready-record
+edge readiness-unresolved check-readiness -> unresolved label="Unknown responses or too few players"
+edge game-to-status game-record -> change-status label="Lifecycle change"
+edge status-to-record change-status -> status-record
+edge availability-addresses availability -> attendance relation=addresses
+edge warning-at-availability stale-warning -> availability relation=appears-at
+edge warning-supports stale-warning -> attendance relation=supports

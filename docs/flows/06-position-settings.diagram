@@ -1,0 +1,27 @@
+diagram 1
+type flow
+
+graph soccer-position-settings "Set position names and field guide"
+description "Configure team position language and the printed field guide at /settings/positions. Position identity and formation membership remain fixed."
+
+node coach actor "Coach" layout=0,0
+node team-language input "Team position language" body="The names used by the team and desired label locations on the field guide." layout=1,0
+node edit-labels process "Edit position names" body="Change display labels for the seven stable position IDs." layout=2,0
+node arrange-guide process "Arrange the field guide" body="Move labels with drag or keyboard controls. Review placement on the field before saving." layout=3,0
+node save process "Save positions" body="Save the edited labels and guide coordinates together." layout=4,0
+node settings deliverable "Saved position settings" body="Position keys remain unchanged. Names appear in schedule, live, print, and player-profile views." layout=5,0
+node render-guide process "Open a published print view" body="The saved field guide prints after the schedule on a separate landscape page." layout=6,0
+node guide deliverable "Reusable printed field guide" layout=7,0
+node shared-language need "Use consistent position names"
+node stable-ids ux "Keep position IDs visible" body="Changing names or guide placement does not change formation membership or historical assignment identity."
+
+edge coach-provides coach -> team-language
+edge language-to-labels team-language -> edit-labels
+edge labels-to-guide edit-labels -> arrange-guide
+edge guide-to-save arrange-guide -> save
+edge save-to-settings save -> settings emphasis=true
+edge settings-to-render settings -> render-guide
+edge render-to-guide render-guide -> guide
+edge settings-addresses-language settings -> shared-language relation=addresses
+edge ids-at-edit stable-ids -> edit-labels relation=appears-at
+edge ids-support-language stable-ids -> shared-language relation=supports

@@ -1,0 +1,32 @@
+diagram 1
+type flow
+
+graph soccer-live-game "Track the game from the sideline"
+description "Use /games/:gameId/live with a published schedule. This flow ends with an unconfirmed event ledger; confirmation is in soccer-game-history."
+
+node coach actor "Sideline coach" layout=0,0
+node plan input "Published rotation" body="Publish a valid schedule before game mode. Existing legacy trackers cannot provide trustworthy actual history." layout=1,0
+node start process "Start or resume the clock" body="Start the quarter clock. Pause and resume as needed. The timer is a reference, not an automatic lineup switch." layout=2,0
+node lineup process "Use the planned lineups" body="Show second lineup selects the second seven-minute segment independently of the timer. Next quarter resets the clock for another Start." layout=3,0
+node events process "Record changes and goals" body="When needed, replace from bench, swap field players, reset to the published plan, or select a scorer and record a goal." layout=4,0
+node inspect process "Review recent events" body="Check the recorded changes. Void eligible incorrect events with confirmation; the lineup is recomputed from remaining events." layout=5,0
+node ledger deliverable "Saved unconfirmed event ledger" body="Events persist with revision checks. Planned lineups are assumed unless changes are recorded; the published assignments stay unchanged." layout=6,0
+node confirm-handoff handoff "Ledger ready for final review" body="Use End game after the fourth-quarter second lineup, or the Complete and confirm action. Continue in soccer-game-history." layout=7,0
+node pending-review deliverable "Game ready for confirmation" body="The coach must explicitly confirm before actual-history summaries can trust the ledger." layout=8,0
+node fidelity need "Record changes without losing the plan"
+node shared-state ux "Refresh shared game state" body="The view refreshes periodically or through Refresh now. Outdated writes fail; refresh and inspect before retrying."
+node clock-guidance ux "Explain the reference timer" body="Confirmation records four full 14-minute quarters with planned changes at 7:00. Clock operation alone does not establish actual-history trust."
+
+edge coach-provides coach -> plan
+edge plan-to-start plan -> start
+edge start-to-lineup start -> lineup
+edge lineup-to-events lineup -> events label="Changes or goals occur"
+edge lineup-to-inspect lineup -> inspect label="No changes to record"
+edge events-to-inspect events -> inspect
+edge inspect-to-ledger inspect -> ledger emphasis=true
+edge ledger-to-confirm ledger -> confirm-handoff
+edge confirm-to-review confirm-handoff -> pending-review
+edge ledger-addresses-fidelity ledger -> fidelity relation=addresses
+edge refresh-at-events shared-state -> events relation=appears-at
+edge clock-at-start clock-guidance -> start relation=appears-at
+edge clock-supports-fidelity clock-guidance -> fidelity relation=supports
