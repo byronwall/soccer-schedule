@@ -106,6 +106,9 @@ export const scheduleActionHandlers: Record<string, StoreActionHandler> = {
   },
   editPublishedSchedule: (store, payload, stamp) => {
     const published = requireSchedule(store, payload.scheduleId);
+    if (requireGame(store, published.gameId).status === "completed") {
+      throw new Error("A completed game's published schedule cannot be edited.");
+    }
     if (published.status !== "published") {
       throw new Error("Only a published schedule can be reopened for editing.");
     }

@@ -4,6 +4,8 @@ This file records user-visible changes, important development workflow changes, 
 
 ## Unreleased
 
+- Completed games now link directly to their published schedule. Historical schedules remain
+  read-only, and the editor explains why Edit again is disabled.
 - Added nine checked base flow diagrams under `docs/flows` as `.diagram` files, with a route index,
   source map, and viewer instructions. They cover core coaching workflows,
   publication boundaries, live tracking, and confirmed history. No variants were added.

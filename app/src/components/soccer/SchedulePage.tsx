@@ -55,6 +55,10 @@ export function SchedulePage() {
   });
 
   const game = () => data.snapshot()?.games.find((item) => item.id === params.gameId);
+  const editDisabledReason = () =>
+    game()?.status === "completed"
+      ? "This game is complete, so its published schedule cannot be edited."
+      : undefined;
   const schedule = createMemo(() =>
     selectCurrentSchedule(data.snapshot()?.schedules ?? [], params.gameId ?? ""),
   );
@@ -407,7 +411,8 @@ export function SchedulePage() {
             title={`vs. ${currentGame().opponentName}`}
             description={
               schedule()?.status === "published"
-                ? "This published rotation is read-only until you choose Edit again."
+                ? editDisabledReason() ??
+                  "This published rotation is read-only until you choose Edit again."
                 : undefined
             }
             actions={
@@ -448,6 +453,7 @@ export function SchedulePage() {
             }}
             onFillAll={() => void generateTarget({ kind: "all" })}
             generationPending={generation.pending}
+            editDisabledReason={editDisabledReason()}
             onUndo={() => {
               const current = schedule();
               if (current) {
@@ -486,7 +492,8 @@ export function SchedulePage() {
                   <Text mt="2" textStyle="xs" color="fg.muted">
                     {isEditableSchedule(currentSchedule())
                       ? "Select a field cell to assign a player. In By position, drag within a segment to swap; press Esc to cancel."
-                      : "Published assignments are read-only. Choose Edit again to make changes."}
+                      : editDisabledReason() ??
+                        "Published assignments are read-only. Choose Edit again to make changes."}
                   </Text>
                 </Box>
                 <Box minW="0" maxW="100%" overflowX="auto">

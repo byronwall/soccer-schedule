@@ -1,6 +1,14 @@
 import { Match, Show, Switch } from "solid-js";
 import { CheckCircle2, LockOpen, PencilLine, Redo2, RefreshCw, Trash2, Undo2 } from "lucide-solid";
-import { Badge, Button, ButtonGroup, IconButton, SegmentGroup, Tooltip } from "~/components/ui";
+import {
+  Badge,
+  Button,
+  ButtonGroup,
+  IconButton,
+  SegmentGroup,
+  Text,
+  Tooltip,
+} from "~/components/ui";
 import type { ScheduleQuality } from "~/lib/soccer/scheduling";
 import type { Schedule } from "~/lib/soccer/schemas";
 import type { ScheduleReadiness } from "~/lib/soccer/schedule-readiness";
@@ -21,6 +29,7 @@ type ScheduleToolbarProps = {
   onEditAgain: () => void;
   onFillAll: () => void;
   generationPending: boolean;
+  editDisabledReason?: string;
   onUndo: () => void;
   onRedo: () => void;
   onPublish: () => void;
@@ -82,10 +91,21 @@ export function ScheduleToolbar(props: ScheduleToolbarProps) {
               </>
             }
           >
-            <Button size="sm" onClick={props.onEditAgain}>
+            <Button
+              size="sm"
+              disabled={Boolean(props.editDisabledReason)}
+              onClick={props.onEditAgain}
+            >
               <PencilLine size={16} /> Edit again
             </Button>
           </Show>
+        )}
+      </Show>
+      <Show when={props.editDisabledReason}>
+        {(reason) => (
+          <Text textStyle="sm" color="fg.muted">
+            {reason()}
+          </Text>
         )}
       </Show>
       <Show when={props.schedule?.status === "draft"}>

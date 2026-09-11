@@ -194,6 +194,21 @@ describe("file-backed soccer store", () => {
     });
   });
 
+  it("keeps completed game schedules read-only", async () => {
+    const snapshot = await getSnapshot();
+    const published = snapshot.schedules.find((item) => item.status === "published");
+    if (!published) throw new Error("Expected a published schedule in the seeded store.");
+
+    await applySoccerAction("setGameStatus", { id: published.gameId, status: "completed" });
+    await expect(
+      applySoccerAction("editPublishedSchedule", {
+        scheduleId: published.id,
+        expectedRevision: published.revision,
+      }),
+    ).rejects.toThrow(/completed game's published schedule cannot be edited/);
+    await applySoccerAction("setGameStatus", { id: published.gameId, status: "scheduled" });
+  });
+
   it("rejects a stale schedule revision instead of overwriting", async () => {
     const schedule = (await getSnapshot()).schedules.find((item) => item.status === "draft");
     await expect(

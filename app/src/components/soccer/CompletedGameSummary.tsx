@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import { CheckCircle2, History, ShieldAlert } from "lucide-solid";
+import { CalendarDays, CheckCircle2, History, ShieldAlert } from "lucide-solid";
 import { For, Show, createMemo } from "solid-js";
 import { Badge, Button, Card, Text } from "~/components/ui";
 import { useSoccerData } from "~/features/soccer/SoccerDataProvider";
@@ -127,6 +127,11 @@ export function CompletedGameSummary(props: { gameId: string }) {
               <Badge colorPalette={actual().status === "confirmed" ? "green" : "orange"}>
                 {actual().status === "confirmed" ? "Trusted" : "Not trusted"}
               </Badge>
+              <A href={`/games/${props.gameId}/schedule`}>
+                <Button variant="outline" size="sm">
+                  <CalendarDays size={16} /> View schedule
+                </Button>
+              </A>
               <A href={`/games/${props.gameId}/live`}>
                 <Button variant="outline" size="sm">
                   <History size={16} /> Event ledger
