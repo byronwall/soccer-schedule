@@ -1,4 +1,4 @@
-import { Match, Show, Switch } from "solid-js";
+import { Match, Show, Switch as SolidSwitch } from "solid-js";
 import { CheckCircle2, LockOpen, PencilLine, Redo2, RefreshCw, Trash2, Undo2 } from "lucide-solid";
 import {
   Badge,
@@ -6,6 +6,7 @@ import {
   ButtonGroup,
   IconButton,
   SegmentGroup,
+  Switch,
   Text,
   Tooltip,
 } from "~/components/ui";
@@ -24,7 +25,9 @@ type ScheduleToolbarProps = {
   eligibleIds: string[];
   readiness?: ScheduleReadiness;
   playerName: (playerId: string) => string;
+  showMovements: boolean;
   onViewChange: (view: ScheduleView) => void;
+  onShowMovementsChange: (show: boolean) => void;
   onGenerate: () => void;
   onEditAgain: () => void;
   onFillAll: () => void;
@@ -65,6 +68,19 @@ export function ScheduleToolbar(props: ScheduleToolbarProps) {
         <SegmentGroup.Indicator />
         <SegmentGroup.Items items={viewItems} />
       </SegmentGroup.Root>
+
+      <Show when={props.view === "position" && props.schedule}>
+        <Switch.Root
+          size="sm"
+          colorPalette="grass"
+          checked={props.showMovements}
+          onCheckedChange={(details) => props.onShowMovementsChange(details.checked)}
+        >
+          <Switch.HiddenInput />
+          <Switch.Control />
+          <Switch.Label>Movement arrows</Switch.Label>
+        </Switch.Root>
+      </Show>
 
       <Show
         when={props.schedule}
@@ -182,7 +198,7 @@ export function ScheduleToolbar(props: ScheduleToolbarProps) {
 
 function ScheduleStatusBadge(props: { status: Schedule["status"]; readiness?: ScheduleReadiness }) {
   return (
-    <Switch fallback={<Badge>superseded</Badge>}>
+    <SolidSwitch fallback={<Badge>superseded</Badge>}>
       <Match when={props.status === "published"}>
         <Badge colorPalette="grass">published</Badge>
       </Match>
@@ -212,6 +228,6 @@ function ScheduleStatusBadge(props: { status: Schedule["status"]; readiness?: Sc
               : "valid draft"}
         </Badge>
       </Match>
-    </Switch>
+    </SolidSwitch>
   );
 }

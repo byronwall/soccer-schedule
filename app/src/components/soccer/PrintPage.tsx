@@ -1,14 +1,17 @@
-import { A, useParams } from "@solidjs/router";
+import { A, useParams, useSearchParams } from "@solidjs/router";
 import { For, Show } from "solid-js";
 import { Button, Text } from "~/components/ui";
 import { useSoccerData } from "~/features/soccer/SoccerDataProvider";
 import { DEFAULT_POSITION_COORDINATES, SEGMENTS, type SegmentKey } from "~/lib/soccer/fixed-game";
 import { Box, Grid, HStack, VStack } from "styled-system/jsx";
 import { SoccerFieldDiagram } from "./SoccerFieldDiagram";
+import { ScheduleTransitionArrows } from "./ScheduleTransitionArrows";
 
 export function PrintPage() {
   const data = useSoccerData();
   const params = useParams();
+  const [searchParams] = useSearchParams();
+  const showMovements = () => searchParams.movements !== "hide";
   const game = () => data.snapshot()?.games.find((item) => item.id === params.gameId);
   const schedule = () =>
     data
@@ -88,42 +91,52 @@ export function PrintPage() {
                       )}
                     </For>
                   </Grid>
-                  <For each={data.positions()}>
-                    {(position) => (
-                      <Grid
-                        gridTemplateColumns="150px repeat(8, minmax(70px, 1fr))"
-                        borderTopWidth="1px"
-                        borderColor="gray.6"
-                      >
-                        <Box p="2" fontSize="sm" fontWeight="bold">
-                          {position.short} · {position.label}
-                        </Box>
-                        <For each={SEGMENTS}>
-                          {(segment) => {
-                            const person = () =>
-                              player(
-                                published().assignments.find(
-                                  (item) =>
-                                    item.segmentKey === segment.key &&
-                                    item.positionKey === position.key,
-                                )?.playerId,
+                  <Box position="relative">
+                    <For each={data.positions()}>
+                      {(position) => (
+                        <Grid
+                          gridTemplateColumns="150px repeat(8, minmax(70px, 1fr))"
+                          borderTopWidth="1px"
+                          borderColor="gray.6"
+                        >
+                          <Box p="2" fontSize="sm" fontWeight="bold">
+                            {position.short} · {position.label}
+                          </Box>
+                          <For each={SEGMENTS}>
+                            {(segment) => {
+                              const person = () =>
+                                player(
+                                  published().assignments.find(
+                                    (item) =>
+                                      item.segmentKey === segment.key &&
+                                      item.positionKey === position.key,
+                                  )?.playerId,
+                                );
+                              return (
+                                <Box
+                                  p="2"
+                                  borderLeftWidth="1px"
+                                  borderColor="gray.6"
+                                  textAlign="center"
+                                  fontSize="xs"
+                                >
+                                  <Box fontWeight="bold">{person()?.displayName.split(" ")[0]}</Box>
+                                </Box>
                               );
-                            return (
-                              <Box
-                                p="2"
-                                borderLeftWidth="1px"
-                                borderColor="gray.6"
-                                textAlign="center"
-                                fontSize="xs"
-                              >
-                                <Box fontWeight="bold">{person()?.displayName.split(" ")[0]}</Box>
-                              </Box>
-                            );
-                          }}
-                        </For>
-                      </Grid>
-                    )}
-                  </For>
+                            }}
+                          </For>
+                        </Grid>
+                      )}
+                    </For>
+                    <Show when={showMovements()}>
+                      <ScheduleTransitionArrows
+                        assignments={published().assignments}
+                        players={data.snapshot()?.players ?? []}
+                        positions={data.positions()}
+                        labelColumnWidth={150}
+                      />
+                    </Show>
+                  </Box>
                   <Grid
                     gridTemplateColumns="150px repeat(8, minmax(70px, 1fr))"
                     borderTopWidth="2px"

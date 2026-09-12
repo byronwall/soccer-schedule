@@ -4,6 +4,9 @@ This file records user-visible changes, important development workflow changes, 
 
 ## Unreleased
 
+- The position schedule now draws player-colored arrows for field position changes at each
+  mid-quarter break. It omits substitutions and changes between quarters. A default-on toggle
+  hides the arrows in both the editor and its printed schedule.
 - Completed games now link directly to their published schedule. Historical schedules remain
   read-only, and the editor explains why Edit again is disabled.
 - Added nine checked base flow diagrams under `docs/flows` as `.diagram` files, with a route index,

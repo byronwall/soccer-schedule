@@ -23,6 +23,7 @@ import { Box, Grid, HStack, VStack } from "styled-system/jsx";
 import { PlayerAssignmentCell, SubstituteCell } from "./ScheduleGridCells";
 import { ScheduleGroupLockButton } from "./ScheduleGroupLockButton";
 import { ScheduleGroupClearButton } from "./ScheduleGroupClearButton";
+import { ScheduleTransitionArrows } from "./ScheduleTransitionArrows";
 
 type Selection = { segmentKey: SegmentKey; positionKey: PositionKey };
 export type ScheduleSwap = Selection & { playerId: string };
@@ -44,6 +45,7 @@ type PositionGridProps = {
   onGenerateSegment: (segmentKey: SegmentKey) => void;
   changedCellIds: string[];
   preferences: PlayerPreference[];
+  showMovements: boolean;
   selected?: Selection;
 };
 
@@ -272,120 +274,130 @@ export function PositionGrid(props: PositionGridProps) {
           )}
         </For>
       </Grid>
-      <For each={props.positions}>
-        {(position) => (
-          <Grid
-            gridTemplateColumns="128px repeat(8, minmax(0, 1fr))"
-            gap="0"
-            borderTopWidth="1px"
-            borderColor="border"
-          >
-            <VStack px="1.5" py="0.5" gap="0" alignItems="start" justifyContent="center">
-              <HStack gap="1" minW="0" width="full">
-                <Badge size="sm">{position.short}</Badge>
-                <Text textStyle="xs" fontWeight="medium" whiteSpace="nowrap">
-                  {position.label}
-                </Text>
-              </HStack>
-              <HStack gap="0" flexShrink="0">
-                <ScheduleGroupLockButton
-                  label={`${position.label} row`}
-                  state={positionLockState(position.key)}
-                  disabled={
-                    !props.editable ||
-                    !props.schedule.assignments.some((item) => item.positionKey === position.key)
-                  }
-                  onLock={() => props.onLockPosition(position.key)}
-                />
-                <ScheduleGroupClearButton
-                  label={`${position.label} assignments`}
-                  disabled={
-                    !props.editable ||
-                    !props.schedule.assignments.some((item) => item.positionKey === position.key)
-                  }
-                  onClear={() => props.onClearPosition(position.key)}
-                />
-                <Tooltip
-                  content={`Regenerate ${position.label} position`}
-                  positioning={{
-                    strategy: "fixed",
-                    flip: true,
-                    slide: true,
-                    overflowPadding: 12,
-                  }}
-                >
-                  <IconButton
-                    size="2xs"
-                    variant="plain"
-                    disabled={!props.editable}
-                    aria-label={`Regenerate ${position.label} position`}
-                    onClick={() => props.onGeneratePosition(position.key)}
-                  >
-                    <Sparkles size={14} />
-                  </IconButton>
-                </Tooltip>
-              </HStack>
-            </VStack>
-            <For each={SEGMENTS}>
-              {(segment) => {
-                const item = () => assignment(segment.key, position.key);
-                const assignedPlayer = () => playerById(item()?.playerId ?? "");
-                const assignedPlayerInactive = () => isInactive(assignedPlayer());
-                const key = cellKey(segment.key, position.key);
-                return (
-                  <PlayerAssignmentCell
-                    player={assignedPlayer()}
-                    inactive={assignedPlayerInactive()}
-                    locked={item()?.locked}
-                    warnings={[
-                      ...cellWarnings(segment.key, position.key),
-                      ...(assignedPlayerInactive() ? ["Player is inactive for this game."] : []),
-                    ]}
-                    editable={props.editable}
-                    emphasized={emphasizedPlayerId() === assignedPlayer()?.id}
-                    dragging={
-                      dragState.source?.playerId === assignedPlayer()?.id &&
-                      dragState.source?.segmentKey === segment.key
+      <Box position="relative">
+        <For each={props.positions}>
+          {(position) => (
+            <Grid
+              gridTemplateColumns="128px repeat(8, minmax(0, 1fr))"
+              gap="0"
+              borderTopWidth="1px"
+              borderColor="border"
+            >
+              <VStack px="1.5" py="0.5" gap="0" alignItems="start" justifyContent="center">
+                <HStack gap="1" minW="0" width="full">
+                  <Badge size="sm">{position.short}</Badge>
+                  <Text textStyle="xs" fontWeight="medium" whiteSpace="nowrap">
+                    {position.label}
+                  </Text>
+                </HStack>
+                <HStack gap="0" flexShrink="0">
+                  <ScheduleGroupLockButton
+                    label={`${position.label} row`}
+                    state={positionLockState(position.key)}
+                    disabled={
+                      !props.editable ||
+                      !props.schedule.assignments.some((item) => item.positionKey === position.key)
                     }
-                    validTarget={
-                      !!dragState.source &&
-                      dragState.source.segmentKey === segment.key &&
-                      dragState.source.playerId !== assignedPlayer()?.id &&
-                      !assignedPlayerInactive()
-                    }
-                    dropTarget={dragState.over === key}
-                    changed={props.changedCellIds.includes(key)}
-                    selected={
-                      props.selected?.segmentKey === segment.key &&
-                      props.selected.positionKey === position.key
-                    }
-                    preference={
-                      assignedPlayer()
-                        ? positionDisposition(preferences(), assignedPlayer()!.id, position.key)
-                        : "neutral"
-                    }
-                    segmentKey={segment.key}
-                    rowKey={position.key}
-                    onEmphasisChange={setEmphasizedPlayerId}
-                    onClick={() =>
-                      activateFieldCell({ segmentKey: segment.key, positionKey: position.key })
-                    }
-                    onPointerDown={(event) => {
-                      const currentPlayer = assignedPlayer();
-                      if (currentPlayer && !assignedPlayerInactive())
-                        beginPointerDrag(event, {
-                          segmentKey: segment.key,
-                          positionKey: position.key,
-                          playerId: currentPlayer.id,
-                        });
-                    }}
+                    onLock={() => props.onLockPosition(position.key)}
                   />
-                );
-              }}
-            </For>
-          </Grid>
-        )}
-      </For>
+                  <ScheduleGroupClearButton
+                    label={`${position.label} assignments`}
+                    disabled={
+                      !props.editable ||
+                      !props.schedule.assignments.some((item) => item.positionKey === position.key)
+                    }
+                    onClear={() => props.onClearPosition(position.key)}
+                  />
+                  <Tooltip
+                    content={`Regenerate ${position.label} position`}
+                    positioning={{
+                      strategy: "fixed",
+                      flip: true,
+                      slide: true,
+                      overflowPadding: 12,
+                    }}
+                  >
+                    <IconButton
+                      size="2xs"
+                      variant="plain"
+                      disabled={!props.editable}
+                      aria-label={`Regenerate ${position.label} position`}
+                      onClick={() => props.onGeneratePosition(position.key)}
+                    >
+                      <Sparkles size={14} />
+                    </IconButton>
+                  </Tooltip>
+                </HStack>
+              </VStack>
+              <For each={SEGMENTS}>
+                {(segment) => {
+                  const item = () => assignment(segment.key, position.key);
+                  const assignedPlayer = () => playerById(item()?.playerId ?? "");
+                  const assignedPlayerInactive = () => isInactive(assignedPlayer());
+                  const key = cellKey(segment.key, position.key);
+                  return (
+                    <PlayerAssignmentCell
+                      player={assignedPlayer()}
+                      inactive={assignedPlayerInactive()}
+                      locked={item()?.locked}
+                      warnings={[
+                        ...cellWarnings(segment.key, position.key),
+                        ...(assignedPlayerInactive() ? ["Player is inactive for this game."] : []),
+                      ]}
+                      editable={props.editable}
+                      emphasized={emphasizedPlayerId() === assignedPlayer()?.id}
+                      dragging={
+                        dragState.source?.playerId === assignedPlayer()?.id &&
+                        dragState.source?.segmentKey === segment.key
+                      }
+                      validTarget={
+                        !!dragState.source &&
+                        dragState.source.segmentKey === segment.key &&
+                        dragState.source.playerId !== assignedPlayer()?.id &&
+                        !assignedPlayerInactive()
+                      }
+                      dropTarget={dragState.over === key}
+                      changed={props.changedCellIds.includes(key)}
+                      selected={
+                        props.selected?.segmentKey === segment.key &&
+                        props.selected.positionKey === position.key
+                      }
+                      preference={
+                        assignedPlayer()
+                          ? positionDisposition(preferences(), assignedPlayer()!.id, position.key)
+                          : "neutral"
+                      }
+                      segmentKey={segment.key}
+                      rowKey={position.key}
+                      onEmphasisChange={setEmphasizedPlayerId}
+                      onClick={() =>
+                        activateFieldCell({ segmentKey: segment.key, positionKey: position.key })
+                      }
+                      onPointerDown={(event) => {
+                        const currentPlayer = assignedPlayer();
+                        if (currentPlayer && !assignedPlayerInactive())
+                          beginPointerDrag(event, {
+                            segmentKey: segment.key,
+                            positionKey: position.key,
+                            playerId: currentPlayer.id,
+                          });
+                      }}
+                    />
+                  );
+                }}
+              </For>
+            </Grid>
+          )}
+        </For>
+        <Show when={props.showMovements}>
+          <ScheduleTransitionArrows
+            assignments={props.schedule.assignments}
+            players={props.players}
+            positions={props.positions}
+            emphasizedPlayerId={emphasizedPlayerId()}
+          />
+        </Show>
+      </Box>
       <Show when={substituteCount() > 0}>
         <Grid
           gridTemplateColumns="128px repeat(8, minmax(0, 1fr))"

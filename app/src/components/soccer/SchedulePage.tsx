@@ -38,6 +38,7 @@ export function SchedulePage() {
   const data = useSoccerData();
   const params = useParams();
   const [view, setView] = createSignal<ScheduleView>("position");
+  const [showMovements, setShowMovements] = createSignal(true);
   const [selection, setSelection] = createSignal<Selection>();
   const [removeLocksOpen, setRemoveLocksOpen] = createSignal(false);
   const [clearScheduleOpen, setClearScheduleOpen] = createSignal(false);
@@ -418,7 +419,9 @@ export function SchedulePage() {
             actions={
               <Show when={schedule()?.status === "published"}>
                 <HStack gap="2" flexWrap="wrap">
-                  <A href={`/games/${params.gameId}/print`}>
+                  <A
+                    href={`/games/${params.gameId}/print${showMovements() ? "" : "?movements=hide"}`}
+                  >
                     <Button size="sm" variant="outline">
                       <Printer size={16} /> Print
                     </Button>
@@ -440,7 +443,9 @@ export function SchedulePage() {
             eligibleIds={availableIds()}
             readiness={readiness()}
             playerName={(playerId) => player(playerId)?.displayName ?? "Unknown player"}
+            showMovements={showMovements()}
             onViewChange={setView}
+            onShowMovementsChange={setShowMovements}
             onGenerate={() => void generateTarget({ kind: "all" })}
             onEditAgain={() => {
               const current = schedule();
@@ -536,6 +541,7 @@ export function SchedulePage() {
                       editable={isEditableSchedule(currentSchedule())}
                       changedCellIds={generation.changedCellIds}
                       preferences={data.snapshot()?.playerPreferences.entries ?? []}
+                      showMovements={showMovements()}
                       selected={selection()}
                       onSelect={setSelection}
                       onSwap={(change) => void swap(change)}
