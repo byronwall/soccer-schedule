@@ -143,7 +143,7 @@ export function ScheduleTransitionArrows(props: {
                   "border-bottom": "5px solid transparent",
                   "border-left": `8px solid ${movement.playerColor}`,
                   opacity: opacity(),
-                  transform: "translate(-8px, -50%)",
+                  transform: "translateY(-50%)",
                 }}
               />
             </>
