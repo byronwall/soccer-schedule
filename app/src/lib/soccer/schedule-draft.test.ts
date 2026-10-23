@@ -499,6 +499,37 @@ describe("partial schedule drafts", () => {
     expect(store.schedules[0].status).toBe("draft");
   });
 
+  it("publishes a valid stale schedule without changing assignments or locks", () => {
+    const complete = generateSchedule(players, { seed: "stale-publish" }).map((item, index) => ({
+      ...item,
+      locked: index === 0,
+    }));
+    const store = storeWithAssignments(complete);
+    store.schedules[0].status = "stale";
+
+    action(store, "publishSchedule", { scheduleId, expectedRevision: 1 });
+
+    expect(store.schedules[0].status).toBe("published");
+    expect(store.schedules[0].assignments).toEqual(complete);
+  });
+
+  it("rejects stale schedules with missing cells, unavailable players, or an old revision", () => {
+    const complete = generateSchedule(players, { seed: "stale-invalid" });
+    const store = storeWithAssignments(complete);
+    const schedule = store.schedules[0];
+    schedule.status = "stale";
+    const publish = (expectedRevision = 1) =>
+      action(store, "publishSchedule", { scheduleId, expectedRevision });
+
+    expect(() => publish(2)).toThrow(/Version conflict/);
+    schedule.assignments = complete.slice(1);
+    expect(() => publish()).toThrow(/Incomplete schedule/);
+    schedule.assignments = complete;
+    store.availability[0].status = "unavailable";
+    expect(() => publish()).toThrow(/Invalid schedule/);
+    expect(schedule.status).toBe("stale");
+  });
+
   it("migrates existing complete version-five schedules unchanged", () => {
     const complete = generateSchedule(players, { seed: "migration" });
     const store = storeWithAssignments(complete);
