@@ -4,6 +4,8 @@ This file records user-visible changes, important development workflow changes, 
 
 ## Unreleased
 
+- Valid schedules can now publish after availability changes without regeneration. The editor keeps
+  Publish and Undo visible and explains any remaining publication blockers.
 - The position schedule now draws player-colored arrows for field position changes at each
   mid-quarter break. It omits substitutions and changes between quarters. A default-on toggle
   hides the arrows in both the editor and its printed schedule.

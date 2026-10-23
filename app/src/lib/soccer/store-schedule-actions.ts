@@ -328,9 +328,7 @@ export const scheduleActionHandlers: Record<string, StoreActionHandler> = {
   publishSchedule: (store, payload, stamp) => {
     const request = scheduleRevisionRequestSchema.parse(payload);
     const schedule = requireSchedule(store, request.scheduleId);
-    if (schedule.status !== "draft") {
-      throw new Error("Repair or regenerate the stale schedule before publishing.");
-    }
+    assertEditableSchedule(schedule.status);
     assertRevision(schedule.revision, request);
     const eligibleIds = store.availability
       .filter((item) => item.gameId === schedule.gameId && item.status === "available")

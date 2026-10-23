@@ -13,6 +13,7 @@ import {
 import type { ScheduleQuality } from "~/lib/soccer/scheduling";
 import type { Schedule } from "~/lib/soccer/schemas";
 import type { ScheduleReadiness } from "~/lib/soccer/schedule-readiness";
+import { isEditableSchedule } from "~/lib/soccer/schedule-selection";
 import { Flex, HStack } from "styled-system/jsx";
 import { ScheduleQualityPopover } from "./ScheduleQualityPopover";
 
@@ -124,7 +125,7 @@ export function ScheduleToolbar(props: ScheduleToolbarProps) {
           </Text>
         )}
       </Show>
-      <Show when={props.schedule?.status === "draft"}>
+      <Show when={isEditableSchedule(props.schedule)}>
         <ButtonGroup gap="0">
           <Tooltip content="Undo last schedule change">
             <IconButton
@@ -164,7 +165,7 @@ export function ScheduleToolbar(props: ScheduleToolbarProps) {
               )}
             </Show>
             <ScheduleStatusBadge status={current().status} readiness={props.readiness} />
-            <Show when={current().status === "draft"}>
+            <Show when={isEditableSchedule(current())}>
               <Button
                 size="sm"
                 colorPalette="grass"
@@ -176,6 +177,12 @@ export function ScheduleToolbar(props: ScheduleToolbarProps) {
             </Show>
           </HStack>
         )}
+      </Show>
+      <Show when={isEditableSchedule(props.schedule) && props.readiness}>
+        <Text textStyle="sm" color="fg.muted">
+          {props.schedule?.status === "stale" ? "Availability changed. " : ""}
+          {props.readiness?.message}
+        </Text>
       </Show>
       <Show when={props.schedule?.status === "draft" || props.schedule?.status === "stale"}>
         <Show when={props.schedule?.assignments.some((assignment) => assignment.locked)}>
@@ -208,7 +215,7 @@ function ScheduleStatusBadge(props: { status: Schedule["status"]; readiness?: Sc
             ? "incomplete · availability changed"
             : props.readiness?.kind === "complete-invalid"
               ? "complete · invalid"
-              : "stale"}
+              : "valid draft · availability changed"}
         </Badge>
       </Match>
       <Match when={props.status === "draft"}>
